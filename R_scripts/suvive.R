@@ -3,7 +3,7 @@ library('survival')
 
 # 读取数据
 setwd('D:/R_code')
-my=read.csv('suvive2.csv',header=T);my
+my=read.csv('survive2016.csv',header=T);my
 
 # 按照tx分组对time和statuss拟合生存曲线，
 km=survfit(Surv(time,as.numeric(status))~tx,data=my,se.fit=FALSE, conf.int=.95)

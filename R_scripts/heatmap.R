@@ -56,7 +56,7 @@ heatmap.2(selected, col=redgreen(175), scale="row", ColSideColors=patientcolors,
 #使用pheatmap包作图
 #scale是什么意思？
 #按列表转化色彩。最好
-pheatmap(selected, color=colorRampPalette(c("green","black","red"))(50), cluster_cols=FALSE,
+pheatmap(selected, color=colorRampPalette(c("green","black","red"))(50), #cluster_cols=FALSE,
          fontsize_row = 8,scale="column", border_color = NA)
 
 #原始值

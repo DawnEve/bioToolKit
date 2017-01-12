@@ -1,0 +1,26 @@
+# Windows:
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+dist
+build
+/pythonCodeNotInGit
+
+__pycache__
+
+
+# My configurations:
+log.ini
+deploy_key_rsa
+
+# day5处理图片了
+*/day5/*.jpg
+
+#eclipse
+.settings
