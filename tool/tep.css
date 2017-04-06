@@ -1,0 +1,70 @@
+
+		html,body,ul{
+			margin: 0;
+			padding: 0;
+		}
+		body{
+			font-family:Arial,"宋体";
+		}
+		h1 { font-size: 25px; /* 18px / 12px = 1.5 */ }
+		h2 { font-size: 16px; }
+		
+		/* 重置列表元素 */
+		ul, ol { list-style: none; }
+		
+		h1 b{color:red;}
+		h1 .small{font-size:medium;}
+		h2{padding:2px 10px; background:rgba(0,150,255,0.1); /*#0096ff;*/
+			margin:15px 0 5px;
+		}
+		#header,#footer{
+			width:960px;
+			margin:2px auto;
+		}
+		#input{
+			font-family: monospace;
+			border-color: rgb(169, 169, 169);
+			width:660px; height:260px;
+			float:left;
+		}
+			
+		.red{color:red;}
+		.grey{color:#bbb;}
+		.HLbg{background:#FFECBF;}
+		.redbg{background:red; color:#fff;}
+		
+		pre{float:left;
+			background:#efeeef;
+			padding:10px; 
+			border-radius:15%;
+			margin:20px;
+		}
+
+		#libType li{ float:left;     margin-right: 100px; }
+
+		
+		#output{
+			word-break:break-all;
+			border:1px solid #0096ff;
+			font-family:Courier,"宋体";
+			font-size:15px;
+			padding:10px 5px; 
+		}
+		
+		#output b {
+			display: inline-block;
+			width: 165px;
+			text-align: right;
+		}
+	
+		#footer{
+			clear: both;
+			padding: 10px 5px;
+			background: #0096ff;
+			font-size:12px;
+			line-height:15px;
+			color:#fff;
+		}
+		#tips{visibility:hidden;background: #0096ff; border-radius:10px;color:#fff; padding:5px;}
+.clearfix{clear:both;}
+	input[type="button"]{width:100px; height:30px; margin-right:50px;}

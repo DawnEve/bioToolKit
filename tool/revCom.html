@@ -1,0 +1,358 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>反向互补序列</title>
+		<style>
+		body{
+			font-family:Arial,"宋体";
+		}
+		#header,#footer{
+			width:960px;
+			margin:2px auto;
+		}
+		#input{
+			font-family: monospace;
+			border-color: rgb(169, 169, 169);
+			width:660px; height:60px;
+			float:left;
+			
+		}
+		.red{color:red;}
+		.grey{color:#bbb;}
+		.HLbg{background:#FFECBF;}
+		.redbg{background:red; color:#fff;}
+		.button{background:#efeeef; color:#0096ff; font-weight:bold; border:none;
+			border-right:2px solid #000; border-bottom:2px solid #000;
+			padding:5px; border-radius:10px;cursor: pointer; }
+		.button:hover{background:#0096ff; color:#efeeef;}
+		
+		pre{float:left;
+			background:#efeeef;
+			padding:10px; 
+			border-radius:15%;
+			margin:20px;
+		}
+		#output{
+			word-break:break-word;
+			border:1px solid #0096ff;
+			font-family:monospace,"宋体";
+			font-size:15px;
+			padding:10px 5px; 
+		}
+		#footer{
+			clear: both;
+			padding: 10px 5px;
+			background: #0096ff;
+			font-size:12px;
+			line-height:15px;
+			color:#fff;
+		}
+		#tips{visibility:hidden;background: #0096ff; border-radius:10px;color:#fff; padding:5px;}
+		
+		#statisInfo{
+			border:5px solid #eee; background:#0096ff; color:#fff;
+			position:absolute; top:0; right:0;
+			padding:10px; width:400px;
+			word-break:break-word;
+		}
+		
+		</style>
+	</head>
+	<body>
+	<div id=header>
+	<h2><a href="revCom.html" target="_blank" title="新建">NewWindow</a>反向互补序列(version0.063)-优化掉空格，便于双击复制翻译产物</h2>
+	
+	<hr>
+	Please input your fasta file:（请仅输入基因序列，不要输入第一行的序列说明！）<br/>
+	<div id=statisInfo>统计选择字符的个数:</div>
+		<textarea class=input id=input>
+CCGAATAGTCGTCGTaa
+T
+</textarea>
+		
+<pre>
+<span class=red><b>点击submit处理流程:</b></span>
+1.序列去掉<b>非字母字符</b>,转为大写；
+2.取此DNA的反向互补序列；
+3.输出5'到3'序列；
+4.翻译为氨基酸；
+</pre>
+
+<div style="clear:both;"></div>
+
+		<br/>
+		<input type=button id=submit value="submit" />
+		<input type=button id=reset value="reset" />
+		<input type=button id=translate class="button" value="translate" />
+		
+		<span id=tips>请刷新页面或点击reset以重新提交序列。</span>
+		
+		
+		
+		<hr>
+		<div id=output></div>
+</div><!--end of header-->
+		
+		
+		<div id=footer>
+			如有任何建议和意见，欢迎反馈到 jimmymall@163.com.<br>
+			声明:作者尽力保证程序正确，但对结果的正确性不作任何保证；请在仔细验证后使用！<br />
+			Distributed under the MIT license.
+			&copy;2014 By FireCloud | 
+
+			<script type="text/javascript">
+			function print(s){document.write(s);}
+			print("lastModified: "+document.lastModified);
+			
+/*统计代码 * /			var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1253196206'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s13.cnzz.com/z_stat.php%3Fid%3D1253196206%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));*/
+			
+			</script><br /> 
+		</div><!--end of footer-->
+	
+	
+
+	
+	<!-- ---------------------javascript part--------------------------->
+	
+	<script>
+//javascript
+/*-----------------------------javascript单击事件----------------------------*/
+window.onload=function(){
+/*--------------------------------重置事件绑定------------------------------*/
+	$("reset").onclick=function(){
+		//$("input").innerHTML="";//不会清空用户的输入。
+		$("input").value="";
+		$("output").innerHTML="";
+		$("tips").style.visibility="hidden";
+		$("submit").disabled=false;
+		$("input").focus();
+	}
+
+/*--------------------------------提交事件绑定------------------------------*/
+	$("submit").onclick=function(){
+		$("output").innerHTML="";
+//1.获取字符串
+		var str=$("input").value.toUpperCase();		
+
+//2.反向、互补；
+		n("原始序列:"+DNA.getDNA(str)+"<br/>","output");
+		n("反向 - -:"+DNA.reverse(str)+"<br/>","output");
+		n("互补 - -:"+DNA.complete(str)+"<br/>","output");
+		n("反向互补:<span class=red>"+DNA.revCom(str)+"</span><br/>","output");
+		
+		n("<hr>","output");
+		
+		var strOri=DNA.getDNA(str);
+		var aaOri=DNA.translate(str);
+		n("原始序列:"+strOri+"["+strOri.length+"bp]<br/>","output");
+		n("翻译产物:"+DNA.separate(aaOri)+"<br/>","output");
+		n("翻译产物:<span class=red>"+aaOri+"["+aaOri.length+"aa]</span><br/>","output");
+		
+				
+		n("<hr>","output");
+		n("隔开后 -:"+DNA.spaceEvery(str)+"<br/>","output");
+	
+	};
+	
+//-------------------------绑定translate按钮的单击事件----------------------------
+	$("translate").onclick=function(){
+		$("output").innerHTML="";
+//1.获取字符串
+		var str=$("input").value.toUpperCase();	
+		var dna_Str=DNA.getDNA(str);//过滤掉数字和空格等。
+//2.按5' to 3' 3个读码框进行翻译
+		n("原始序列:"+dna_Str+"["+dna_Str.length+"bp]<hr/>","output");
+		
+			var aa1=DNA.translate(dna_Str); 
+		n("<span class=red>5'to3',1st Frame: </span>"+aa1+"["+aa1.length+"aa]<hr/>","output");
+			var aa2=DNA.translate(dna_Str.substring(1)); 
+		n("<span class=red>5'to3',2nd Frame: </span>"+aa2+"["+aa2.length+"aa]<hr/>","output");
+			var aa3=DNA.translate(dna_Str.substring(2)); 
+		n("<span class=red>5'to3',3rd Frame: </span>"+aa3+"["+aa3.length+"aa]<hr/>","output");
+	
+//3.按3' to 5' 3个读码框进行翻译
+			var dna_comRev=DNA.revCom(dna_Str);
+			n("反向互补:"+dna_comRev+"["+dna_comRev.length+"bp]<hr/>","output");
+			
+			var aa4=DNA.translate(dna_comRev); 
+		n("<span class=red>3'to5',1st Frame: </span>"+aa4+"["+aa4.length+"aa]<hr/>","output");
+			var aa5=DNA.translate(dna_comRev.substring(1)); 
+		n("<span class=red>3'to5',2nd Frame: </span>"+aa5+"["+aa5.length+"aa]<hr/>","output");
+			var aa6=DNA.translate(dna_comRev.substring(2)); 
+		n("<span class=red>3'to5',3rd Frame: </span>"+aa6+"["+aa6.length+"aa]<br/>","output");
+	};
+	
+//-------------------绑定 全局单击事件 对选择文本的的统计功能-------------------
+	function statisInfo(s){ $("statisInfo").innerHTML=s;}
+	
+	//$("text").onclick=function(){
+	document.onclick=function(){
+		var txt=getSelectionText();
+		if(txt.length!=0){//忽略双击事件的第一次单击，相当于选择0个字符。
+			statisInfo( "sel: " + txt.length + ', <br>"' + txt +'"' );
+		}
+	}
+
+};
+//end of window onload;
+
+
+	
+/*--------------------------------tool kit------------------------------*/
+function $(s){
+	if(typeof s=="object")
+		return s;
+	return document.getElementById(s);
+}
+
+function println(s){document.write(s+"<br />");}
+
+function n(s, o){
+	if(o==undefined){
+		console.log(s);
+	}else{
+		$(o).innerHTML+=s;
+	}
+}
+
+/**
+函数: 返回选中的文本
+*/
+function getSelectionText() {
+	if (window.getSelection) { 
+		//如果是Firefox、Chrome、Safari、Opera
+		return window.getSelection().toString();
+	} else if (document.selection && document.selection.createRange) { 
+		//如果是IE(IE8测试发现不支持双击选中的情况) 
+		return document.selection.createRange().text;
+	}
+	return '';
+}
+//end of tools
+
+
+
+/**建立一个DNA对象，有很多静态方法可用。
+	- 仿照Math对象，使用方法也类似;
+	- 集成静态方法，可以直接使用;
+	- 直接返回结果，不支持链式调用。
+	- at: 20141111
+	- by JimmyMall[at]163.com
+*/
+var DNA={
+	//alert("该对象仅仅封装静态方法,请直接使用!");
+	getDNA: function(str){
+		//输入DNA并格式化:去掉换行
+		str=str.replace(/\r/g,'').replace(/\n/g,'');
+		//去掉非字母字符:数字、特殊符号
+		str=str.replace(/[^a-zA-Z]/g,'');
+		//去掉空格、变成大写
+		return str.replace(/\s/g,"").toUpperCase();
+	},
+	//翻转字符串
+	reverse2: function(dna){
+		//反向字符串
+		var rev="";
+		for(var i=dna.length-1; i>=0; i--){
+			rev += dna.charAt(i);
+		}
+		return rev;
+	},
+	reverse: function(dna){
+		//反向字符串
+		dna=DNA.getDNA(dna);
+		return dna.split("").reverse().join("");
+	},
+	//互补序列
+	complete:function(dna){
+		dna=DNA.getDNA(dna);
+		var comp="";
+		for(var i=0;i<dna.length;i++){
+			switch (dna.charAt(i)){
+				case "A": comp +="T";break;
+				case "T": comp +="A";break;
+				case "G": comp +="C";break;
+				case "C": comp +="G";break;
+				default: comp +="X";//不处理简并碱基
+			}
+		}
+		return comp;
+	},
+	//反向互补序列
+	revCom:function(dna){
+		dna=DNA.getDNA(dna);
+		return DNA.complete( DNA.reverse(dna) );
+	},
+	//翻译dna为aa单字母缩写:
+	translate: function(dna){
+		str=DNA.getDNA(dna);
+		var codens={
+			"TTT":"F",  "TCT":"S",  "TAT":"Y",  "TGT":"C", 
+			"TTC":"F",  "TCC":"S",  "TAC":"Y",  "TGC":"C", 
+			"TTA":"L",  "TCA":"S",  "TAA":"-",  "TGA":"-", 
+			"TTG":"L",  "TCG":"S",  "TAG":"-",  "TGG":"W", 
+
+			"CTT":"L",  "CCT":"P",  "CAT":"H",  "CGT":"R", 
+			"CTC":"L",  "CCC":"P",  "CAC":"H",  "CGC":"R", 
+			"CTA":"L",  "CCA":"P",  "CAA":"Q",  "CGA":"R", 
+			"CTG":"L",  "CCG":"P",  "CAG":"Q",  "CGG":"R", 
+
+			"ATT":"I",  "ACT":"T",  "AAT":"N",  "AGT":"S", 
+			"ATC":"I",  "ACC":"T",  "AAC":"N",  "AGC":"S", 
+			"ATA":"I",  "ACA":"T",  "AAA":"K",  "AGA":"R", 
+			"ATG":"M",  "ACG":"T",  "AAG":"K",  "AGG":"R", 
+
+			"GTT":"V",  "GCT":"A",  "GAT":"D",  "GGT":"G", 
+			"GTC":"V",  "GCC":"A",  "GAC":"D",  "GGC":"G", 
+			"GTA":"V",  "GCA":"A",  "GAA":"E",  "GGA":"G", 
+			"GTG":"V",  "GCG":"A",  "GAG":"E",  "GGG":"G"
+		}
+
+		var aa="";
+		for (i = 0; i < str.length; i=i+3) {
+			var sub=str.substring(i, i+3);
+			var a=codens[sub];
+			if(a==undefined){
+				a="x";
+			}
+			aa += a;
+		}
+
+		return aa;
+	},
+	//aa单字母缩写中间加上2个空格；
+	separate: function(s){
+		var temp="";
+		for(i=0; i<s.length; i++){
+			temp+=s.substring(i,i+1);
+			temp+="&nbsp;&nbsp;";
+		}
+		
+		return temp;
+	},
+	//字符串str每隔n个加一个空格；
+	spaceEvery: function(str, n){
+		s=DNA.getDNA(str);
+		var temp="";
+		n=n||3;//默认三个字符加一个空格
+		for(i=0; i<s.length; i+=3){
+			temp+=s.substring(i,i+3);
+			temp+="&nbsp;";
+		}
+		
+		return temp;
+	},
+
+	help: function(){
+		alert("王军亮:JimmyMall[at]163.com");
+	}
+ }
+ /////////end of DNA object
+
+
+
+
+	</script>
+	</body>
+</html>

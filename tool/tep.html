@@ -1,0 +1,491 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<charset='utf8'>
+<head>
+	<title>Tep——A tool for Translating peptide from phage</title>
+	<style>
+
+		html,body,ul,pre{
+			margin: 0;
+			padding: 0;
+		}
+		body{
+			font-family:Arial,"宋体";
+		}
+		h1 { font-size: 25px; /* 18px / 12px = 1.5 */ }
+		h2 { font-size: 16px; }
+		
+		/* 重置列表元素 */
+		ul, ol { list-style: none; }
+		
+		h1 b{color:red;}
+		h1 .small{font-size:medium;}
+		h2{padding:2px 10px; background:rgba(0,150,255,0.1); /*#0096ff;*/
+			margin:15px 0 5px;
+		}
+		#header,#footer{
+			width:960px;
+			margin:2px auto;
+		}
+		#input{
+			font-family: monospace;
+			border-color: rgb(169, 169, 169);
+			width:600px; height:260px;
+			float:left;
+			font-size:12px;
+		}
+			
+		.red{color:red;}
+		.grey{color:#bbb;}
+		.HLbg{background:#FFECBF;}
+		.redbg{background:red; color:#fff;}
+		
+		pre{float:left;
+			background:#efeeef;
+			padding:10px; 
+			border-radius:15%;
+			margin:20px;
+		}
+
+		#libType li{ float:left;     margin-right: 100px; }
+
+		
+		#output{
+			word-break:break-all;
+			border:1px solid #0096ff;
+			font-family:Courier,"宋体";
+			font-size:15px;
+			padding:10px 5px; 
+		}
+		
+		#output b {
+			display: inline-block;
+			width: 165px;
+			text-align: right;
+		}
+	
+		#footer{
+			clear: both;
+			padding: 10px 5px;
+			background: #0096ff;
+			font-size:12px;
+			line-height:15px;
+			color:#fff;
+		}
+		#footer a{
+			color:#fff;
+		}
+		#footer a:hover{
+			color:#fff;
+		}
+		#tips{visibility:hidden;background: #0096ff; border-radius:10px;color:#fff; padding:5px;}
+.clearfix{clear:both;}
+	input[type="button"]{width:100px; height:30px; margin-right:50px;}	
+	</style>
+</head>
+<body>
+	
+<div id=header>
+	
+	
+	<h1>Tep(version0.3.5-dev) 
+		<span class=small> —— A tool for <b>T</b>ranslating p<b>e</b>ptide from <b>p</b>hage</span>
+	</h1>
+
+	
+	
+	<h2>step1:Please input your fasta file</h2>
+<textarea class=input id=input>
+CCGAATAGTCGTCGTTCAGACGTTAGTAATGATTTTCTGTATGGGATTTTGCTAAACAACTTTCAACAGTTTCGGCCGAA
+CCTCCACCATGCTGCCAATCATACGCAACCTTATACACACCACTAGAGTGAGAATAGAAAGGTACCACTAAAGGAATTGC
+GAATAATAATTTTTTCACGTTGAAAATCTCCAAAAAAAAGGCTCCAAAAGGAGCCTTTAATTGTATCGGTTTATCAGCTT
+GCTTTCGAGGTGAATTTCTTAAACAGCTTGATACCGATAGTTGCGCCGACAATGACAACAACCATCGCCCACGCATAACC
+GATATATTCGGTCGCTGAGGCTTGCAGGGAGTTAAAGGCCGCTTTTGCGGGATCGTCACCCTCAGCAGCGAAAGACAGCA
+TCGGAACGAGGGTAGCAACGGCTACAGAGGCTTTGAGGACTAAAGACTTTTTCATGAGGAAGTTTCCATTAAACGGGTAA
+AATACGTAATGCCACTACGAAGGCACCAACCTAAAACGAAAGAGGCAAAAGAATACACTAAAACACTCATCTTTGACCCC
+CAGCGATTATACCAAGCGCGAAACAAAGTACAACGGAGATTTGTATCATCGCCTGATAAATTGTGTCGAAATCCGCGACC
+TGCTCCATGTTACTTAGCCGGAACGAGGCGCAGACGGTCAATCATAAGGGACCCGAACTGACCAACTTTGAAAGAGGACA
+GATGAACGGTGTACAGACCAGGCGCATAGGGCTGGCTGACCTTCATCAAGAGTAATCTTGACAAGAACCCGGATATTCAT
+TACCCAAATCAACGTAACAAAGCTGCTCATTCAGTGAATAAGGCTTGCCCTGACGAGAAACACCAGAACGAGTAGTAAAT
+TGGGCTTGAGATGGGTTTAATTTCAACTTTAATCATTGTGAATTACCTTATGCGATGTTAAGACTGGCTCATTATACCAG
+TCAGGACGTTGGGAAGAAAAATCTACGTTAATAAAACGAACTAACGGGAACAACATTATTACAGGCAGAAAGAATCATCG
+GTGGAGAATTTAGGAATACCCCATTCCACCTAGGGCGAGACATATACGCCCAAAGGAAATATCCGAAGGCTAGGTAAAGC
+GACAGCTATCGTAGCCCCTCGTGTCTCGCGCGAGAG
+</textarea>
+		
+<pre>
+<span class=red><b>Build in work flow:</b></span>
+1.find head<b id='headseq'></b>;
+2.find tail<b id='tailseq'></b>;
+3.get the sequence bewteen;
+4.get the Reverse compliment;
+5.translate;
+</pre>
+
+
+<div class=clearfix></div>
+<h2>step2:Please select your phage library type</h2>
+<ul id='libType'>
+<form id='libTypeForm'>
+	<li><label><input type='radio' name='type' value='7' />Ph.D.-7</label></li>
+	<li><label><input type='radio' name='type' value='12' checked=checked />Ph.D.-12</label></li>
+	<li><label><input type='radio' name='type' value='70' />Ph.D.-C7C</label></li>
+</form>
+</ul>
+
+
+<div class=clearfix></div>
+<h2>step3:submit your input</h2>
+		<input type='button' id='submit' value="submit" />
+		<input type='button' id='reset' value="reset" />
+		
+		<span id=tips>Please press reset button OR refresh this page to do the next submit.</span>
+		
+		
+<div class=clearfix></div>	
+<h2>output</h2>
+		<div id=output></div>
+</div><!--end of header-->
+		
+		
+		<div id=footer>
+			<a target="_blank" href='./images/Ph.D_Library.jpg'>Refer image from NEB.</a>	<br>		
+			If you have any suggestions, advice or questions, please don't hesitate to contact me: jimmyMall[at]live.com.<br>
+			Junliang Wang, School of Life Sciences, Zhengzhou University, 100 Science Road, Zhengzhou 450001, China<br />
+			Distributed under the MIT license.<br />
+			&copy;2014-2016 PeptideLab<br />
+		</div><!--end of footer-->
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- -------------------------------------javascript part------------------------------------>
+	<script>
+	/*
+	有结果
+CCGAATAGTCGTCGTTCAGACGTTAGTAATGATTTTCTGTATGGGATTTTGCTAAACAACTTTCAACAGTTTCGGCCGAA
+CCTCCACCATGCTGCCAATCATACGCAACCTTATACACACCACTAGAGTGAGAATAGAAAGGTACCACTAAAGGAATTGC
+GAATAATAATTTTTTCACGTTGAAAATCTCCAAAAAAAAGGCTCCAAAAGGAGCCTTTAATTGTATCGGTTTATCAGCTT
+GCTTTCGAGGTGAATTTCTTAAACAGCTTGATACCGATAGTTGCGCCGACAATGACAACAACCATCGCCCACGCATAACC
+GATATATTCGGTCGCTGAGGCTTGCAGGGAGTTAAAGGCCGCTTTTGCGGGATCGTCACCCTCAGCAGCGAAAGACAGCA
+TCGGAACGAGGGTAGCAACGGCTACAGAGGCTTTGAGGACTAAAGACTTTTTCATGAGGAAGTTTCCATTAAACGGGTAA
+AATACGTAATGCCACTACGAAGGCACCAACCTAAAACGAAAGAGGCAAAAGAATACACTAAAACACTCATCTTTGACCCC
+CAGCGATTATACCAAGCGCGAAACAAAGTACAACGGAGATTTGTATCATCGCCTGATAAATTGTGTCGAAATCCGCGACC
+TGCTCCATGTTACTTAGCCGGAACGAGGCGCAGACGGTCAATCATAAGGGACCCGAACTGACCAACTTTGAAAGAGGACA
+GATGAACGGTGTACAGACCAGGCGCATAGGGCTGGCTGACCTTCATCAAGAGTAATCTTGACAAGAACCCGGATATTCAT
+TACCCAAATCAACGTAACAAAGCTGCTCATTCAGTGAATAAGGCTTGCCCTGACGAGAAACACCAGAACGAGTAGTAAAT
+TGGGCTTGAGATGGGTTTAATTTCAACTTTAATCATTGTGAATTACCTTATGCGATGTTAAGACTGGCTCATTATACCAG
+TCAGGACGTTGGGAAGAAAAATCTACGTTAATAAAACGAACTAACGGGAACAACATTATTACAGGCAGAAAGAATCATCG
+GTGGAGAATTTAGGAATACCCCATTCCACCTAGGGCGAGACATATACGCCCAAAGGAAATATCCGAAGGCTAGGTAAAGC
+GACAGCTATCGTAGCCCCTCGTGTCTCGCGCGAGAG
+
+	无结果
+
+GAAAATTGGTCGTCCCTCAGACGTTAGTAAATGAATTTTCTGTATGGGATTTTGCTAAACAACTTTCAACAGTTTCGGCC
+GAACCTCCACCCGACAGAGACCTACGCGAAACATCAGGCCAAGTAGCAAAGTGAGAATAGAAAGGTACCACTAAAGGAAT
+TGCGAATAATAATTTTTTCACGTTGAAAATCTCCAAAAAAAAGGCTCCAAAAGGAGCCTTTAATTGTATCGGTTTATCAG
+CTTGCTTTCGAGGTGAATTTCTTAAACAGCTTGATACCGATAGTTGCGCCGACAATGACAACAACCATCGCCCACGCATA
+ACCGATATATTCGGTCGCTGAGGCTTGCAGGGAGTTAAAGGCCGCTTTTGCGGGATCGTCACCCTCAGCAGCGAAAGACA
+GCATCGGAACCAGGGTAGCGACGGCTACTGAGGCTTTGAAGACTAAAGACTTTTTCGTGAGGAAGTTTCCATTACACGGG
+TAAGATACGTACTGCCTCTACGATGGGGCGATCTTAAACTGAAAGTTGCAAACGCACACACTAAAACACGCATCCTAGAC
+ATCCAGCGAGCAGAAACGCGAGTAACAAAATAGGGGGCTGATTTGTAGCATCGTGTAAGACTTAGTGTCGGAGCTGCTAC
+CTGTTGAAGTTAAATTTCCGGAGCGACGGTTCCACGCCTGATCATATTATAACCCAACCCGCCTAACAAGTCACACTCAC
+AGAAGAAGATGTACCTTTTAACGCCATAAAAGGTTTGTCCCCCCCCTAGAAGAGCCTTACACTGAGACGGCGAGAAAGTG
+CCGAAGCAGGCGGAAGGTGGTGATTTTAAAAAGATAACCGCTTAGCATGATAATTCTGAGCCAAAAACAACAGAAAGAAT
+TAGTAGGGGTTAATGACAATTTCATGTGGGCGGACTTCCCAGGGGGACAGCTAGGAGGTGGCCGATTTGGAACATCACTC
+CCAGCCAGAGTCCATAGTTATTGTTCCTACCGTAGCTGATCTTTGCGGTATTAGGCAGGACCATGGCAAACCATCTTAAT
+GCAAGTATATTCTCAACCAGTAACAGATT
+
+	双份插入片段
+ ACCGATTTGGTCGTCTTTCAGACGTTAGTAATGAATTTTCTGTATGGGATTTTGCTAAACAACTTTCAACAGTTTCGGCC
+GAACCTCCACCCCGCGTAGACCGACTCGGATGAGAGTGAGAATAGAAAGGTACCTTTCTATTCTCACTCTGATAGTGATG
+AGATGAATTATGGTGGAGTTCGGCCGAACCTCCACCCCGCATAGTCGAATGCTTAGCAGAGTGAGAATAGAAAGGTACCA
+CTAAAGGAATTGCGAATAATAATTTTTTCACGTTGAAAATCTCCAAAAAAAAGGCTCCAAAAGGAGCCTTTAATTGTATC
+GGTTTATCAGCTTGCTTTCGAGGTGAATTTCTTAAACAGCTTGATACCGATAGTTGCGCCGACAATGACAACAACCATCG
+CCCACGCATAACCGATATATTCGGTCGCTGAGGCTTGCAGGGAGTTAAAGGCCGCTTTTGCGGGATCGTCACCCTCAGCA
+GCGAAAGACAGCATCGGAACGAGGGTAGCAACGGCTACAGAGGCTTTGAGGACTAAAGACTTTTTCATGAGGAAGTTTCC
+ATTAAACGGGTAAAATACGTAATGCCACTACGAAGGCACCAACCTAAAACGAAAGAGGCAAAAGAATACACTAAAACACT
+CATCTTTGACCCCCAGCGATTATACCAAGCGCGAAACAAAGTACAACGGAGATTTGTATCATCGCCTGATAAATTGTGTC
+GAAATCCGCGACCTGCTCCATGTTACTTAGCCGGAACGAGGCGCAGACGGTCAATCATAAGGGAACCCGAACTGACCAAC
+TTTGAAAGAGGACAGATGAACGGTGTACAGAACCAGGCGCATAGGCTGGCTGACCGTCATCAAGAGTAATCTTGACAAGG
+ACCGGATATTCATTACCCGAATCAACGTAACAAGCTGCTCATTCATGATAAGGGTTGCCTTGACGAGAAACACAAAAAGG
+AGTAGGAAATGGGCTTGAGAAGT
+
+	*/
+	//工具函数
+function $(s){
+	if(typeof s=="object") return s;
+	return document.getElementById(s);
+}
+//输出函数 
+function n(s, o){
+	if(o==undefined){
+		console.log(s);
+	}else{
+		$(o).innerHTML+=s;
+	}
+}
+
+//时间戳函数  
+function now(){
+	function db(s){
+		if(s<10) return '0'+s;
+		return s;
+	}
+	var d = new Date();    //根据时间戳生成的时间对象
+	var date = (d.getFullYear()) + "-" + 
+			   db(d.getMonth() + 1) + "-" +
+			   db(d.getDate()) + " " + 
+			   db(d.getHours()) + ":" + 
+			   db(d.getMinutes()) + ":" + 
+			   db(d.getSeconds());
+	return date;
+}
+
+
+//删除左右两端的空格
+function trim(str){ 
+	return str.replace(/(^\s*)|(\s*$)/g, "");
+}
+
+
+// 获取空格
+function space(num){
+	if(num<=0)return;
+	var str='';
+	for(var i=0;i<num;i++){
+		str += '&nbsp;';
+	}
+	return str;
+}
+
+//间隔开单字母氨基酸
+function separate(s, num){
+	var temp="", 
+		num=num||2,
+		spacer=space(num);
+	for(var i=0; i<s.length; i++){
+		temp += s.substring(i,i+1);
+		temp += spacer;
+	}
+
+	return temp;
+}
+
+//求反向互补序列
+function reverseCom(dna){
+	var dna=dna.toUpperCase();
+	var temp="";
+	for(var i=dna.length; i>=0; i--){
+		var t = dna.substring(i,i+1);
+		if(t=="A")temp+="T";
+		if(t=="T")temp+="A";
+		if(t=="G")temp+="C";
+		if(t=="C")temp+="G";
+	}
+	return temp;
+}
+
+
+
+//翻译dna为aa单字母缩写：其中TAG被翻译成Q
+function translate(dna) {
+	var codens={
+		"TTT":"F",  "TCT":"S",  "TAT":"Y",  "TGT":"C", 
+		"TTC":"F",  "TCC":"S",  "TAC":"Y",  "TGC":"C", 
+		"TTA":"L",  "TCA":"S",  "TAA":"-",  "TGA":"-", 
+		"TTG":"L",  "TCG":"S",  "TAG":"q",  "TGG":"W", 
+
+		"CTT":"L",  "CCT":"P",  "CAT":"H",  "CGT":"R", 
+		"CTC":"L",  "CCC":"P",  "CAC":"H",  "CGC":"R", 
+		"CTA":"L",  "CCA":"P",  "CAA":"Q",  "CGA":"R", 
+		"CTG":"L",  "CCG":"P",  "CAG":"Q",  "CGG":"R", 
+
+		"ATT":"I",  "ACT":"T",  "AAT":"N",  "AGT":"S", 
+		"ATC":"I",  "ACC":"T",  "AAC":"N",  "AGC":"S", 
+		"ATA":"I",  "ACA":"T",  "AAA":"K",  "AGA":"R", 
+		"ATG":"M",  "ACG":"T",  "AAG":"K",  "AGG":"R", 
+
+		"GTT":"V",  "GCT":"A",  "GAT":"D",  "GGT":"G", 
+		"GTC":"V",  "GCC":"A",  "GAC":"D",  "GGC":"G", 
+		"GTA":"V",  "GCA":"A",  "GAA":"E",  "GGA":"G", 
+		"GTG":"V",  "GCG":"A",  "GAG":"E",  "GGG":"G"
+	}
+
+	var aa="";
+	for (var i = 0; i < dna.length; i=i+3) {
+		var sub=dna.substring(i, i+3);
+		var a=codens[sub];
+		aa += a;
+	}
+		
+	return aa;
+}
+
+
+
+
+
+
+
+//根据噬菌体类型，返回噬菌体头尾特征  
+var phage=(function(){
+	//获取噬菌体库的类型
+	function getType(){
+		if($('libTypeForm').type.value!=undefined){
+			return parseInt($('libTypeForm').type.value);
+		}else{ //for ie8
+			var aRadio=$('libTypeForm');
+			
+			for(var i=0,l=aRadio.length; i<l;i++){
+				if(aRadio[i].checked==true){
+					return parseInt(aRadio[i].value);
+				}
+			}
+		}
+	}
+	//获取序列
+	function get(typenum){
+		var typenum=typenum||getType();//如果没有参数，则自动获取当前值
+		var result=[];//噬菌体需要翻译部分的头部和尾部，和噬菌体库的名字
+		switch(typenum){
+			case 7://Ph.D-7
+				result=[ 'ACCTCCACC', 'AGAGTGAGAATAGAAAGG','Ph.D-7'];
+				break;
+			case 12://Ph.D-12 
+				result=[ 'ACCTCCACC', 'AGAGTGAGAATAGAAAGG','Ph.D-12'];
+				break;
+			case 70://Ph.D-C7C 
+				result=[ 'ACCTCCACC', 'AGCAGAGTGAGAATAGAAAGG','Ph.D-C7C'];
+				break;
+		}
+		return result;
+	}
+	//api
+	return {
+		type:getType,
+		get:get
+	}
+})();
+
+
+
+//初始化头尾显示
+function init(){
+	var seq=phage.get();
+	$('headseq').innerHTML = ':' + seq[0];
+	$('tailseq').innerHTML = ':' + seq[1];
+	return seq;
+}
+
+
+
+//javascript
+/*-----------------------------javascript单击事件----------------------------*/
+window.onload=function(){
+/*-----------------------------初始化头尾显示 ----------------------------*/
+	init();
+/*--------------------------------重置事件绑定------------------------------*/
+	$("reset").onclick=function(){
+		$("input").value="";
+		$("output").innerHTML="";
+		$("tips").style.visibility="hidden";
+		$("submit").disabled=false;
+		$("input").focus();
+	}
+
+/*--------------------------------提交事件绑定------------------------------*/
+	$("submit").onclick=submit;
+	$('libTypeForm').onclick=submit;
+	
+
+	function submit(){
+		//清空
+		$("output").innerHTML="";
+		$("tips").style.visibility="hidden";
+		$("submit").disabled=false;
+	
+	
+//1.获取字符串
+		var str0=trim( $("input").value );//取出序列并去除两端空格  
+		//如果没有输入序列，则提示输入并返回null。
+		var emptyAlert='Please input your sequence first';
+		if(str0.length==0){
+			if($("output").innerHTML==emptyAlert){
+				//do nothing;
+			}else{
+				n(emptyAlert,"output");
+				$("input").focus();
+			}
+			
+			return;
+		}
+		
+		//如果输入序列了，则进入计算步骤；
+		$("tips").style.visibility="visible";
+		
+		
+		//1.1怎么去掉换行？正则替换：		
+		var str=str0.replace(/\r/g,'').replace(/\n/g,'');
+		
+		
+		
+
+	
+//2.找到起始和结束
+		var seq = init();
+		var head=seq[0],tail=seq[1];
+		
+		var start=str.indexOf(head)+head.length;
+		var end=str.indexOf(tail);	
+		
+		//2.1如果没找到，则提示空。
+		n("[Library Type:" + seq[2]+"]; ["+ now() +"];  [start at "+start+", end at "+end+", length:"+(end-start)+"]<hr/>","output");
+		if(start==8){
+			n("Can't find the begining!<br/>","output");
+			return;
+		};
+		if(end==-1){
+			n("Can't find the tail!<br/>","output");
+			return;
+		};
+		if(start>end){
+			n("Can't find the target sequence","output");
+			return;
+		}
+		
+		//2.1 根据设置噬菌体首尾序列，构建正则表达式  
+		
+		
+		//不合理结果过滤完毕，赋值，输出 
+		var str_highlight=str.replace(new RegExp(head),"<span class=HLbg>"+head+"</span><span class=redbg>")
+						.replace(new RegExp(tail),"</span><span class=HLbg>"+tail+"</span>");
+
+//3.找到子字符串，反向、互补；
+		n("<span class=grey><b>Base ruler</b>: ["+start+" - "+end+"] "+"123456789012345678901234567890123456</span>"+"<br/>","output");
+		var sub=str.substring(start,end);//含首不含尾//
+		n("<b>Target sequence</b>: ["+start+" - "+end+"] <span class=redbg>"+sub+"</span><br/>","output");
+		var reverseComStr=reverseCom(sub);//反向互补序列
+		n("<b>Reverse compliment</b>: ["+start+" - "+end+"] "+reverseComStr+"<br/>","output");
+		//n("<br/>","output");
+//4.翻译并输出
+		var aa=translate(reverseComStr);
+		n("<b>Amino Acid</b>: ["+start+" - "+end+"] "+separate(aa)+"<br/>", "output");
+		n("<b>Amino Acid</b>: ["+start+" - "+end+"] <span class=red>"+aa+"</span><br />","output");
+		
+	//4.1高亮显示起始位置；
+
+		n("<hr/>The original sequence: "+str.length+"bp<br />"+str_highlight,"output");//作为一个保证，这个放到最后打印
+
+	};
+};
+	</script>
+	</body>
+</html>
