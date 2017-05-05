@@ -191,6 +191,14 @@ par(mfrow=c(1,2),mar=c(6,5,2,1))
 plotPCA(eset,addtext=samplenames,groups=groups,groupnames=levels(groups), x.coord = "PC1")
 #?报错 Please give the x-coordinate for a legend.
 plotPCA(eset2,addtext=samplenames,groups=groups2,groupnames=levels(groups2))
+#todo
+
+
+#######################################
+#热力图，比较丑
+heatmap(exprs(celfiles)[1:5000,])
+
+
 
 
 
