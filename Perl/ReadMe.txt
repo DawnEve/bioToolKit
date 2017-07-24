@@ -11,7 +11,7 @@ day1:练习用脚本
 	for.pl if.pl
 	open.pl
 	大小写转换 uc.pl
-	
+	文件复制 copy_file.pl
 	
 day2:综合练习脚本
 	
