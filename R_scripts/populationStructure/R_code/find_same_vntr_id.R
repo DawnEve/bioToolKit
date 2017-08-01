@@ -53,14 +53,15 @@ for(i in 1:dims[1]){
   for(j in 1:dims[1]){
     if(i==j) next;#不用和自己比
     if(compareByRow(data[i,],data[j,])){
-      sameAsI=c(sameAsI,data[j,][,1])
+      sameAsI=c(sameAsI, as.character(data[j,][,1]))
     }
     #print(paste(i,j,sep="-",result))
   }
   
   #debug(data[i,][,1],sameAsI)
   if(length(sameAsI)>0){
-    data[i,]$same=paste("A",paste(sameAsI,sep="", collapse=","),sep=",")
+    data[i,]$same=paste(sameAsI, collapse=",");
+      #paste("A",paste(sameAsI,sep="", collapse=","),sep=",")
     data[i,]$count=1+countSubStr(',',data[i,]$same);#,字符个数
     ##array to string
     #https://stackoverflow.com/questions/2098368/how-do-i-concatenate-a-vector-of-strings-character-in-r
@@ -72,5 +73,5 @@ for(i in 1:dims[1]){
 
 
 #输出结果到文件
-write.csv(data,file="vntr_repeat_finding.csv")
+write.csv(data,file="E:\\tb-VNTR\\vntr_repeat_finding.csv")
 ############
