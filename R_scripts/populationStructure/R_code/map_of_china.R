@@ -65,10 +65,25 @@ ggplot(china_data, aes(x = long, y = lat, group = group, fill = clazz)) +
 
 
 ###############
+# 有时候需要显示省名标签，特别是给老领导看。
+# 使用省会城市的经纬度数据标注省名。
+province_city <- read.csv("R_data\\province_label_site.txt",sep="\t",header=T)  #读取省会城市坐标
+#经纬度换算 http://www.gzhatu.com/du2dfm.html
+#province_city
 
 
-
-
+ggplot(china_data,aes(long,lat))+
+  geom_polygon(aes(group=group,fill=clazz),colour="grey60")+
+  scale_fill_gradient(low="white",high="steelblue") +
+  coord_map("polyconic") +
+  geom_text(aes(x = long,y = lat,label = en_name), data =province_city,size=2)+
+  theme(
+    panel.grid = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank()
+  )
 
 #
 #refer:
