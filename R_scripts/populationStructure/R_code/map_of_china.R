@@ -73,18 +73,18 @@ province_city <- read.csv("R_data\\province_label_site.txt",sep="\t",header=T)  
 
 
 ggplot(china_data,aes(long,lat))+
-  geom_polygon(aes(group=group,fill=clazz),colour="grey60")+
-  scale_fill_gradient(low="white",high="steelblue") +
+  geom_polygon(aes(group=group,fill=clazz),colour="grey70",size=0.1)+
+  scale_fill_gradient2(low='#FF994D', mid='#0099E6',high='#FF004D',midpoint =2,na.value = "grey60", guide = "legend")+
+  #scale_fill_gradient(low="white",high="steelblue") +
   coord_map("polyconic") +
   geom_text(aes(x = long,y = lat,label = en_name), data =province_city,size=2)+
   theme(
-    panel.grid = element_blank(),
-    panel.background = element_blank(),
+    #panel.grid = element_blank(),
+    #panel.background = element_blank(),
     axis.text = element_blank(),
     axis.ticks = element_blank(),
     axis.title = element_blank()
   )
-
 #
 #refer:
 # https://cosx.org/2009/07/drawing-china-map-using-r
