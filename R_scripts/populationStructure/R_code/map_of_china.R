@@ -74,7 +74,8 @@ province_city <- read.csv("R_data\\province_label_site.txt",sep="\t",header=T)  
 
 ggplot(china_data,aes(long,lat))+
   geom_polygon(aes(group=group,fill=clazz),colour="grey60")+
-  scale_fill_gradient(low="white",high="steelblue") +
+  scale_fill_gradient2(low='#FF994D', mid='#0099E6',high='#FF004D',midpoint =2,na.value = "grey50", guide = "colourbar")+
+  #scale_fill_gradient(low="white",high="steelblue") +
   coord_map("polyconic") +
   geom_text(aes(x = long,y = lat,label = en_name), data =province_city,size=2)+
   theme(
