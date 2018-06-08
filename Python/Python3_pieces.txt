@@ -20,12 +20,24 @@ re.sub(r'\D', '', '010-123-456') #
 
 
 3.正则替换
-import re
+(1)import re
 aa='chr10_320396_320418_-'
 a2=re.sub("_","\t",aa)
 print(a2)
 结果
 chr10	320396	320418	-
+
+(2)
+import re
+i="chr1|139786|139805|+"
+a=re.sub("|","\t",i) #这里意思是任意字符分割。
+b=re.sub("\|","\t",i)
+print("不希望看到的结果:",a)
+print("希望看到的结果:",b)
+结果:
+不希望看到的结果: 	c	h	r	1	|	1	3	9	7	8	6	|	1	3	9	8	0	5	|	+	
+希望看到的结果: chr1	139786	139805	+
+
 
 
 
@@ -92,6 +104,14 @@ Jun 01, 2018 | 619 words
 
 
 
+2.打开文件
+with open('/path/to/file', 'r') as f:
+    print(f.read())
+这样不用写try语句了，且自动关闭文件。
+
+
+	
+
 
 
 ========================================
@@ -125,7 +145,47 @@ dict_keys(['a', 'b'])
 ========================================
 序列化和反序列化
 ----------------------------------------
+1.
+#使用pickle序列化和反序列化
+import pickle 
 
+a={'name':"Tome", 'age':15}
+b=[[1,200,400],[4,6,9]]
+
+########序列化
+fa=open(r"D:\Temp\bedFile\000a.txt.cache",'wb')
+fb=open(r"D:\Temp\bedFile\000b.txt.cache",'wb')
+pickle.dump(a,fa)
+pickle.dump(b,fb)
+
+#推荐使用的形式，不用close文件了
+with open(r"0001.cache",'wb') as f:
+    pickle.dump([a,b],f);
+
+print(a,b)
+#
+fa.close()
+fb.close()
+
+
+2.
+##########反序列化
+fa2=open(r"D:\Temp\bedFile\000a.txt.cache",'rb')
+fb2=open(r"D:\Temp\bedFile\000b.txt.cache",'rb')
+a2=pickle.load(fa2)
+b2=pickle.load(fb2)
+
+#推荐使用的形式，不用close文件了
+with open(r"0001.cache",'rb') as f:
+    ab=pickle.load(f);
+
+print(a2,b2," 合并后: ",ab)
+#
+fa2.close()
+fb2.close()
+结果
+{'name': 'Tome', 'age': 15} [[1, 200, 400], [4, 6, 9]]  
+合并后:  [{'name': 'Tome', 'age': 15}, [[1, 200, 400], [4, 6, 9]]]
 
 
 
