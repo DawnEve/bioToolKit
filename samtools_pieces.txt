@@ -1,0 +1,41 @@
+========================================
+samtools的使用方法：
+----------------------------------------
+参考：$ pwd
+/home/wangjl/data/afterMapping/bamFile
+1)sam2bam: samtools view -bS ../c12_A1_Aligned.out.sam -o c12_A1.bam -@ 10
+2)sort: samtools sort c12_A1.bam -o c12_A1.sorted.bam -@ 10
+3)index
+$ head getIndex.sh
+for id in `cat id.txt`
+do
+        samtools index ${id}.sorted.bam
+done
+
+
+
+========================================
+samtools的常用命令：
+----------------------------------------
+参考：$ pwd
+/home/wangjl/data/afterMapping/bamFile
+
+1)sam2bam: 
+$ samtools view -bS ../c12_A1_Aligned.out.sam -o c12_A1.bam -@ 10
+	-b 输出为bam
+	-S 自动检测输入格式：sam,bam,cram
+	-o File 输出文件名
+	-@ 额外使用的线程数
+
+2)sort: 
+$ samtools sort c12_A1.bam -o c12_A1.sorted.bam -@ 10
+	-o File 输出到文件而不是标准输出
+	-@ 线程数
+
+3)index
+$ head getIndex.sh
+for id in `cat id.txt`
+do
+        samtools index ${id}.sorted.bam
+done
+

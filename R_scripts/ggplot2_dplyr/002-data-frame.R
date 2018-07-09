@@ -498,6 +498,70 @@ sqldf("select Name, sum(Sale) as sum_Sales from sales2 group by Name order by su
 
 
 
+
+
+#数据框的排序
+table_1=data.frame(
+	x=c(1,4,3,3,4,9,5,5),
+	y=c(100,44,32,35,450,96,58,51)
+)
+
+
+table_1$y
+#[1] 100  44  32  35 450  96  58  51
+#order返回的是排序编号
+order(-table_1$y)
+#[1] 5 1 6 7 8 2 4 3
+
+table_1[order(-table_1$y),]
+#  x   y
+#5 4 450
+#1 1 100
+#6 9  96
+#7 5  58
+#8 5  51
+#2 4  44
+#4 3  35
+#3 3  32
+
+table_1[c(5, 1, 6, 7, 8, 2, 4, 3),]
+#  x   y
+#5 4 450
+#1 1 100
+#6 9  96
+#7 5  58
+#8 5  51
+#2 4  44
+#4 3  35
+#3 3  32
+
+
+
+table_1[order(-table_1$x, table_1$y), ] #X desc, Y asc
+#   x   y
+# 6 9  96
+# 8 5  51
+# 7 5  58
+# 2 4  44
+# 5 4 450
+# 3 3  32
+# 4 3  35
+# 1 1 100
+
+table_1[order(-table_1$x, -table_1$y), ] #X desc, Y desc
+#   x   y
+# 6 9  96
+# 7 5  58
+# 8 5  51
+# 5 4 450
+# 2 4  44
+# 4 3  35
+# 3 3  32
+# 1 1 100
+
+
+
+
 #查看当前加载的包
 (.packages())
 

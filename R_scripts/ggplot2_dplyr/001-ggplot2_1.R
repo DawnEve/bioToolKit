@@ -4,7 +4,7 @@
 #ggplot2作者出的测试题： http://stat405.had.co.nz/drills/ggplot2.html
 
 library(ggplot2) # http://stackoverflow.com/tags/ggplot2
-# str(mpg)
+ str(mpg)
 p=ggplot(data=mpg, mapping=aes(x=cty,y=hwy))
 p+geom_point() #pic
 
@@ -303,3 +303,158 @@ p + geom_line(size=1,colour='turquoise4')+
 
 
 
+
+#
+###############################
+#20180706
+#重新学习笔记
+library("ggplot2")
+
+#1. 抽样
+set.seed(1410) #让样本可重复
+dsmall <- diamonds[sample(nrow(diamonds), 100), ]
+
+#2.3钻石价格和重量之间的关系
+qplot(carat, price, data=diamonds)
+
+#使用对数变换，更像是线性了
+qplot(log(carat),log(price), data=diamonds)
+
+#点很多是重叠的，所以下结论时要小心
+
+#如果我们研究体积和重量的关系？
+qplot(carat, x*y*z, data=diamonds)
+
+
+#####
+#2.4 属性：颜色、大小、形状等
+qplot(carat, price, data=dsmall)
+qplot(carat, price, data=dsmall, color=color)
+qplot(carat, price, data=dsmall, shape=cut)
+qplot(carat, price, data=dsmall, size=z)
+
+
+#手动设置属性：color=I("red")或者 size=I(2)
+
+#设置透明度可以看出，数据大概在哪里重叠
+qplot(carat, price, data=diamonds, alpha=I(1/10)) #表示10个点重复将变成不透明。
+qplot(carat, price, data=diamonds, alpha=I(1/100)) 
+qplot(carat, price, data=diamonds, alpha=I(1/200)) 
+
+#2.5 几何对象，
+qplot(carat, price, data=dsmall, geom="point") #默认是点
+qplot(carat, price, data=dsmall, geom="smooth") #平滑曲线：曲线和标准误
+#
+qplot(cut, price, data=dsmall, geom="boxplot") #箱线图，表述分布
+
+#探索实践和其他变量之间的关系
+qplot(carat, price, data=dsmall, geom="path") #数据点之间连线
+qplot(carat, price, data=dsmall, geom="line") #数据点之间连线
+
+qplot(price, binwidth=1000, data=dsmall, geom="histogram") #连续变量直方图
+qplot(price, binwidth=1000, data=dsmall) #连续变量直方图(传入单个变量，默认画直方图)
+qplot(price, data=dsmall, geom="density") #绘密度曲线
+qplot(price, binwidth=1000, data=dsmall, geom="freqpoly") #绘密度曲线
+qplot(cut, data=dsmall, geom="bar") #离散型变量，绘制条形图
+
+
+###
+#2.5.1 像图中添加平滑曲线
+qplot(carat, price, data=dsmall)
+#通过c()函数传递向量给geom，几何对象会按照指定的顺序进行堆叠
+qplot(carat, price, data=dsmall, geom=c("point","smooth")) #线在上部(推荐)
+#`geom_smooth()` using method = 'loess'
+?loess #局部回归方法
+
+qplot(carat, price, data=dsmall, geom=c("smooth","point")) #点在上
+qplot(carat, price, data=dsmall, geom=c("smooth","point"), se=F)#不想画标准误
+
+qplot(carat, price, data=diamonds, geom=c("point","smooth"))#数据太多没平滑线？Warning
+#`geom_smooth()` using method = 'gam' 数据超过1000时，mothod使用gam。
+
+
+#曲线的平滑程度: span控制，从0(很不平滑)到1(很平滑)
+qplot(carat, price, data=dsmall, geom=c("point", "smooth"), span=0.2)
+qplot(carat, price, data=dsmall, geom=c("point", "smooth"), span=1)
+
+# 这两个参数已经不认可了
+library("mgcv")
+qplot(carat, price, data=dsmall, geom=c("point", "smooth")
+      #,method="gam"
+      ,formula = y~s(x)
+)
+
+
+
+
+#
+###
+#2.5.2 箱线图和扰动点图
+#钻石单价随颜色的变化
+qplot(color, price/carat, data=diamonds) #很多重叠了，很不直观
+qplot(color, price/carat, data=diamonds, geom="jitter", alpha=I(1/5))
+qplot(color, price/carat, data=diamonds, geom="jitter", alpha=I(1/50))
+qplot(color, price/carat, data=diamonds, geom="jitter", alpha=I(1/200))
+
+#画箱线胡须图
+qplot(color, price/carat, data=diamonds, geom="boxplot")
+# 还可以用color控制外框线的颜色，用fill设置填充色，用size设置线的粗细
+qplot(color, price/carat, data=diamonds, geom="boxplot",
+      color=I("red"), fill=I("white"), size=I(1))
+
+
+
+
+#####################
+#扰动图上添加箱线图 good
+#####################
+qplot(color, price/carat, data=diamonds, geom=c("jitter","boxplot"))
+qplot(color, price/carat, data=diamonds, geom=c("boxplot","jitter")
+      ,alpha=I(1/50),size=I(1)) #推荐
+
+qplot(color, price/carat, data=dsmall, geom=c("boxplot","jitter")
+      ,size=I(1))#点稀疏的时候效果很好
+
+
+#2.5.3 直方图和密度曲线图
+qplot(carat, data=diamonds, geom="histogram")
+qplot(carat, data=diamonds, geom="density")
+qplot(carat, data=diamonds, geom=c("histogram","density") )#并没有重叠着画 why?
+
+qplot(carat, data=diamonds, geom="histogram",binwidth=1)
+qplot(carat, data=diamonds, geom="histogram",binwidth=1,xlim=c(-0.5,3.5))
+qplot(carat, data=diamonds, geom="histogram",binwidth=0.1,xlim=c(-0.5,3.5))
+qplot(carat, data=diamonds, geom="histogram",binwidth=0.01,xlim=c(-0.5,3))
+#用最小的binwidth发现，钻石主要集中在整0.25附近
+
+#如果想在不同的颜色中比较
+#重叠密度图(真实理解密度曲线的含义比较困难)
+qplot(carat, data=diamonds, geom="density",color=color,binwidth=0.1,xlim=c(-0.5,3))
+#堆叠直方图
+qplot(carat, data=diamonds, geom="histogram",fill=color,binwidth=0.1,xlim=c(-0.5,3))
+
+
+#2.5.4条形图
+qplot(color, data=diamonds, geom="bar")#每种颜色的数量
+#使用 weight 几何对象加权
+qplot(color, data=diamonds, geom="bar",weight=carat)#每种颜色的克拉重量
+qplot(color, data=diamonds, geom="bar",weight=carat)+ #这个+仅仅是改y坐标轴标签？
+  scale_y_continuous("carat")
+
+
+
+#2.5.5 线条图和路径图 - 常用于可视化时间序列数据
+#使用带有时间的economics数据，包含美国过去40年的经济数据
+library(ggplot2)
+head(economics)
+# A tibble: 6 x 6
+#date         pce    pop psavert uempmed unemploy
+#<date>     <dbl>  <int>   <dbl>   <dbl>    <int>
+#1 1967-07-01   507 198712    12.5    4.50     2944
+#2 1967-08-01   510 198911    12.5    4.70     2945
+qplot(date, unemploy/pop, data=economics, geom="line")
+
+
+
+
+#

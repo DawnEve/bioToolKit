@@ -86,6 +86,13 @@ Jun 02, 2018
 
 
 
+
+2.获取当前时间：
+import time
+now_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+print(now_time)
+
+
 ========================================
 文件读写 IO
 ----------------------------------------
@@ -110,7 +117,10 @@ with open('/path/to/file', 'r') as f:
 这样不用写try语句了，且自动关闭文件。
 
 
-	
+
+
+3.回复文件指针到初始位置
+file.seek(0, 0)
 
 
 
@@ -190,7 +200,32 @@ fb2.close()
 
 
 ========================================
+#统计频次
 ----------------------------------------
+1.
+aa={"a":2, "b":3, "c":4, "d":5, "e":4, "f":3, "g":2, "h":4, "1":2 }
+aav=aa.values()
+print(aav)
+
+#统计频次
+def get_counts(sequence):
+    counts = {}
+    for x in sequence:
+        if x in counts:
+            counts[x] += 1
+        else:
+            counts[x] = 1
+    return counts
+
+fr=get_counts(aav)
+print(fr)
+结果：
+dict_values([2, 3, 4, 5, 4, 3, 2, 4, 2])
+{2: 3, 3: 2, 4: 3, 5: 1}
+
+
+
+
 
 ========================================
 ----------------------------------------

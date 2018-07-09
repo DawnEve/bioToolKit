@@ -25,7 +25,9 @@ Java常用代码片段
 R常用代码片段
 	QC for geneChips 
 	ggplot2_dplyr/
- 
+		101-barchart.R
+	R_pieces.txt 
+		maximal number of DLLs reached... 
 
 
 ========================
