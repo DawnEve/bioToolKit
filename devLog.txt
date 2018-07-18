@@ -6,4 +6,4 @@ v0.0.1-R change dir;get ggplot2_dplyr dir from bitbucket.
 v0.0.2-py add Python3_pieces.txt file.
 v0.0.3-py add shell/shell-pieces.txt and ggplot2 piece. dll max
 	maximal number of DLLs reached... 
-
+v0.0.4-R learn ggplot2 Chapter1-2

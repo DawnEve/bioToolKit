@@ -1,4 +1,4 @@
-#learn ggplot2
+#learn ggplot2 看书学
 # http://ggplot2.org
 #docs: http://ggplot2.tidyverse.org/reference/
 #ggplot2作者出的测试题： http://stat405.had.co.nz/drills/ggplot2.html
@@ -454,7 +454,65 @@ head(economics)
 #2 1967-08-01   510 198911    12.5    4.70     2945
 qplot(date, unemploy/pop, data=economics, geom="line")
 
+#时间序列分析暂时用不到，先跳过去。//todo
+
+
+#
+#############
+#为什么没有背景阴影分割线？//done debug
+#
+#ggplot2默认主题怎么设置？
+#Cowplot made ggplot2 theme disappear / How to see current ggplot2 theme, and restore the default?
+#https://stackoverflow.com/questions/41096293/cowplot-made-ggplot2-theme-disappear-how-to-see-current-ggplot2-theme-and-res
+#library(cowplot)
+theme_set(theme_grey())
+#############
+
+
+
+
+#2.6 分面，是对图形属性（颜色、形状）的另一种可视化表现形式。
+qplot(carat,data=diamonds,facets=color~., geom="histogram", binwidth=0.1, xlim=c(0,3))
+qplot(carat,..density.., data=diamonds,facets=color~., geom="histogram", binwidth=0.1, xlim=c(0,3))
+#..density.. 表明经密度而不是频数映射到y轴。
+
+qplot(carat,data=diamonds,facets=color~cut, geom="histogram", binwidth=0.1, xlim=c(0,3))+theme_gray()
+
+
+
+#2.7其他选项
+#CairoPDF(file="fig1.pdf",width=12,height=6)
+
+qplot(
+  carat, price, data=dsmall
+  ,xlab="Price($)", ylab="Weight (Carats)"  #坐标轴文字
+  ,main="Price-weight relationship" #顶部图片标题
+) #+ theme_gray()
+
+#dev.off()
+getwd()
+
+qplot(
+  carat, price, data=dsmall
+  ,log="xy" #对坐标取对数
+) + theme_gray()
+
 
 
 
 #
+###############
+# 第3章 语法突破
+###############
+#3.2 耗油量数据
+head(mpg)
+#3.3 绘制散点图
+#数据集 mpg: 发动机排量 displ， 高速路每加仑行驶的公里数hwy
+qplot(displ, hwy, data=mpg, color=factor(cyl))  #加factor()后就是离散变量
+qplot(displ, hwy, data=mpg, color=cyl)  #不加factor()就是连续变量
+
+
+
+
+
+

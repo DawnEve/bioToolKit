@@ -42,6 +42,17 @@ ggplot2画errorbar
 ========================================
 ggplot2画 DotPlot 点图
 ----------------------------------------
+####replot markergenes
+CairoPDF( paste0(file_out,"plot_genes/marker_genes_v5/BcellMarker.pdf") , width = 16, height = 10)
+marker_dot_plot <- DotPlot(object = dataForPlot, genes.plot = BcellMarker, plot.legend = TRUE,
+                           cols.use = c("black","red"), x.lab.rot = T,dot.scale = 10, do.return=T)
+marker_dot_plot <- marker_dot_plot + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+print(marker_dot_plot)
+dev.off()
+
+
+
+其中该函数的定义如下：
 function (object, genes.plot, cols.use = c("lightgrey", "blue"), 
   col.min = -2.5, col.max = 2.5, dot.min = 0, dot.scale = 6, 
   group.by, plot.legend = FALSE, do.return = FALSE, x.lab.rot = FALSE) 

@@ -17,7 +17,12 @@ https://jingyan.baidu.com/article/f79b7cb36ede319145023e67.html
  [1] "reshape2"             "sqldf"                "RSQLite"              "gsubfn"              
 
 
-
+2.查看当前加载的包和数据
+> sessionInfo()
+R version 3.4.3 (2017-11-30)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows >= 8 x64 (build 9200)
+会罗列当前加载的包。
 
 
 ========================================
@@ -36,7 +41,21 @@ R_MAX_NUM_DLLS=1000
 
 
 ========================================
+ggplot2
 ----------------------------------------
+1.
+ggplot2默认主题怎么设置？
+#Cowplot made ggplot2 theme disappear / How to see current ggplot2 theme, and restore the default?
+#https://stackoverflow.com/questions/41096293/cowplot-made-ggplot2-theme-disappear-how-to-see-current-ggplot2-theme-and-res
+#library(cowplot)
+theme_set(theme_grey())
+
+2.
+如何选择其他主题
+g=ggplot(...) #画图命令
+g + theme_gray() #添加主题
+
+
 
 
 ========================================
