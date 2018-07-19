@@ -7,3 +7,8 @@ v0.0.2-py add Python3_pieces.txt file.
 v0.0.3-py add shell/shell-pieces.txt and ggplot2 piece. dll max
 	maximal number of DLLs reached... 
 v0.0.4-R learn ggplot2 Chapter1-2
+v0.0.5-R learn ggplot2 Chapter3-4(P28-P67)
+	save(); load();
+	plyr, reshape, reshape2, 
+
+ v0.0.6
