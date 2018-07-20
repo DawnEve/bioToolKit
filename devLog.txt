@@ -11,4 +11,4 @@ v0.0.5-R learn ggplot2 Chapter3-4(P28-P67)
 	save(); load();
 	plyr, reshape, reshape2, 
 
- v0.0.6
+v0.0.6 R/index.html 专题：ggplot2画SCI中常见的图
