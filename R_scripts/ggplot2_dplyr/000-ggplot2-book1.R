@@ -579,6 +579,328 @@ oplot %+% Oxboys + aes(y=resid2)+geom_smooth(aes(group=1))
 
 
 
+#5.3 基本图形类型
+#二维图形，x和y是不可或缺的，同时可以接受color、size属性。
+#对于填充型结合对象（条形、瓦片tile和多边形）还接受fill图形属性。
+#点使用shape图形属性
+#线和路径接受linetype图形属性
+
+
+geom_area()
+
+df=data.frame(
+  x=c(3,1,5,10),
+  y=c(2,4,6,-15),
+  label=c("a","b","c","d")
+)
+p=ggplot(df, aes(x,y)) + xlab(NULL) + ylab(NULL)
+p+geom_point()+labs(title="geom_point")
+#
+p+geom_bar(stat="identity") + #todo 为什么画的不是3 1 5？以为y轴是2 4 6
+  labs(title="geom_bar(stat=\"identity\")")
+#
+p+geom_line()+labs(title="geom_line") #从左到右连线
+p+geom_area()+labs(title="geom_area")
+p+geom_path()+labs(title="geom_path")#按照给出的顺序连线
+p+geom_text(aes(label=label))+labs(title="geom_text")
+p+geom_tile()+labs(title="geom_tile") #瓦片图-热图
+p+geom_polygon()+labs(title="geom_polygon")#多边形
+
+
+
+#5.4 展示数据分布
+ggplot(diamonds, aes(depth))+geom_histogram() #不要指望默认参数能出好图。
+
+#缩小x范围，缩小binwidth
+depth_dist=ggplot(diamonds, aes(depth))+xlim(55,70)
+#1 
+depth_dist + geom_histogram(aes(y=..density..), binwidth=0.1)
+#2 分面直方图
+depth_dist + geom_histogram(aes(y=..density..), binwidth=0.1)+
+  facet_grid(cut~.) #加一个分面
+#3 条件密度图
+depth_dist+geom_histogram(aes(fill=cut), binwidth=0.1)
+depth_dist+geom_histogram(aes(fill=cut), binwidth=0.1,position="fill")#标准化到1
+#4 频率多边形
+depth_dist+geom_freqpoly(aes(y=..density.., color=cut), binwidth=0.1)
+#结论：随着钻石品质的提高，分布逐渐向左偏移且愈发对称。
+
+
+#
+#boxplot用于离散型变量
+qplot(cut,depth,data=diamonds,geom="boxplot")
+#boxplot如果用于连续性变量，需要做小心的封箱处理binnig
+qplot(carat,depth,data=diamonds, geom='boxplot')#没有做封箱，就只有一个箱子
+
+library(plyr) #round_any()
+qplot(carat,depth,data=diamonds, geom='boxplot',
+      #group=round_any(carat,0.1,floor))
+      group=round_any(carat,0.1,floor), xlim=c(0,3.5))
+#获得以0.1位封箱的箱线图。
+
+
+# 直接jitter没法看，边界不清晰
+qplot(class,cty,data=mpg,geom='jitter')#不好
+qplot(class,cty,data=mpg,geom='jitter',color=class)#加上颜色
+
+#为什么箱线图顶部还有几个不是彩色颜色的黑点？
+qplot(class,cty,data=mpg,geom=c('boxplot')) +geom_jitter()#不好
+qplot(class,cty,data=mpg,geom=c('boxplot')) +geom_jitter(aes(color=class))
+
+#换个y，离散型的y
+qplot(class,drv,data=mpg) +geom_jitter(aes(color=class))#加黑点什么意思？
+qplot(class,drv,data=mpg,geom='jitter',color=class)
+qplot(class,drv,data=mpg,geom='point',color=class)#正常就是这几个固定点，怎么控制大小？
+qplot(class,drv,data=mpg,geom='point',color=class,stat="count",size=..count..)#正常就是这个点
+#todo
+#
+
+
+#
+#density 密度图实际上就是直方图的平滑化版本。但是难以由图回溯数据本身。
+qplot(depth, data=diamonds, geom="density", xlim=c(54,70))
+qplot(depth, data=diamonds, geom="density", xlim=c(54,70),
+      fill=cut,alpha=I(0.2))
+
+
+
+
+
+#
+#5.5 处理遮盖绘制问题 overplotting
+df=data.frame(
+  x=rnorm(2000),
+  y=rnorm(2000)
+)
+
+norm=ggplot(df,aes(x,y))
+norm+geom_point() #原始点图
+norm+geom_point(shape=1) #中空的小点效果好一点
+norm+geom_point(shape=".") #点的大小为像素级
+
+#
+#使用不透明度，效果也不好
+norm+geom_point(color="black", alpha=1/3)
+norm+geom_point(color="black", alpha=1/5)
+norm+geom_point(color="black", alpha=1/10)
+
+
+#
+#实例：diamond数据集中table和depth组成的图形
+td=ggplot(diamonds, aes(table, depth))+
+  xlim(50,70) +ylim(50,70)
+td+geom_point() #点聚集在竖线条上，无法判断密度
+td+geom_jitter()#扰动后，效果还是不理想
+
+jit=position_jitter(width=0.5)#横向扰动单位0.5，就是横轴单位距离的一半
+td+geom_jitter(position=jit)#扰乱开了，一大团，还是分不清哪里聚集多
+td+geom_jitter(position=jit, alpha=1/10)
+td+geom_jitter(position=jit, alpha=1/50)
+td+geom_jitter(position=jit, alpha=1/200)
+#其实结果还是不理想
+#
+
+
+#
+#使用分箱，正方形和六边形来实现效果
+d=ggplot(diamonds, aes(carat, price))+xlim(1,3) #+theme(legend.position="none") 
+  #去掉图例与否
+d
+#正方形，颜色表示密度
+#stat_bin2d 计算矩形封箱内观测值个数，并默认映射到这些矩形的fill属性。
+d+stat_bin2d() #图1
+d+stat_bin2d(bins=10) #图1
+d+stat_bin2d(binwidth=c(0.02,200))
+#据说矩形会造成视觉假象，Carr等建议用六边形代替。
+#切换为六边形
+d+stat_binhex()
+d+stat_binhex(bins=10)
+d+stat_binhex(binwidth=c(0.02,200))
+
+# 加上等高线
+d=ggplot(diamonds, aes(carat,price))+xlim(1,3)
+d+geom_point()+geom_density2d() #等高线
+d+stat_density2d(geom="point", aes(size=..density..),contour=F)+
+  scale_size_area()
+#上图为2基于点和等高线的密度展示，下图为
+d+stat_density2d(geom="tile", aes(fill=..density..), contour = F) #看不清
+last_plot()+scale_fill_gradient(limits=c(1e-5, 8e-4))
+#
+
+
+
+#
+#5.6曲面图
+#二维平面上展示三维曲面的常用工具：等高线图、找色瓦片colored tiles以及气泡图。
+
+
+
+#
+#5.7 绘制地图
+略
+
+
+
+#
+#5.8 揭示不确定性
+d=subset(diamonds, carat<2.5 & rbinom(nrow(diamonds),1,0.2)==1)
+#rbinom(10,1,0.2)#rbinom(n, size, prob)#size 就是可能的实验结果个数
+dim(diamonds)
+dim(d) #抽样0.2
+ggplot(d, aes(carat,price))+geom_point(aes(color=color))
+#对数变换
+d$lcarat=log10(d$carat)
+d$lprice=log10(d$price)
+ggplot(d, aes(lcarat,lprice))+geom_point(aes(color=color))#目测线性了
+
+#剔除整体的线性趋势
+detrend=lm(lprice~lcarat, data=d)
+detrend
+d$lprice2=resid(detrend)#计算残差
+d$lprice2[c(1:10)]
+#
+mod=lm(lprice2~lcarat*color, data=d)
+mod #todo??
+#
+
+
+
+#install.packages("effects")
+library(effects)
+#effect: Functions For Constructing Effect Displays 构建交叉效应
+effectdf=function(...){
+  suppressWarnings(as.data.frame(effect(...)))
+}
+color=effectdf("color",mod)
+color
+both1=effectdf("lcarat:color", mod)
+both1
+#
+carat=effectdf("lcarat",mod, default.levels=50)
+carat
+#
+both2=effectdf("lcarat:color",mod,default.levels=3)
+both2
+# 图 5.14
+qplot(lcarat, lprice, data=d, color=color)
+qplot(lcarat, lprice2, data=d, color=color)
+# 图 5.15
+fplot=ggplot(mapping=aes(y=fit, ymin=lower, ymax=upper))+
+  ylim(range(both2$lower, both2$upper))
+fplot %+% color+aes(x=color)+geom_point()+geom_errorbar()
+fplot %+% both2 + 
+   aes(x=color, color=lcarat, group=interaction(color,lcarat))+
+   geom_errorbar()+geom_line(aes(group=lcarat))+
+   scale_color_gradient() #p87
+# 图 5.16
+fplot %+% carat + aes(x=lcarat)+
+  geom_smooth(stat="identity")
+ends=subset(both2,lcarat==max(lcarat))
+fplot %+% both1 + aes(x=lcarat, color=color)+
+  geom_smooth(stat="identity")+
+  scale_color_hue()+theme(legend.position="none")+
+  geom_text(aes(label=color, x=lcarat+0.02), ends)
+#
+
+
+#
+##5.9统计摘要
+ggplot(diamonds, aes(carat, price))+
+  stat_summary()
+
+#mean(x, trim = 0.1)
+#就是先把x的最大的10%的数和最小的10%的数去掉，然后剩下的数算平均。
+dd=c(-1,0,2,3,4,5,6,70,80,90); mean(dd,trim=0.1)
+mean(c(0,2,3,4,5,6,70,80))
+#
+dd=c(1,2,3,4,5,6,70,80,90,100); mean(dd,trim=0.2)#[1] 28
+dd=c(2,3,4,5,6,70,80,90); mean(dd)#[1] 32.5
+
+#
+midm=function(x) mean(x,trim=0.5)
+ggplot(diamonds, aes(carat, price))+
+  stat_summary(aes(color="trimmed"), fun.y=midm,geom="point")+
+  stat_summary(aes(color="raw"), fun.y=mean, geom="point")+
+  scale_color_hue("Mean")
+#??不理解 todo
+
+
+
+#
+### 5.9.2 统一的摘要计算函数
+#自定义摘要计算函数：要返回一个各元素有名称的向量作为输出
+quantile(as.numeric(c(1,2,3,4,5,6,7,8,9,10)), c(0,0.1,0.5,0.75,0.9,1))
+#0%   10%   50%   75%   90%  100% 
+#1.00  1.90  5.50  7.75  9.10 10.00 
+
+iqr=function(x, ...){
+  qs=quantile(as.numeric(x), c(0.25, 0.75), na.rm=T)
+  names(qs)=c('ymin','ymax')
+  qs
+}
+ggplot(diamonds, aes(carat, price))+
+  stat_summary(fun.data='iqr', geom='ribbon')
+#更多其他封装函数
+ggplot(diamonds, aes(carat, price))+
+  stat_summary(fun.data='mean_c1_normal', geom='ribbon')
+#todo 报错 函数没找到 P91
+
+
+
+#
+## 5.10 添加图形注释（记住：注释就是额外的数据）
+
+#美国失业数据
+unemp=qplot(date, unemploy, data=economics, geom='line', 
+            xlab='',ylab='No. unemployed (1000s)')
+unemp
+#美国总统在位时间 name,start,end,party     
+head(presidential)
+dim(presidential)#[1] 11  4
+presidential=presidential[-c(1:3),]
+
+yrng=range(economics$unemploy)
+yrng
+xrng=range(economics$date)
+xrng
+#添加竖线，表示总统执政开始时间
+unemp+
+  geom_vline(aes(xintercept=as.numeric(start)), data=presidential)
+#
+
+#为不同政党画不同颜色
+library(scales)
+unemp+
+  geom_rect(aes(NULL, NULL, xmin=start, xmax=end,fill=party),
+            ymin=yrng[1], ymax=yrng[2],
+            data=presidential, alpha=0.2)+
+  scale_fill_manual(values=c("blue","red"))
+
+#为上图添加总统名字
+last_plot()+
+  geom_text(aes(x=start, y=yrng[1],label=name),
+            data=presidential, size=3, hjust=0, vjust=-1)
+
+#在图上添加一句话
+caption=paste(strwrap("Unemployment rates in the US have varied a lot over the years",40),
+                collapse="\n")
+caption
+unemp+
+  geom_text(aes(x,y,label=caption), 
+            data=data.frame(x=xrng[2], y=yrng[1]+2000),
+            hjust=1, vjust=1, size=4)
+
+#高亮显示最高点
+highest=subset(economics, unemploy==max(unemploy))
+highest #最高点
+unemp+geom_point(data=highest, size=3, color='red', alpha=0.5)
+
+#
+
+
+
+
+
 #合并到一张图
 multiplot(p1, p2, p3, p4, cols=2)
 
