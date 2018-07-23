@@ -266,7 +266,7 @@ getwd()
 
 #
 ###############
-# 第4章 用图层构建图像P42-
+# 第4章 用图层构建图像P42-p67
 ###############
 
 p <- ggplot(diamonds, aes(carat))
@@ -578,6 +578,13 @@ oplot %+% Oxboys + aes(y=resid2)+geom_smooth(aes(group=1))
 #这一次模型好点 ？？？ todo
 
 
+
+
+
+#
+###############
+# 第5章 工具箱P68-97
+###############
 
 #5.3 基本图形类型
 #二维图形，x和y是不可或缺的，同时可以接受color、size属性。
@@ -896,6 +903,67 @@ highest #最高点
 unemp+geom_point(data=highest, size=3, color='red', alpha=0.5)
 
 #
+# geom_text 可添加文字叙述或为点添加标签。
+# geom_vline, geom_hline: 添加垂直线或水平线
+# geom_abline: 向图中添加任意斜率和截距的直线
+# geom_rect 强调感兴趣的矩形区域，又有属性xmin,xmax,ymin,ymax
+# geom_line, geom_path, geom_segment 都可以添加直线，都有arraw参数，
+#  用来在线上放置一个箭头。 
+#也可以使用arrow()函数绘制箭头，属性 angle,length,ends,type
+
+
+#
+##5.11 含权数据
+#
+dim(midwest)
+head(midwest)
+# 用图形属性size来改变点的大小。
+qplot(percwhite,percbelowpoverty, data=midwest)#x白人比例，y贫困人口比例
+qplot(percwhite,percbelowpoverty, data=midwest, size=poptotal/1e6) #直接用人口控制点大小
+qplot(percwhite,percbelowpoverty, data=midwest, size=poptotal/1e6) + 
+  scale_size_area() #这个有啥用呢？ done 调用scale_size_area()函数使数据点的面积正比于变量值。
+qplot(percwhite,percbelowpoverty, data=midwest, size=poptotal/1e6) +
+  scale_size_area("Population\n(millions)", breaks=c(0.5, 1,2,4))
+#
+qplot(percwhite,percbelowpoverty, data=midwest, size=area) +
+  scale_size_area()
+#
+
+
+#
+#涉及到统计变换时，修改weight图形属性来表现权重。
+#如果权重有意义，各种元素基本都支持权重的设定，如各类平滑器、分位回归、箱线图、直方图以及各类密度图。
+#我们无法直接看到这个权重变量，而且也没有对应的图例，但它却会改变统计汇总的结果。
+#如作为权重的人口密度如何影响白种人比例，和贫困线以下人口的关系。
+lm_smooth=geom_smooth(method=lm, size=1)
+qplot(percwhite, percbelowpoverty, data=midwest)+lm_smooth
+#这个权重仅仅体现在拟合线上
+qplot(percwhite, percbelowpoverty, data=midwest, weight=popdensity)+lm_smooth #权重怎么参与计算的
+#
+qplot(percwhite, percbelowpoverty, data=midwest, weight=popdensity,size=popdensity)+lm_smooth#点大就影响力大
+
+#加上人口权重，视角由对郡数量分布的观察转为对人口数量分布的观察
+qplot(percbelowpoverty, data=midwest, binwidth=1)
+qplot(percbelowpoverty, data=midwest, weight=poptotal, binwidth=1)+ylab("population")
+#
+
+#
+
+
+
+
+
+
+
+#
+###############
+# 第6章 标度、坐标轴和图例 P98-
+###############
+
+
+
+#
+
 
 
 
