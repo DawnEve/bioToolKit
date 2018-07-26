@@ -957,15 +957,344 @@ qplot(percbelowpoverty, data=midwest, weight=poptotal, binwidth=1)+ylab("populat
 
 #
 ###############
-# 第6章 标度、坐标轴和图例 P98-
+# 第6章 标度、坐标轴和图例 P98-P122
 ###############
+
+
+#图形属性：位置、颜色、形状、大小、线条类型，所有图中能看到的元素都是标度。是对数据的某种展示。
+#在ggplot2中标度都有默认值，但是理解标度并学会如何操纵它们则将赋予我们对图形更强的控制能力。
+#执行标度的过程分为三步：变换(transformation)、训练(training)和映射(mapping)
+
+#标度粗略分为四类：位置标度、颜色标度、手动离散型标度、同一型标度
+
+#对图例和坐标轴的控制：通过 guides()函数和 guide_XXX一系列函数增强了对图例(legend)的直接控制。
+p=qplot(cty, hwy, data=mpg)
+p
+#现在ggplot2已经能实现自动映射坐标，所以下面两个效果相同。
+p+aes(x=drv)
+p+aes(x=drv)+scale_x_discrete()
+#
+
+#所有的标度构造器scale constructor都以1. scale_开头，2. 接下来是图形属性的名字(color_, shape_, x_),
+# 3.最后是标度的名称(gradient, hue, manual) . 各种标度名称 P101
+#   如离散型数据的颜色属性的默认标度名为 scale_color_hue()
+#   填充色用Brewer配色标度名为 scale_fill_brewer()
+p=qplot(sleep_total, sleep_cycle, data=msleep, color=vore)
+p #默认
+#显式添加默认标度
+p+scale_color_hue()#啥变化都没有
+
+#修改默认标度的参数，这里改变了图例的外观
+p+scale_color_hue("What does\nit eat?")#修改图例标题
+p+scale_color_hue("What does\nit eat?"
+            ,breaks=c("herbi","carni","omni",NA)#修改图例顺序。删除图例一项，但是主图没变:蓝点还在
+            ,labels=c("plants", "meat","both","dont't know")
+            )
+#使用一种不同的标度
+p+scale_color_brewer(palette="Set1")#使用ColorBrewer配色方案中的Set1，NA没有颜色怎么办？
+#
+
+
+
+
+#
+##6.4 标度详解
+#细节查文档,如 
+?scale_color_brewer
+# https://ggplot2.tidyverse.org/reference/
+
+
+#
+###6.4.1 通用参数
+p=qplot(cty, hwy, data=mpg, color=displ)
+p
+#
+p+scale_x_continuous("City mpg")
+
+#
+p+xlab("City mpg")
+p+ylab("Highway mpg")
+p+labs(x="City mpg", y="Highway", color="Displacement")
+p+xlab(expression(frac(miles,gallon)))
+
+
+#查看更多表达式帮助 
+?plotmath
+
+p+ylab( expression(paste(italic("Sox2"), " Expression") ))#斜体基因名字
+p+ylab( expression(paste(italic("Sox2"), " Expression\nNormalized") ))#换行失败！todo
+
+#
+head(mtcars)
+p=qplot(cyl,wt,data=mtcars)
+p
+p+scale_x_continuous(breaks=c(5.5,6.5)) #x轴只有5.5和6.5
+p+scale_x_continuous(limits=c(5.5,6.5))#范围
+#
+p=qplot(wt,cyl,data=mtcars,color=cyl)
+p
+p+scale_color_gradient(breaks=c(5.5,6.5))#只影响图例
+p+scale_color_gradient(limits=c(5.5,6.5))#颜色范围外的是灰色
+
+p+scale_color_gradient(formatter="percent")#todo 报错，且找不到帮助。P105
+#
+
+#
+#设置xlim和ylim，在这个范围之外的数据不会被绘制，也不会被包括在统计变换的过程中。
+#这就意味着，设置limits所得到的结果和视觉上局部放大的结果不同。
+#后者可以设置coord_cartesian()函数的参数xlim和ylim，见7.3.3节。
+
+#
+#默认位置标度limits会被数据略大，以便使点不会和边界重叠。使用expand来控制溢出量。
+#expand参数是长度为2的数值型向量，第一个是乘法溢出量，第二个是加法溢出量。
+#如果不想留多余空间，就使用expand=c(0,0)
+
+#
+# 连续型
+#最常用的连续型位置标度为 scale_x_continous和 scle_y_continuous
+#变换器 transformer：描述了变换本身和对应的逆变换，以及如何去绘制标签。
+#对于xyz标度都有简便写法， scale_x_log10()和 scale_x_continuous(trans="log10")是等价的。
+#trans写法对下文的颜色也有效，但是简便写法仅针对位置标度。
+
+p=qplot(carat, price, data=diamonds, color=color)
+p
+#试试坐标变换
+p+scale_y_continuous(trans="log10")
+
+p+scale_y_continuous(trans="log10")+scale_x_continuous(trans="log10")
+p+scale_y_log10()+scale_x_log10() #简便写法
+
+qplot(carat, price, data=diamonds, color=color, log="xy") #更简便的写法
+#
+#如何直接输入log10(x)会怎么样呢？
+qplot(log10(carat), log10(price), data=diamonds, color=color) #点完全一样，就是坐标轴标记不同
+
+#变换器也可用于 coord_trand() 中，此时变换将在统计量计算完成后进行，因此将影响图形主体的外观。
+
+
+
+#
+library(scales)
+head(economics)
+p=qplot(date, psavert, data=economics, geom="line")+
+  ylab("Personal savings rate")+
+  geom_hline(yintercept=0, color="grey50")
+p
+#
+p+scale_x_date(breaks=date_breaks("10 years")) #按10年为x刻度
+
+p+scale_x_date(
+  limits=as.Date(c("2004-01-01","2005-01-01")),
+  labels=date_format("%Y-%m-%d") #日期格式
+)
+
+#
+# 离散型
+
+
+
+#
+### 6.4.3 颜色标度
+# 更详细的颜色模型参考： http://www.handprint.com/HP/WCL/color7.html
+# visicheck 是避免红绿对比、模拟色盲情形的解决方案。
+# 
+#提供色盲人士也可识别的配色方案R包：dichromat包
+#https://cran.r-project.org/web/packages/dichromat/
+#
+
+#对边界颜色color和填充色fill均有效：
+
+#
+#连续型
+#1. scale_color_gradient() 和 scale_fill_gradient() 双色梯度。
+#   从地到高用low和high控制两端的颜色。
+#2. scale_color_gradient2() 和 scale_fill_gradient2() 三色梯度。
+#   顺序为低-中-高，参数low和high作用同上，还有一个中间色。
+#  中点默认为0，可以由midpoint设定。这个参数对发散性（ diverging ）配色方案特别有用。
+
+
+#3. scale_color_gradientn()和 scale_fill_gradientn() ：自定义的n色梯度。
+
+head(faithful)#记录黄石公园x喷泉两次喷发的间隔时间和每次喷发的持续时间。
+dim(faithful)#[1] 272   2
+
+qplot(eruptions, waiting, data=faithful) #基础图
+qplot(eruptions, waiting, data=faithful)+geom_density2d()#密度等高线
+#怎么给等高线涂色
+qplot(eruptions, waiting, data=faithful)+
+  geom_density2d(aes(fill=..level.., stat='polygon'))#密度等高线
+
+
+f2d=with(faithful, MASS::kde2d(eruptions, waiting, h=c(1,10), n=50)) #?? todo 不懂
+str(f2d)#List of 3 x y z
+head(f2d)
+
+#
+df=with(f2d, cbind(expand.grid(x,y), as.vector(z))) #todo 不懂
+head(df)
+
+names(df)=c("eruptions", "waiting", "density")
+erupt=ggplot(df, aes(waiting, eruptions, fill=density))+
+  geom_tile()+
+  scale_x_continuous(expand=c(0,0))+
+  scale_y_continuous(expand=c(0,0)) #不留边界
+erupt
+#
+erupt+scale_fill_gradient(limits=c(0,0.04))
+erupt+scale_fill_gradient(limits=c(0,0.04),
+                          low="white", high="black")
+erupt+scale_fill_gradient2(limits=c(0,0.04), midpoint=mean(df$density))#2才有这个参数
+#
+
+
+#
+library(colorspace)
+library(vcd) #vcd包能生成调色板，其论文介绍了创建一个优秀颜色标度的复杂性。
+fill_gradn=function(pal){
+  scale_fill_gradientn(colors=pal(7), limits=c(0,0.04))
+}
+
+erupt+fill_gradn(rainbow_hcl)
+#等价于：
+erupt+scale_fill_gradientn(colors=rainbow_hcl(7), limits=c(0,0.04))
+
+erupt+fill_gradn(diverge_hcl)
+erupt+fill_gradn(heat_hcl)
+#
+
+
+#
+#离散型
+#默认配色方案可以对多到8种颜色有很好的区分度，缺点是黑白打印则没有区别。
+
+#
+#最感兴趣的调色板是 Set1 Dark2
+# 对面积而言是 Set2 Pastel1 Pastel2 Accent
+RColorBrewer::display.brewer.all() #列出所有的调色板。
+
+
+#
+head(msleep) #带有缺失值
+dim(msleep)#[1] 83 11
+point=qplot(brainwt, bodywt, data=msleep, log="xy", color=vore)
+point
+area=qplot(log10(brainwt), data=msleep, fill=vore, binwidth=.5)
+area
+
+point+scale_color_brewer(palette = "Set1")
+point+scale_color_brewer(palette = "Set2")
+point+scale_color_brewer(palette = "Pastel1") #太淡了,点不好看清
+#
+area+scale_fill_brewer(palette="Set1") #但是太重的颜色，让条形图太刺眼
+area+scale_fill_brewer(palette="Set2")
+area+scale_fill_brewer(palette="Pastel1")
+#总结：点图要重色，条形图要淡色。
+
+
+
+
+
+#
+### 6.4.4 手动离散型标量
+p=qplot(brainwt, bodywt, data=msleep, log="xy")
+p
+p+aes(color=vore) #默认颜色
+p+aes(color=vore)+
+  scale_color_manual(na.value="blue",
+                     values=c("red","orange","yellow","green")) #手动指定颜色,NA没有颜色 done
+#
+colors=c(carni="red",insecti="yellow",herbi="green",omni="blue")
+p+aes(color=vore)+scale_color_manual(values=colors,na.value="black")# NA没有颜色 done
+
+#
+p+aes(shape=vore)+
+  scale_shape_manual(values=c(1,2,6,0,23))
+
+#
+str(LakeHuron)
+head(LakeHuron)
+length(LakeHuron)#[1] 98
+
+huron=data.frame(year=1875:1972,level=LakeHuron)
+
+ggplot(huron, aes(year))+
+  geom_line(aes(y=level-5), color="blue")+
+  geom_line(aes(y=level+5), color="red") #两种颜色，怎么添加图例？
+
+##在aes中映射出颜色
+ggplot(huron, aes(year))+
+  geom_line(aes(y=level-5, color="below"))+
+  geom_line(aes(y=level+5, color="above")) #基本符合我们的预期，稍微修正图例即可。
+#
+ggplot(huron, aes(year))+
+  geom_line(aes(y=level-5, color="below"))+
+  geom_line(aes(y=level+5, color="above")) +
+  scale_color_manual("Direction", values=c("below"="blue", "above"="red"))+ #纠正图例
+  ylab("level") #纠正y标签
+#
+
+
+#
+### 6.4.5 同一型标度
+
+
+
+#
+## 6.5 图例和坐标轴
+
+# 坐标轴和图例的组成部分
+# Axis, Axis label; Tick mark and label; legend, legend title, Key, Key label;
+
+
+
+
+
+
+
+
+
+
+
+#
+###############
+# 第7章 定位 P123-
+###############
+
+
+
+
+
+
+
+
+
+
+#
+
+#
+
+#
+
+
+#
+
+#
 
 
 
 #
 
 
+#
 
+#
+
+#
+
+#
+
+
+#
 
 
 
