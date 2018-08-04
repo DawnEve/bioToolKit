@@ -104,6 +104,8 @@ qplot(color, price/carat, data=diamonds, geom="jitter", alpha=I(1/200))
 
 #画箱线胡须图
 qplot(color, price/carat, data=diamonds, geom="boxplot")
+qplot(color, price/carat, data=diamonds)+geom_boxplot(aes(color=color)) #设置颜色
+qplot(color, price/carat, data=diamonds, geom="boxplot",color=color) #设置颜色
 # 还可以用color控制外框线的颜色，用fill设置填充色，用size设置线的粗细
 qplot(color, price/carat, data=diamonds, geom="boxplot",
       color=I("red"), fill=I("white"), size=I(1))
@@ -1257,10 +1259,225 @@ ggplot(huron, aes(year))+
 
 #
 ###############
-# 第7章 定位 P123-
+# 第7章 定位 P123-P146)
 ###############
 
+#
+mpg2=subset(mpg, cyl!=5 & drv %in% c('4','f'))
+head(mpg)
+dim(mpg)
+table(factor(mpg$drv))
+table(factor(mpg$cyl))
+#
+qplot(cty, hwy, data=mpg2)
+qplot(cty, hwy, data=mpg2)+facet_null()#不分面，和上面没啥区别.
+#
+qplot(cty, hwy, data=mpg2)+facet_grid(.~cyl)#一行多列，比较y位置
+qplot(cty, data=mpg2, geom="histogram", binwidth=2)+
+  facet_grid(cyl~.) #多行一列，适合比较x位置，比如数据分布
+qplot(cty, hwy, data=mpg2)+facet_grid(drv~cyl)#多行多列
+#多个变量水平在行或者列: .~a+b或者 a+b~.  不过不常用。
+qplot(cty, hwy, data=mpg2)+facet_grid(drv+cyl~.)#多行，变量1x变量2
+#
+#边际图
+p=qplot(displ, hwy, data=mpg2)+
+  geom_smooth(method='lm', se=F)
+p
+p+facet_grid(cyl~drv) #分面图
+p+facet_grid(cyl~drv, margins=T) #分面图+边际图
 
+# 不同的drv拟合曲线设置不同颜色
+qplot(displ, hwy, data=mpg2)+
+  geom_smooth(aes(color=drv), method="lm", se=F)+
+  facet_grid(cyl~drv, margins=T)
+
+
+
+#
+### 7.2.2 封装分面
+library(ggplot2movies)
+dim(movies) #[1] 58788    24
+head(movies)
+#
+library(plyr) #round_any 需要加载plyr包
+movies$decade=round_any(movies$year,10,floor)
+qplot(rating, ..density.., data=subset(movies, decade>1890),
+      geom="histogram", binwidth=0.5)+
+  facet_wrap(~decade, ncol=6)
+#
+### 7.2.3 控制标度
+p=qplot(cty, hwy, data=mpg)
+p
+p+facet_wrap(~cyl) #默认是fixed，都不能变化
+p+facet_wrap(~cyl,scales="free") #xy的标度都可变
+p+facet_wrap(~cyl,scales="free_y") #y的标度都可变
+#
+
+#数据由宽变长
+library(reshape2)
+em=melt(economics, id="date")
+head(em)
+qplot(date, value, data=em, geom='line', group=variable)+
+  facet_grid(variable~., scale="free_y") 
+#不同的y坐标标度，便于比较同时间点的各参数的变化
+#
+mpg3=within(mpg2,{
+  model=reorder(model, cty)
+  manufacturer=reorder(manufacturer, -cty)
+})
+head(mpg3) #结果
+models=qplot(cty, model, data=mpg3)
+models #
+#
+models+facet_grid(manufacturer~.) #简直没法看，每个厂家一行（右侧分组）
+models+facet_grid(manufacturer~., scales="free") #纵坐标只有有数据的部分，但是每一行宽度一样
+models+facet_grid(manufacturer~., space="free")  #space貌似只有配合scales才有意义。
+#
+models+facet_grid(manufacturer~., scales="free", space="free") #较好效果
+models+facet_grid(manufacturer~., scales="free", space="free")+
+  theme(strip.text.y=element_text(angle=0)) #设置分组标度横着写。
+# 分组横着写才能看清楚, how:done
+#  theme(axis.text=element_text(angle=90))
+
+
+#
+### 7.2.4 分面变量缺失
+
+#
+### 7.2.5 分组与分面
+xmaj=c(0.3,0.5, 1, 3, 5)
+xmin=as.vector(outer(1:10, 10^c(-1,0)))
+ymaj=c(500, 1000, 5000, 10000)
+ymin=as.vector(outer(1:10, 10^c(2,3,4)))
+dplot=ggplot(subset(diamonds, color %in% c("D", "E", "G", "J")),
+             aes(carat, price, color=color))+
+  scale_x_log10(breaks=xmaj, labels=xmaj, minor=xmin)+
+  scale_y_log10(breaks=ymaj, labels=ymaj, minor=ymin)+
+  scale_color_hue(limits=levels(diamonds$color))+
+  theme(legend.position="none")
+dplot
+dplot+geom_point()
+dplot+geom_point()+facet_grid(.~color) # 每列不同颜色
+#
+dplot+geom_smooth(method=lm, se=F, fullrange=T) #通过回归线，我们知道J组离群。
+dplot+geom_smooth(method=lm, se=F, fullrange=T)+facet_grid(.~color)
+#为什么合并显示的margin是点，不是线呢？ todo
+dplot+geom_smooth(method=lm, se=F, fullrange=T)+facet_grid(.~color,margins = T)
+
+#
+### 7.2.6 并列与分面
+qplot(color,data=diamonds, geom="bar", fill=cut) #dodge是堆积起来的
+qplot(color,data=diamonds, geom="bar", fill=cut, position="dodge") #`position` is deprecated 
+# https://ggplot2.tidyverse.org/reference/qplot.html
+#可能已经不能用qplot设置position了，只好用ggplot了
+#
+# 柱状图，堆叠的
+ggplot(diamonds, aes(x=color, fill=cut))+
+  geom_bar(position="dodge")
+#按照颜色分面，x轴为cut
+ggplot(diamonds, aes(x=cut, fill=cut))+
+  geom_bar(position="dodge")+
+  facet_grid(.~color) +
+  theme(axis.text=element_text(angle=60, #旋转坐标轴文字
+       hjust=1,size=8,color="grey50")) 
+#
+#
+#这个是啥??
+ggplot(diamonds, aes(x=color,y=carat, fill=cut))+
+  geom_histogram(stat="identity",position="dodge")
+
+#
+###
+mpg4=subset(mpg, manufacturer %in% c("audi", "volkswagen", "jeep"))
+dim(mpg4) #[1] 53 11
+head(mpg4)
+base=ggplot(mpg4, aes(fill=model))+
+  geom_bar(position="dodge")+
+  theme(legend.position="none")
+base #Errpr
+base+aes(x=model)
+base+aes(x=model)+facet_grid(.~manufacturer)
+#
+last_plot()+facet_grid(.~manufacturer, scales="free_x", space="free") #x轴自由
+base+aes(x=manufacturer)
+
+#
+### 7.2.7 连续型变量
+#需要把连续型变量，转为离散型
+#1.数据分为n个长度相同的部分 
+  # cut_interval(x, n=10) 控制划分数目
+  # cut_interval(x, length=1) 控制每个部分的长度。
+#3. 分为n个有相同点的部分：cut_number(x,n=10)
+head(mpg2);dim(mpg2)
+mpg2$disp_ww=cut_interval(mpg2$displ, length=1)
+mpg2$disp_wn=cut_interval(mpg2$displ, n=6)
+mpg2$disp_nn=cut_number(mpg2$displ, n=6)
+head(mpg2)
+#
+plot=qplot(cty,hwy, data=mpg2, color= factor(cyl))+
+  #labs(x=NULL, y=NULL)+
+  scale_color_hue("Cyl")+ #修改图例标题
+  theme( axis.text.x=element_text(angle=90))
+plot+facet_wrap(~disp_ww, nrow=1) #1位单位长度分面
+plot+facet_wrap(~disp_wn, nrow=1) #一共6个，端点太难看
+plot+facet_wrap(~disp_nn, nrow=1) #6个区间内点数相同
+
+#
+# 7.3 坐标系
+
+## 7.3.1 变换
+#坐标系变换，将改变图形的几何形状。
+
+## 7.3.2 统计量
+
+## 7.3.3 笛卡尔坐标系
+#标度范围会删除范围外的数据，所以统计量（比如拟合曲线）会和局部放大不一样。
+#而坐标系范围，则使用所有数据，但是只展示局部区域，和大图放大效果一致。
+
+
+#
+p=qplot(disp, wt,data=mtcars)+geom_smooth()
+p
+# 标度范围=取子集，仅用可见点拟合
+p+scale_x_continuous(limits=c(325,500))
+# 坐标系范围=，就像放大镜
+p+coord_cartesian(xlim=c(325,500))
+#
+#另一个例子
+d=ggplot(diamonds,aes(carat, price))+
+  stat_bin2d(bins=25, color="grey70")+
+  theme(legend.position="none")
+d
+d+scale_x_continuous(limits = c(0,2)) #为什么有空白区域？
+d+coord_cartesian(xlim = c(0,2)) #覆盖区域没变
+#
+#坐标轴翻转
+a=qplot(displ, cty, data=mpg)+geom_smooth()#计算x精确，y上的误差
+b=qplot(cty, displ, data=mpg)+geom_smooth()#计算x精确，y上的误差
+c=qplot(cty, displ, data=mpg)+geom_smooth()+coord_flip() #逆时针旋转90度
+library(scater)
+multiplot(a,b,c, cols=3)
+#
+# 变换
+qplot(carat, price, data=diamonds)
+qplot(carat, price, data=diamonds)+geom_smooth(method="lm") #为什么坐标会缩水？
+a=qplot(carat, price, data=diamonds, log="xy")+ #标度层面：对xy做对数变换
+  geom_smooth(method="lm")
+a
+#
+library(scales)
+a+coord_trans(x=exp_trans(10), y=exp_trans(10)) #曲线，拟合曲线过长了
+#怎么限制y的显示范围呢？
+a + coord_trans(x=exp_trans(10), y=exp_trans(10))+
+  #scale_y_continuous(limits = c(100,15000)) #只有一条线，why?
+  coord_cartesian(ylim = c(300,2e4)) #差不多，想要的效果
+#
+#为啥啥都不显示呢？ todo
+qplot(carat, price, data=diamonds)+geom_smooth(method="lm") +
+  coord_trans(x=exp_trans(10), y=exp_trans(10))
+
+#
+### 7.3.4 非笛卡尔坐标系
 
 
 
@@ -1270,20 +1487,9 @@ ggplot(huron, aes(year))+
 
 
 #
-
-#
-
-#
-
-
-#
-
-#
-
-
-
-#
-
+###############
+# 第8章 精雕细琢(P147-)
+###############
 
 #
 
@@ -1293,12 +1499,21 @@ ggplot(huron, aes(year))+
 
 #
 
+#
 
 #
 
+#
+
+#
+
+#
+
+#
 
 
 #合并到一张图
+library(scater)
 multiplot(p1, p2, p3, p4, cols=2)
 
 

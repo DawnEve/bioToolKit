@@ -16,3 +16,5 @@ v0.0.7-R learn ggplot2 Chapter5工具箱 (part P68-P94)
 v0.0.8-R learn ggplot2 Chapter5工具箱 (part -P97)
  开始第6章
 v0.0.9-R learn ggplot2 Chapter6 标度、坐标轴和图例 (P98-P122)
+v0.0.10-R learn ggplot2 Chapter7 定位(P123-P146)
+
