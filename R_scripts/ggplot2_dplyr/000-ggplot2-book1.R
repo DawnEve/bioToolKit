@@ -1488,8 +1488,208 @@ qplot(carat, price, data=diamonds)+geom_smooth(method="lm") +
 
 #
 ###############
-# 第8章 精雕细琢(P147-)
+# 第8章 精雕细琢(P147-P163)
 ###############
+
+#
+## 8.1 标度
+### 8.1.1 内置主题
+head(mtcars)
+ggplot(mtcars, aes(disp,mpg, color=factor(gear)))+geom_point()+theme_gray() #灰背景
+ggplot(mtcars, aes(disp,mpg, color=factor(gear)))+geom_point()+theme_bw() #白背景
+
+#
+h=qplot(rating, data=movies, binwidth=1)
+h #主题1
+previous_theme=theme_set(theme_bw()) #设置了全局主题2，但是该函数返回的是之前的主题1
+h#用当前主题：主题2。主题在绘制时才影响图形
+h+previous_theme #用之前的主题1绘制
+#永久性设置全局为主题1
+theme_set(previous_theme)
+h
+
+#
+### 8.1.2 主题元素和元素函数
+ht=h+labs(title="This is a histogram") #设置标题
+ht
+# element_text()绘制标签和标题
+ht+theme(plot.title=element_text(family="Times New Roman")) #字体设置失败，todo
+ht+theme(plot.title=element_text(size=20)) #标题的字号。20挺好。
+ht+theme(plot.title=element_text(size=20, color="red")) #标题颜色
+ht+theme(plot.title=element_text(size=20, hjust=1)) #标题右对齐
+ht+theme(plot.title=element_text(size=20, face="bold")) #加粗
+ht+theme(plot.title=element_text(size=20, lineheight=2)) #不知道lineheight什么意思？ todo
+ht+theme(plot.title=element_text(size=20, angle=180)) #倒着写
+#
+# element_line() 绘制线条和线段。
+h
+h+theme(panel.grid.major=element_line(color="red")) #背景网格主线
+h+theme(panel.grid.major=element_line(size=2)) #背景网格线宽度
+h+theme(panel.grid.major=element_line(color="red",linetype="dotted")) #背景网格主线用点画
+h #坐标轴默认是很浅的，还是没有显示？
+h+theme(axis.line=element_line()) #坐标轴默认加黑
+h+theme(axis.line=element_line(color="red")) #坐标轴红色
+h+theme(axis.line=element_line(size=0.5, linetype="dashed")) #坐标轴虚线
+#
+# element_rect() 绘制供背景使用的矩形。
+h
+h+theme(plot.background = element_rect(fill="grey80", color=NA)) #周围画布上灰色了
+h+theme(plot.background = element_rect(color="red"))
+h+theme(plot.background = element_rect(fill="grey80", color="red")) #周围画布边框红色
+h+theme(plot.background = element_rect(size=20)) #没啥影响？ todo
+h+theme(plot.background = element_rect()) #没变化
+h+theme(plot.background = element_rect(color=NA)) #没变化
+h+theme(plot.background = element_rect(linetype="dotted",color="red")) #点图
+#
+# element_blank()表示空主题。
+# 之前的 color=NA; fill=NA 让某些元素不可见，可达到相同的效果。
+ht
+ht+theme(panel.grid.minor=element_blank()) #没小格子
+ht+theme(panel.grid.major=element_blank()) #没大格子
+ht+theme(panel.background=element_blank()) #没背景灰了
+ht+theme(axis.title.x = element_blank()) #x轴标签没了
+ht+theme(axis.title=element_blank()) #x和y轴标签没了
+ht+theme(axis.line=element_blank()) #干了什么？ todo
+
+#
+theme_get() #可得到当前主题的设置
+theme() #可在一幅图中对某些元素进行局部的修改，
+#theme_update() 可为后面图形的绘制进行全局性的修改。
+old_theme=theme_update(
+  plot.background=element_rect(fill="#3366FF"),
+  panel.background=element_rect(fill="#003DF5"),
+  axis.text.x=element_text(color="#CCFF33"),
+  axis.text.y=element_text(color="#CCFF33", hjust=1),
+  axis.title.x=element_text(color="#CCFF33", face="bold"),
+  axis.title.y=element_text(color="#CCFF33", face="bold", angle=90)
+)
+qplot(cut, data=diamonds, geom="bar")
+qplot(cty, hwy, data=mpg)
+theme_set(old_theme) #恢复全局设置
+qplot(cty, hwy, data=mpg)
+#
+#自定义主题很繁琐，不过如果你想拥有自己的主题，
+#最好写一个函数来最小化这种重复。
+
+#
+## 8.2 自定义标度和几何对象
+#格式 scale_aesthetics_continuous 或者 scale_aesthetics_discrete
+#替换中间 aesthetic 为图形属性，如 color，fill, size等。
+p=qplot(mpg, wt, data=mtcars, color=factor(cyl))
+p
+scale_color_discrete=scale_color_brewer #发生了什么？ todo
+p
+
+
+#
+### 8.2.2 几何对象和统计变换
+#类似 update_geom_defaults() 和 update_stat_defaults()， 
+#我们也可以自定义集合对象和统计变换。
+update_geom_defaults("point", aes(color="darkblue"))
+qplot(mpg, wt, data=mtcars)
+update_stat_defaults("bin", aes(y=..density..))
+qplot(rating, data=movies, geom="histogram",binwidth=1)
+#
+#恢复默认
+theme_set(theme_gray()) #恢复失败，怎么恢复默认值 todo
+
+
+#
+## 8.3 存储输出
+#ggsave:path; width,height; dpi;
+setwd("F://Temp")
+#
+q=qplot(mpg, wt, data=mtcars)
+q
+ggsave(file="ggsave.pdf") #保存当前图形
+# 两个图形保存到一个文件，则需要打开基于磁盘的图形设备(比如png(), pdf()),然后关闭dev.off()
+pdf(file="pdf.pdf", width=6, height=6)
+qplot(mpg, wt, data=mtcars) #图1
+qplot(wt, mpg, data=mtcars) #图2
+dev.off()
+#
+png(file="dev.png", width=400, height=400) #怎么设置分辨率？ todo
+qplot(mpg, wt, data=mtcars) #图1
+dev.off()
+#
+
+#
+## 8.4 一页多图
+
+(a=qplot(date, unemploy, data=economics, geom="line"))
+(b=qplot(uempmed, unemploy, data=economics)+ geom_smooth(se=F))
+(c=qplot(uempmed, unemploy, data=economics, geom="path"))
+#
+## 8.4.1 子图
+# 
+library(grid)
+##
+#默认的单位是npc，范围是(0,0)是左下角，(1,1)是右上角。
+##
+#
+#一个占据整个图形设备的视图窗口
+vp1=viewport(width=1, height=1, x=0.5, y=0.5)
+vp1=viewport()
+# 只占图形设备一半的宽和高的视图窗口
+# 定位在图形的中间位置
+vp2=viewport(width=0.5, height=0.5, x=0.5, y=0.5)
+vp2=viewport(width=0.5, height=0.5)
+#一个2cm x 3cm 的视图窗口，定位在图形设备中心
+vp3=viewport(width=unit(2,"cm"), height=unit(3,"cm"))
+#
+# 默认地，x和y参数控制着视图窗口的中心位置，若想调整图形位置，用just控制放在哪个角落
+#放在右上角的视图窗口
+vp4=viewport(x=1, y=1, just=c("right", "top"))
+#处在左下角
+vp5=viewport(x=0, y=0, just=c("right", "bottom"))
+#
+pdf("polishing-subplot-1.pdf", width=4, height=4)
+subvp=viewport(width=0.4, height=0.4, x=0.75, y=0.35)
+b
+print(c, vp=subvp)
+dev.off()
+#
+#效果不好，还要移除坐标轴标签，缩减边界
+csmall=c+theme_gray(9)+
+  labs(x=NULL, y=NULL)+
+  theme(plot.margin=unit(rep(0,4), "lines")) #周围四个全是0
+csmall
+#
+pdf("polishing-subplot-2.pdf", width=4, height=4)
+b
+print(csmall, vp=subvp)
+dev.off()
+# ggsave只有保存一幅图，所以使用pdf或者png保存多图。
+
+#
+### 8.4.2 矩形网络
+grid.layout() #只需要设置布局 layout 的行数和列数即可。
+pdf("polishing-layout.pdf", width=8, height=6)
+grid.newpage()
+pushViewport(viewport(layout=grid.layout(2,2))) #指定了2行2列
+#grid.layout中默认每个单元格大小相同， help(grid.layout)
+#可以设置 widths和heights参数使它们具有不同的大小。
+vplayout=function(x,y){
+  viewport(layout.pos.row=x, layout.pos.col=y)
+}
+print(a, vp=vplayout(1,1:2))
+print(b, vp=vplayout(2,1))
+print(c, vp=vplayout(2,2))
+dev.off()
+#
+
+
+
+
+
+
+
+
+#
+###############
+# 第9章 数据操作(P164-P)
+###############
+
 
 #
 
