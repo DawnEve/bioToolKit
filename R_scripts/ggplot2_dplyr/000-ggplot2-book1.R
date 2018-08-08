@@ -1687,23 +1687,269 @@ dev.off()
 
 #
 ###############
-# 第9章 数据操作(P164-P)
+# 第9章 数据操作(P164-P183)
+###############
+#数据的清洗、操作、变换是一个很大的问题。
+
+## 9.1 plyr包简介
+# ddply() 根据行的取值，把数据框分解成几个子集，
+#分别把各个子集输入某个函数，最后把结果总和在一个数据框内。
+
+#Usage: 
+#ddply(.data, .variables, .fun = NULL, ..., .progress = "none",
+# .inform = FALSE, .drop = TRUE, .parallel = FALSE, .paropts = NULL)
+## .data 是用来作图的数据
+## .variables 是对数据取子集的分组变量，形式是.(var1, var2)，要包含分组、分面变量。
+## .fun 是要在各子集上运行的统计汇总函数。可以返回向量或数据框。
+?ddply
+# http://had.co.nz/plyr/
+library(plyr)
+
+#
+################
+#subset()用来对数据取子集的函数，选择数据中前/后n个（或x%的）观测值，
+#或在某个阈值之上或下的观测值
+## 选取各个颜色里最小的钻石
+ddply(diamonds, .(color), subset, carat==min(carat))
+## 选择最小的的两个钻石
+ddply(diamonds, .(color), subset, order(carat) <= 2) #为什么比那个大？ <= 是什么意思？ todo
+## 选取每组里大小为前1%的钻石
+ddply(diamonds, .(color), subset, carat > quantile(carat, 0.99))
+#选出所有比组平均值大的钻石
+ddply(diamonds, .(color), subset, price > mean(price))
+#
+
+
+#
+################
+#transform() 用来数据变换的函数。与ddply一起可以计算分组统计量，如各组标准差，并且加到原数据上。
+#把每个颜色组中的钻石的价格标准化，使其均值为0，方差为1
+ddply(diamonds, .(color), transform, price=scale(price))
+#减去组均值
+ddply(diamonds, .(color), transform, price=price-mean(price))
+
+#
+################
+# colwise() 用来向量化一个普通函数。能把一个接收向量输入的函数，变成一个接收df的函数，逐列输入。
+nmissing=function(x) sum(is.na(x))
+nmissing(msleep$name) #0
+nmissing(msleep$brainwt) #27
+#
+nmissing_df=colwise(nmissing) #返回的是一个函数
+nmissing_df(msleep)
+# 更便捷的方法
+colwise(nmissing)(msleep)
+#
+# numclowise()是colwise()的特殊版本，
+#   numcolwise(median) 只对数值类型的列计算中位数
+#   numcolwise(quantile) 对每个数值类型的列计算分位数。
+# catcolwise()只对分类类型的列操作
+msleep2=msleep[,-6] #移除第六列
+head(msleep2)
+numcolwise(median)(msleep2, na.rm=T)
+numcolwise(quantile)(msleep2, na.rm=T)
+numcolwise(quantile)(msleep2, na.rm=T, probs=c(0.25, 0.75))
+#
+#
+# 以上这些函数与ddply一起可以对数据进行各种分组统计
+ddply(msleep2, .(vore), numcolwise(median), na.rm=T)
+ddply(msleep2, .(vore), numcolwise(mean), na.rm=T)
+#
+ddply(msleep2, .(vore), numcolwise(nmissing)) #数值型NA值个数
+ddply(msleep2, .(vore), catcolwise(nmissing)) #字符型NA值个数
+
+#
+# 如果提供的函数不够用，也可以自己编写函数，只要它能接收、输出数据框。
+my_summary=function(df){
+  with(df, data.frame(
+    pc_cor=cor(price, carat, method="spearman"), #价格和克拉的秩相关系数
+    lpc_cor=cor(log(price), log(carat)) #对数变换后的普通相关系数
+  ))
+}
+ddply(diamonds, .(cut), my_summary)
+ddply(diamonds, .(color), my_summary)
+ddply(diamonds, 'color', my_summary) # a formula or character vector
+#
+# 以上有一个共同点，就是针对多个子集操作，而且组合各个结果。
+
+#
+### 9.1.1 拟合多个模型
+qplot(carat, price, data=diamonds, geom="smooth")
+qplot(carat, price, data=diamonds, geom="smooth", color=color)
+#
+dense=subset(diamonds, carat < 2)
+qplot(carat, price, data=dense, geom="smooth", color=color)
+qplot(carat, price, data=dense, geom="smooth", color=color, fullrange=T) #fullrange什么意思？
+#
+library(mgcv) #不懂 todo ??
+smooth=function(df){
+  mod=gam(price~ s(carat, bs="cs"), data=df) #建模
+  #输出
+  grid=data.frame(carat=seq(0.2,2,length=50))
+  pred=predict(mod, grid, se=T)
+  grid$price=pred$fit
+  grid$se=pred$se.fit
+  grid
+}
+smoothes=ddply(dense, .(color), smooth) #使用自定义函数预测结果
+head(smoothes)
+#画图
+qplot(carat, price, data=smoothes, color=color, geom="line") #
+qplot(carat, price, data=smoothes, color=color, geom="smooth") #线和上一条比变了。但阴影没变化 todo
+qplot(carat, price, data=smoothes, color=color, geom="smooth",ymax=price+2*se, ymin=price-2*se)
+
+#
+# 把分组变量也纳入平滑模型，把钻石的价格当成克拉数和颜色的非线性函数
+mod=gam(price~s(carat, bs="cs")+color, data=dense)
+grid=with(diamonds, expand.grid(
+  carat=seq(0.2,2,length=50),
+  color=levels(color)
+))
+grid$pred=predict(mod, grid)
+qplot(carat, pred, data=grid, color=color, geom="line")
+# 不懂 todo
+
+
+
+#
+## 9.2 把数据化“宽”变“长”
+# reshape2包中的 melt() 和 cast() 函数。
+# melt(data, id.vars, measure.vars,
+#     variable.name = "variable", ..., na.rm = FALSE, value.name = "value",
+#     factorsAsStrings = TRUE)
+#id.vars 不变的列；
+#   用方差分析的角度看，好比变量Yijk的下表(i,j,k);
+#   用数据库的角度看，好比是数据表的主键
+# measure.vars 需要放到一列的变量。
+# variable.name 变量的列名
+# value.name 值得列名
+dim(economics)
+head(economics)
+ggplot(economics, aes(date))+
+  geom_line(aes(y=unemploy, color="unemploy"))+ #波动大
+  geom_line(aes(y=uempmed, color="uempmed"))+ #画一张图不行，因为标度不同，波动小的被压平了
+  scale_color_hue("variable")
+#画波动小的
+ggplot(economics, aes(date))+
+  geom_line(aes(y=uempmed, color="uempmed"))+ #波动小
+  scale_color_hue("variable")
+#用“长”数据重新画
+require(reshape2)
+emp=melt(economics, id.vars='date',  measure.vars=c("uempmed", "unemploy"))
+tail(emp, n=10)
+qplot(date, value, data=emp, geom="line", color=variable)
+#数据波动小的被压缩成一条线，标准化为1
+range01=function(x){
+  rng=range(x, na.rm=T)
+  (x-rng[1])/diff(rng) #计算百分比
+}
+emp2=ddply(emp, "variable", transform, value=range01(value))
+qplot(date, value, data=emp2, geom="line",color=variable, linetype=variable) #方法1：标准化为1
+qplot(date, value, data=emp, geom="line")+facet_grid(variable~., scale="free_y") #方法2：分面
+#
+
+
+#
+### 9.2.2 平行坐标图
+dim(movies) #[1] 58788    24
+popular=subset(movies, votes > 1e4)
+ratings=popular[, 7:16]
+ratings$.row=rownames(ratings)
+molten = melt(ratings, id=".row")
+head(molten)
+dim(molten) #[1] 8400    3
+#
+pcp=ggplot(molten, aes(variable, value, group=.row))
+pcp+geom_line() #每条线啥意思？
+#pcp+geom_line(aes(color=.row))#不行
+pcp+geom_line(color="black", alpha=1/20) #不透明度。重叠线太多
+pcp+geom_line(position=position_jitter(width=0.25, height=2.5)) #扰动
+pcp+geom_line(color="black", alpha=1/20, position="jitter") #
+#其实，还是看不清楚
+
+#
+#使用k-means聚类，聚成6类。平均得分最低的记为1类，最高的记为第六类
+head(ratings);dim(ratings) #[1] 840  11
+cl=kmeans(ratings[1:10], 6)
+head(cl)
+str(cl)
+head(cl$cluster)
+#
+ratings$cluster = reorder(factor(cl$cluster), popular$rating) #除了排序，没啥用
+levels(ratings$cluster) = seq_along(levels(ratings$cluster)) #啥用？
+molten2=melt(ratings, id=c(".row", "cluster"))
+head(molten2)
+#可视化聚类结果，常用的做法是把不同的类标成不同的颜色，然后再把每组均值单独画在一张图上作为补充。
+pcp_cl=ggplot(molten2, aes(variable, value, group=.row, color=cluster))
+pcp_cl+geom_line() #画线
+pcp_cl+geom_line(position="jitter", alpha=1/5) #jitter后看的更清楚
+#
+pcp_cl+stat_summary(aes(group=cluster), fun.y=mean,geom="line") #均值的线
+#
+#以上图可以看出各类之间的差异，但是看不出聚类效果好不好。
+#分面把每类画到一起，类内部差异很大，说明需要增加类的个数。
+jit=position_jitter(width=0.25, height=2.5)
+pcp_cl+geom_line(position=jit, color="black", alpha=1/5)+
+  facet_wrap(~cluster)
+#
+
+
+#
+## 9.3 ggplot()方法
+qplot(displ, cty, data=mpg)+geom_smooth(method="lm")
+mpgmod=lm(cty~displ, data=mpg)
+mpgmod
+#
+mod=lm(cty~displ, data=mpg)
+basic=ggplot(mod, aes(.fitted, .resid))+ #拟合值-残差值
+  geom_hline(yintercept=0, color="grey50", size=0.5)+
+  geom_point()+
+  geom_smooth(size=0.5, se=F)
+basic
+basic+aes(y=.stdresid)
+basic+aes(size=.cooksd)+scale_size_area("Cook's distance") #点的大小是cook距离
+#
+full=basic %+% fortify(mod, mpg) #啥意思？fortify作者不建议使用了，推荐用broom包。
+full+aes(color=factor(cyl)) #todo
+full+aes(displ, color=factor(cyl)) #todo
+#
+
+
+
+#
+### 9.3.2 编写自己的方法
+fortify.Image=function(model, data, ...){
+  colors=channel(model, "x11")
+  colors=colors[, rev(seq_len(ncol(colors)))]
+  melt(colors, c("x", "y"))
+}
+# source("http://bioconductor.org/biocLite.R")
+# biocLite("EBImage")
+# 安装失败 p183 todo
+library(EBImage)
+library(reshape2)
+img=readImage("http://had.co.nz/me.jpg")
+qplot(x,y,data=img, fill=value, geom="tile")+scale_fill_identity()+coord_equal()
+#
+
+
+
+
+
+
+
+
+
+
+
+#
+###############
+# 第10章 减少重复性工作(P184-P)
 ###############
 
-
 #
 
-#
 
-#
-
-#
-
-#
-
-#
-
-#
 
 #
 
