@@ -4,13 +4,22 @@ ul{list-style-type: none;}
 </style>
 
 
-<h1>专题：ggplot2画SCI中常见的图</h1>
+<h1>专题：ggplot2画paper中常见的图</h1>
 
 <ul>
 	目录：
 	<li>1. 箱线图/柱状图 + 散点图<li>
-	<li>2. xx图 todo<li>
+	<li>2. 散点图 + 线性拟合曲线with r and p<li>
+	<li>n. xx图 todo<li>
 </ul>
+
+
+
+
+
+
+
+
 
 
 <h2>1. 箱线图/柱状图 + 散点图</h2>
@@ -52,19 +61,19 @@ ggplot(d2,aes(factor(type), value))+
 ##   groupvars: a vector containing names of columns that contain grouping variables
 ##   na.rm: a boolean that indicates whether to ignore NA's
 ##   conf.interval: the percent range of the confidence interval (default is 95%)
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+summarySE = function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
   library(plyr)
   
   # New version of length which can handle NA's: if na.rm==T, don't count them
-  length2 <- function (x, na.rm=FALSE) {
+  length2 = function (x, na.rm=FALSE) {
     if (na.rm) sum(!is.na(x))
     else       length(x)
   }
   
   # This does the summary. For each group's data frame, return a vector with
   # N, mean, and sd
-  datac <- ddply(data, groupvars, .drop=.drop,
+  datac = ddply(data, groupvars, .drop=.drop,
                  .fun = function(xx, col) {
                    c(N    = length2(xx[[col]], na.rm=na.rm),
                      mean = mean   (xx[[col]], na.rm=na.rm),
@@ -75,22 +84,22 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
   )
   
   # Rename the "mean" column    
-  datac <- rename(datac, c("mean" = measurevar))
+  datac = rename(datac, c("mean" = measurevar))
   
-  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+  datac$se = datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
   
   # Confidence interval multiplier for standard error
   # Calculate t-statistic for confidence interval: 
   # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
-  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
-  datac$ci <- datac$se * ciMult
+  ciMult = qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci = datac$se * ciMult
   
   return(datac)
 }
 
 
 # http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/
-d3 <- summarySE(d2, measurevar="value", groupvars=c("type"))
+d3 = summarySE(d2, measurevar="value", groupvars=c("type"))
 d3
 
 ggplot(d3, aes(x=type, y=value)) + 
@@ -105,7 +114,85 @@ ggplot(d3, aes(x=type, y=value)) +
 
 
 
-<h2>2. xx图 todo</h2>
+
+
+
+
+
+
+
+<h2>2. 散点图 + 线性拟合曲线with r and p</h2>
+<pre>
+<img src="images/002point-lm.png">
+#怎么处理线性拟合r和p值
+#1.1造数据
+#x=data.frame(
+#  a=c(1,2,3,4,5),
+#  b=c(1,2,4,5,6)
+#)
+
+#1.2 抽样生成数据
+library(dplyr)
+set.seed(1)
+sdata=sample_n(mtcars,100,replace=T)
+x=data.frame(
+  a=sdata$mpg,
+  b=sdata$disp,
+  clazz=sdata$gear #分类变量
+)
+
+
+#方法1：用包计算r和p
+#library(Hmisc)
+#rs=rcorr(x$a,x$b, type="pearson")
+#rs;str(rs)
+
+#r=rs$r[2];r #[1] -0.8427099
+#p=rs$P[2];p #[1] 0
+#r0=round(r,2);r0 #[1] -0.84
+
+#
+#方法2：基础统计命令，计算r和p
+#cor(x$a,x$b) #[1] -0.8427099
+ts=cor.test(x$a,x$b); ts
+str(ts)
+p=ts$p.value;p #[1] 4.202888e-28
+r=ts$estimate[['cor']];r#[1] -0.8427099
+r0=round(r,2);r0
+
+# 保留两位有效数字
+#https://stackoverflow.com/questions/39623636/forcing-r-output-to-be-scientific-notation-with-at-most-two-decimals
+p0=formatC(p, format = "e", digits = 2)
+p0
+
+#可视化结果
+#plot(x$a,x$b)
+library(ggplot2)
+library(cowplot)
+g=ggplot(data=x,aes(a,b))+
+  geom_smooth(method='lm', se=F)+ #se=F不要置信区间的阴影
+  geom_text(aes(x=16,y=15,label=paste0("r = ",r0,"\n p = ",p0)))+
+  theme_cowplot() + #除掉主题背景阴影
+  xlab( expression(paste( italic("CD8A")," expression") ) )+
+  ylab( expression(paste( italic("ITGAE")," expression") ) )
+g+geom_point() #一般图
+g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
+  scale_color_discrete("type")
+</pre>
+
+
+
+
+
+
+
+
+
+
+<h2>n. xx图 todo</h2>
+
+
+
 
 
 

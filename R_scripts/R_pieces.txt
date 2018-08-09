@@ -40,22 +40,6 @@ R_MAX_NUM_DLLS=1000
 
 
 
-========================================
-ggplot2
-----------------------------------------
-1.
-ggplot2默认主题怎么设置？
-#Cowplot made ggplot2 theme disappear / How to see current ggplot2 theme, and restore the default?
-#https://stackoverflow.com/questions/41096293/cowplot-made-ggplot2-theme-disappear-how-to-see-current-ggplot2-theme-and-res
-#library(cowplot)
-theme_set(theme_grey())
-
-2.
-如何选择其他主题
-g=ggplot(...) #画图命令
-g + theme_gray() #添加主题
-
-
 
 
 ========================================

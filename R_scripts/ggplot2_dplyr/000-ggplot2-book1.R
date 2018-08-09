@@ -1949,7 +1949,7 @@ qplot(x,y,data=img, fill=value, geom="tile")+scale_fill_identity()+coord_equal()
 
 #
 
-
+#
 
 #
 

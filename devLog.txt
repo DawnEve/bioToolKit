@@ -19,3 +19,4 @@ v0.0.9-R learn ggplot2 Chapter6 标度、坐标轴和图例 (P98-P122)
 v0.0.10-R learn ggplot2 Chapter7 定位(P123-P146)
 v0.0.11-R learn ggplot2 Chapter8 精雕细琢(P147-P163)
 v0.0.12-R learn ggplot2 Chapter9 数据操作(P164-P183)
+v0.0.13-R 续写R_scripts/index.html 之 2. 散点图 + 线性拟合曲线with r and p
