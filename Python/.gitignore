@@ -15,6 +15,10 @@ build
 __pycache__
 
 
+#for jupyter notebook
+.ipynb_checkpoints
+
+
 # My configurations:
 log.ini
 deploy_key_rsa

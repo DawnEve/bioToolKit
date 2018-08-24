@@ -1,6 +1,11 @@
 <style>
 h2{background:#eee;}
 ul{list-style-type: none;}
+#GoTop{ position: fixed; right: 30px; bottom: 20px;}
+a {
+    color: #0366d6;
+    text-decoration: none;
+}
 </style>
 
 
@@ -8,9 +13,9 @@ ul{list-style-type: none;}
 
 <ul>
 	目录：
-	<li>1. 箱线图/柱状图 + 散点图<li>
-	<li>2. 散点图 + 线性拟合曲线with r and p<li>
-	<li>n. xx图 todo<li>
+	<li><a href='#t1'>1. 箱线图/柱状图 + 散点图</a><li>
+	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
+	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
 
 
@@ -21,7 +26,7 @@ ul{list-style-type: none;}
 
 
 
-
+<a name='t1'></a>
 <h2>1. 箱线图/柱状图 + 散点图</h2>
 <pre>
 <img src="images/001his-jitter.png">
@@ -120,7 +125,7 @@ ggplot(d3, aes(x=type, y=value)) +
 
 
 
-
+<a name='t2'></a>
 <h2>2. 散点图 + 线性拟合曲线with r and p</h2>
 <pre>
 <img src="images/002point-lm.png">
@@ -188,7 +193,7 @@ g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
 
 
 
-
+<a name='tn'></a>
 <h2>n. xx图 todo</h2>
 
 
@@ -196,3 +201,9 @@ g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
 
 
 
+<div id="GoTop"><a onclick="gotop()">GoTop</a></div>
+<script>
+var gotop=function(){
+	window.scroll(0,0);
+}
+</script>
