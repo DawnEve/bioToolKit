@@ -22,3 +22,4 @@ v0.0.12-R learn ggplot2 Chapter9 数据操作(P164-P183)
 v0.0.13-R 续写R_scripts/index.html 之 2. 散点图 + 线性拟合曲线with r and p
 v0.0.14-R 微调绘图。
 v0.0.15-R ZDJY: filter SNP Indel
+v0.0.16-R ZDJY: filter SNP Indel v0.2 correct;
