@@ -1,5 +1,6 @@
 ################
 # on linux only.
+# v0.2.1
 ################ 
 
 ## 任务：从文件读取一行小分子 id，作为参数传给下载进程们。
@@ -8,6 +9,20 @@
 ## 读、写进程之间用queue通信。
 
 #问题： 为什么不能在子进程中完整保存呢？因为没有flush文件。
+
+#1.下载csv文件：
+#http://zinc15.docking.org/catalogs/fda/substances/
+# (1) 关键词搜索 fda/specsnp, molportnp等   http://zinc15.docking.org/catalogs/
+# (2) 点击右侧的 Browse Substances， 
+# (3) 点击中间的下载按钮，选择 csv格式的。      
+#        
+#2.shell 语句处理成单列，并去掉第一行表头
+#$ awk -F"," '{print $1}' fda-substances.csv >fda.id
+#$ sed -i '1d' fda.id
+#
+#3. 用python多线程下载，同时下载好的id记录到done文件中
+#
+
 
 import os
 import re
