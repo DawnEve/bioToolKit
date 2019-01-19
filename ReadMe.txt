@@ -25,6 +25,9 @@ Java常用代码片段
 ========================
 R常用代码片段
 	QC for geneChips 
+	heatmap: R_scripts\visulization\pheatmap_demo-ForSunjiaxin.R
+		# More CMD: http://www.360doc.com/content/14/1103/10/17553313_422108323.shtml
+
 	ggplot2_dplyr/
 		101-barchart.R
 	R_pieces.txt 
