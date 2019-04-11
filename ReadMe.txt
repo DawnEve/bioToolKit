@@ -27,6 +27,9 @@ R常用代码片段
 	QC for geneChips 
 	ggplot2_dplyr/
 		101-barchart.R
+	heatmap_for_pValue: 热图，要根据P值的显著程度设置颜色。使用image()函数实现了精美版v1和批量版v2
+		R_scripts\visulization\heatmap_for_pValue
+
 	R_pieces.txt 
 		maximal number of DLLs reached... 
 	index.html 专题：ggplot2画SCI中常见的图 http://tool.biomooc.com/R_scripts/
