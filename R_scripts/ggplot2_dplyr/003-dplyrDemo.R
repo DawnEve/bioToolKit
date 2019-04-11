@@ -1,28 +1,29 @@
-library('dplyr')
-vignette("dplyr")
-
 #############
+# 学习dplyr包
+# version: v0.2
+#
 # 特别提示：
 # help: 光标在关键字上，使用f1查询帮助文件。
+# docs: https://dplyr.tidyverse.org/
+#
 # dplyr basics: http://r4ds.had.co.nz/transform.html
 # local docs: http://127.0.0.1:27228/library/dplyr/doc/dplyr.html
 #############
 
-
-
-
 #单表操作函数
-# filter 保留满足条件的行
-# select 使用列名选出列
-# arange 行排序
-# mutate (变形/计算函数)添加新的变量
-# summarise 分类汇总
+# mutate (变形/计算函数)添加新的变量 adds new variables that are functions of existing variables
+# select 使用列名选出列 picks variables based on their names.
+# filter 保留满足条件的行 picks cases based on their values.
+# summarise 分类汇总 reduces multiple values down to a single summary.
+# arange 行排序 changes the ordering of the rows.
+
 # group_by 分组函数
 # 随机抽样函数 sample_n, sample_frac
-# 多步操作连接符 %>%
+# pipe operator 管道操作 / 多步操作连接符 %>%
 
 
-
+library('dplyr')
+vignette("dplyr")
 
 #1.数据集类型转换？不知道为啥要做这一步
 class(mtcars)
@@ -96,7 +97,7 @@ select(iris2,-starts_with("Petal"))
 select(iris2, -ends_with("Width"))
 #选取变量名包含etal的列
 select(iris2,contains("etal"))
-#使用正则表达式，返回变量名中包含t的列
+#使用正则表达式，返回变量名中包含en的列
 select(iris2,matches(".en."))
 #使用正则表达式，返回变量名结尾不是h的列
 #select(iris2,matches(".+h$"))
@@ -117,7 +118,7 @@ select(iris2, Sepal.Width:Species)
 vars=c("Sepal.Length","Petal.Width",'Species')
 select(iris2,one_of(vars))
 #反向选择
-select(iris, -one_of(vars))
+select(iris2, -one_of(vars))
 #返回所有列，一般调整数据集中变量顺序时使用
 select(iris2,everything())
 #调整列顺序，把Species列放到最前面
@@ -189,11 +190,12 @@ distinct(df, diff=x-y, .keep_all = T) #不加abs结果中行会更多
 summarise(mtcars,mean(disp))
 #返回数据框中变量disp的标准差
 summarise(mtcars, sd(disp))
+sd(mtcars$disp)
 #返回最大和最小值
 summarise(mtcars, max(disp), min(disp))
 #返回行数
 summarise(mtcars, n())
-dim(mtcars)[1]
+dim(mtcars)[1];nrow(mtcars)
 #返回unique的gear数
 summarise(mtcars, n_distinct(gear))
 factor(mtcars$gear) #从factor的水平个数看
@@ -241,7 +243,8 @@ filter(by_cyl, disp==max(disp))
 #返回每个分组中变量名包含d的列，始终返回分组列cyl
 select(by_cyl, contains("d"))
 #使用mpg对每个分组排序
-arrange(by_cyl, mpg)
+tmp=arrange(by_cyl, mpg)
+View(tmp)
 #对每个分组无重复的取2行记录
 sample_n(by_cyl,2)
 
@@ -261,8 +264,9 @@ summarise(arrange(by_cyl,disp), min(disp))
 #返回每个分组中最大的disp值
 summarize(by_cyl, max(disp))
 summarize(arrange(by_cyl,disp), max(disp))
-#返回每个分组中disp第二个值
+#返回每个分组中disp第二个disp值
 summarise(by_cyl, nth(disp,2))
+
 
 #例子3 
 #获取分组数据集使用的分组变量
@@ -270,15 +274,18 @@ groups(by_cyl)
 #从数据集中移除分组信息，因此返回的分组变量为NULL
 groups(ungroup(by_cyl))
 
+
+
 #例子4 返回每条记录所在分组id组成的向量
 group_indices(mtcars, cyl)
 #[1] 2 2 1 2 3 2 3 1 1 2 2 3 3 3 3 3 3 1 1 1 1 3 3 3 3 1 1 1 3 2 3 1
+
+
 
 #例子5 返回每个分组记录数组成的向量
 group_size(by_cyl)
 summarise(by_cyl, n())
 table(mtcars$cyl)
-group_size(by_cyl)
 #返回所分的组数
 n_groups(by_cyl)
 length(group_size(by_cyl))
@@ -318,14 +325,15 @@ df2=data.frame(
 #内连接，合并数据仅保留匹配的记录
 #inner_join(x,y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ...) 
 #内连接，默认使用Customer和sex连接
-inner_join(df1,df2)
+inner_join(df1,df2) #仅保留匹配的
 
 #左连接，向数据集x中加入匹配的数据集y记录
 #left_join(x,y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ...)
 #左连接，默认使用"CustomerId"和"sex"连接  
-left_join(df1,df2)
+left_join(df1,df2) #保留左侧全部行
 
-right_join(df1,df2) #同理，右连接以右边为主，补充信息到右边。
+#同理，右连接以右边为主，补充信息到右边。
+right_join(df1,df2)  #保留右侧全部行
 
 #全连接，合并数据保留所有记录，所有行
 # full_join(x,y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ...)
@@ -340,7 +348,7 @@ semi_join(df1,df2,by=c('CustomerId'='CustomerId'))
 df1
 #以CustomerId和sex连接，返回df1中与df2不匹配的记录  
 anti_join(df1, df2)
-
+df2
 
 #
 # 11. 集合操作 set。dplyr也提供了集合操作函数，实际上是对base包中的集合操作的重写，
@@ -348,7 +356,7 @@ anti_join(df1, df2)
 mtcars$model=rownames(mtcars)
 g1=mtcars[1:20,]
 g2=mtcars[10:32,]
-#取两个集合的交集
+#取两个集合的交集，丢失行名字
 intersect(g1,g2)
 #取并集，并去重
 union(g1,g2)
@@ -360,17 +368,17 @@ setdiff(g2,g1) #这个是g2-g1
 #取两个集合的交集，不去重
 union_all(g1,g2)
 #判断两个集合是否相等
-setequal(g1,g1[20:1,])
-setequal(g1,mtcars[1:20,])
-setequal(g1,g2)
-
+setequal(g1,g1[20:1,]) #TRUE
+setequal(g1,mtcars[1:20,]) #TRUE
+setequal(g1,g2) #FALSE: Different number of rows
+setequal(g1,g2[1:20,]) #FALSE: Rows in x but not y...
 
 
 #
 # 12.数据合并 bind
 #对数据框按照行/列合并。
-one=mtcars[1:4,]
-two=mtcars[11:14,]
+one=mtcars[1:4,]; one
+two=mtcars[11:14,]; two
 #按行合并数据框one和two
 bind_rows(one, two)
 # 按行合并元素为数据框的列表
@@ -388,8 +396,8 @@ f2=factor('b')
 c(f1,f2)
 unlist(list(f1,f2))
 #因子level不同，强制转换为字符型
-combine(f1,f2)
-combine(list(f1,f2))
+combine(f1,f2) #报Warning
+combine(list(f1,f2)) #报Warning
 
 
 
@@ -397,20 +405,21 @@ combine(list(f1,f2))
 # 13.条件语句 ifelse
 # dplyr包也提供了更加严格的条件操作语句，fi_else函数类似于base::ifelse(),
 #不同的是true和false对应的值必须要有相同的类型，这样使得输出类型更容易预测，执行效率更高。
-x=c(-5:5, NA)
+x=c(-5:5, NA);x
 if_else(x<0, NA_integer_, x)
 #使用字符串missing替换原数据中的NA元素
 if_else(x<0, 'negetive', 'positive','missing')
 #if_else不支持类型不一致，但是ifelse可以
-ifelse(x<0, 'negative', 1)
+if_else(x<0, 'negative', 1) #Error: `false` must be type character, not double
+ifelse(x<0, 'negative', 1) #1被强制转换为字符了
 
 #例2
-x <- factor(sample(letters[1:5], 10, replace=TRUE))
-x
+set.seed(100)
+x <- factor(sample(letters[1:5], 10, replace=TRUE));x
 #if_else会保留原有数据类型
 if_else(x %in% c('a','b','c'), x, factor(NA))
 ifelse(x %in% c('a','b','c'), x, factor(NA))
-
+ifelse(x %in% c('a','b','c'), as.character(x), factor(NA)) #输出强制字符串x
 
 
 #################
@@ -431,9 +440,24 @@ head(
 )
 
 
+#################
+# dplyr连接mysql数据框(windows连接失败)
+#如果需要获取MySQL数据库中的数据时,可以直接使用dplyr包中的src_mysql()函数：
+#src_mysql(dbname,host = NULL,port = 0L,user = “root”,password = “password”,…) 
 
+library(dplyr)
+#dplyr连接mysql数据库
+my_db <- src_mysql(dbname = "mysql",
+                   host = 'localhost',
+                   port = 3306,
+                   user = "root",
+                   password = "")
+#Error: Condition message must be a string
 
-
+#获取指定表中的数据
+#tbl(src, from = 'diff')
+my_tbl <- tbl(my_db,from = "user") #my_table为数据库中的表
+my_tbl
 
 
 ##############

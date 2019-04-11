@@ -25,6 +25,9 @@ Java常用代码片段
 ========================
 R常用代码片段
 	QC for geneChips 
+	heatmap: R_scripts\visulization\pheatmap_demo-ForSunjiaxin.R
+		# More CMD: http://www.360doc.com/content/14/1103/10/17553313_422108323.shtml
+
 	ggplot2_dplyr/
 		101-barchart.R
 	heatmap_for_pValue: 热图，要根据P值的显著程度设置颜色。使用image()函数实现了精美版v1和批量版v2
