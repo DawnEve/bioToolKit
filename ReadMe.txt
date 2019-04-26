@@ -39,6 +39,11 @@ R常用代码片段
 	
 	for ZDJY:
 		R_scripts/zdjy_2018/wangcc_SNP_Indel_filterBy3Rules.R
+	批量小提琴图：
+		R_scripts/visulization/batch-violinPlot-for_WangXuefei.R
+
+
+
 ========================
 js常用代码片段
 

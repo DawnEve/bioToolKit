@@ -33,3 +33,5 @@ v0.0.22-R modify dplyrDemo.R
 v0.0.23-R 使用image()画热图，根据p的显著程度加颜色和图例。
 --merge to origin
 v0.0.24 del names of lab member
+v0.0.25 add 批量小提琴图
+
