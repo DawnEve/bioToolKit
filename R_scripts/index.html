@@ -6,7 +6,21 @@ a {
     color: #0366d6;
     text-decoration: none;
 }
+pre{color: #ca70e8}
+/*
+#f08d49; 黄色
+#7ec699; 青色
+*/
 </style>
+<script>
+var aColor=['#ca70e8','#f08d49','#7ec699','#cc99cd','#f8c555'];
+window.onload=function(){
+	var oStyle=document.createElement('style')
+	var i=parseInt(Math.random()*100)%(aColor.length)
+	oStyle.innerHTML="pre{color:"+aColor[i]+";}"
+	document.body.append(oStyle)
+}
+</script>
 
 
 <h1>专题：ggplot2画paper中常见的图</h1>
@@ -17,12 +31,18 @@ a {
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
+	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
 
 
 
+<pre>
+Tips: 看不清请刷新，换个颜色再看。
+1. 比较干净的背景: +theme_bw()
+2. 
+</pre>
 
 
 
@@ -218,6 +238,108 @@ g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
 
 
 
+
+
+<a name='t5'></a>
+<h2>5. 基因表达聚类趋势图</h2>
+<pre>
+<img src="images/005heatmap_timeCluster.png">
+# 加载所需的R包
+library(ggplot2)
+library(pheatmap)
+library(reshape2)
+
+# 读取测试数据
+Input =("
+              Stage1_R1 Stage1_R2  Stage2_R1  Stage2_R2  Stage3_R1    Stage3_R2
+Unigene0001 -1.1777172 -1.036102  0.8423829  1.3458754  0.1080678   -0.08250721
+Unigene0002  1.0596877  1.490939 -0.7663244 -0.6255567 -0.5333080   -0.62543728
+Unigene0003  0.9206594  1.575844 -0.7861697 -0.3860003 -0.5501094   -0.77422398
+Unigene0004 -1.3553173 -1.145970  0.2097526  0.7059886  0.9516353    0.63391053
+Unigene0005  1.0134516  1.445897 -0.9705129 -0.8560422 -0.2556562   -0.37713783
+Unigene0006  0.8675939  1.575735 -1.0120718 -0.5856459 -0.2821991   -0.56341216
+")
+data = read.table(textConnection(Input), header=TRUE,row.names=1)
+
+##
+#因为数据少，所以随便倍增一些数据。真实数据请跳过这一步
+data=rbind(data,data*0.8) #造数据
+data=rbind(data*0.9,data*(-0.8) ) #造数据
+data=rbind(data*(-0.4),data*0.6) #造数据
+row.names(data)=paste0('Unigene000',seq(1:nrow(data)) )#造数据
+#end
+
+#
+#data = read.table("test.txt",header = T, row.names = 1,check.names = F)
+# 查看数据基本信息
+head(data)#View(data)
+
+# 使用pheatmap绘制基因表达热图，并进行层次聚类分成不同的cluster
+p = pheatmap(data, border=F, #不要描边
+              show_rownames = F, #不显示基因名
+              #cellwidth =40, #设置宽度
+              
+              #scale ='row', #对每一行z标准化
+              
+              cutree_rows = 6, #对row聚类时，设置加几个白横分割线
+              
+              cluster_cols = F, #不对列聚类
+              gaps_col = c(2,4,6), #对列分割，仅用于不对列聚类的时候
+              
+              angle_col = 45, #底部的字旋转的方向
+              fontsize = 12)
+
+# 获取聚类后的基因顺序
+row_cluster = cutree(p$tree_row,k=6)
+# 对聚类后的数据进行重新排序
+newOrder = data[p$tree_row$order,]
+newOrder[,ncol(newOrder)+1]= row_cluster[match(rownames(newOrder),names(row_cluster))]
+colnames(newOrder)[ncol(newOrder)]="Cluster"
+# 查看重新排序后的数据
+head(newOrder)
+# 查看聚类后cluster的基本信息
+unique(newOrder$Cluster)
+#[1] 5 1 3 2 6 4
+#统计每个cluster几个基因
+table(newOrder$Cluster)
+#1  2  3  4  5  6 
+#4 20 12  2  8  2 
+#
+
+# 将新排序后的数据保存输出
+newOrder$Cluster = paste0("cluster",newOrder$Cluster)
+#write.table(newOrder, "expr_DE.pheatmap.cluster.txt",sep="\t",quote = F,row.names = T,col.names = T)
+#
+
+# 绘制每个cluster的基因聚类趋势图
+newOrder$gene = rownames(newOrder)
+head(newOrder)
+#             Stage1_R1 Stage1_R2  Stage2_R1  Stage2_R2  Stage3_R1  Stage3_R2 Cluster         gene
+#Unigene00032 0.4577851 0.6440856 -0.3310521 -0.2702405 -0.2303891 -0.2701889 cluster5 Unigene00032
+#Unigene00033 0.3977249 0.6807646 -0.3396253 -0.1667521 -0.2376473 -0.3344648 cluster5 Unigene00033
+#
+#
+library(reshape2)
+# 将短数据格式转换为长数据格式
+data_new = melt(newOrder)
+head(data_new)
+#   Cluster         gene  variable     value
+#1 cluster5 Unigene00032 Stage1_R1 0.4577851
+#2 cluster5 Unigene00033 Stage1_R1 0.3977249
+
+# 绘制基因表达趋势折线图
+ggplot(data_new,aes(variable, value, group=gene)) + geom_line(color="gray90",size=0.8) + 
+  geom_hline(yintercept =0,linetype=2) +
+  stat_summary(aes(group=1),fun.y=mean, geom="line", size=1.2, color="#c51b7d") + 
+  facet_wrap(Cluster~.) +
+  labs(x="Stage", y='Expression')+
+  theme_bw() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text = element_text(size=8, face = "bold"),
+        axis.text.x=element_text(angle=60, hjust=1), #x标签旋转60度
+        strip.text = element_text(size = 8, face = "bold"))
+#
+</pre>
 
 
 

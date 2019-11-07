@@ -1,5 +1,8 @@
 ###############
-#模仿 张泽民 批量基因表达图，没有完全实现，可能还需要AI拼接
+#批量基因表达图，没有完全实现，可能还需要AI拼接
+#
+#模仿 张泽民2018nature结肠癌T细胞Extended Data Fig. 5a
+# https://www.nature.com/articles/s41586-018-0694-x/figures/9
 ###############
 
 library(vioplot)
