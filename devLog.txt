@@ -35,7 +35,9 @@ v0.0.23-R 使用image()画热图，根据p的显著程度加颜色和图例。
 v0.0.24 del names of lab member
 v0.0.25 add 批量小提琴图
 v0.0.26 R_scripts/添加5. 基因表达聚类趋势图(pheatmap + ggplot2分面); Python/ParallelMe.py 控制并发; config.py 连接数据库
-#
+v0.0.27 添加链接
+#===> git push origin master
+
 
 
 #
