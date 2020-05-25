@@ -32,6 +32,7 @@ window.onload=function(){
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
+	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生)</a><li>
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -340,6 +341,57 @@ ggplot(data_new,aes(variable, value, group=gene)) + geom_line(color="gray90",siz
         strip.text = element_text(size = 8, face = "bold"))
 #
 </pre>
+
+
+
+
+
+
+
+
+<a name='t6'></a>
+<h2>6. barplot 百分数堆叠条形图(原生)</h2>
+<pre>
+<img src="images/006_barplot.png" />
+##data: 每群细胞中，各周期细胞数
+mydatatxt="
+    G1S	S	G2M	M	MG1
+BC_0	28	10	17	19	13
+BC_1	21	13	7	13	28
+HeLa_normal	11	3	3	3	9
+HeLa_sync	3	10	7	7	0
+"
+#从字符串中读取数据框
+tbl1=read.table(text=mydatatxt, header=T) # text设置了，file就要留空
+tbl1=tbl1[,c(5,4,3,2,1)] #reorder columns
+tbl1
+#percentage
+tbl2=apply(tbl1,1,function(x){ 100*x/sum(x)})
+cellNames=colnames(tbl2)
+colnames(tbl2)=NULL
+tbl2
+#画条状图
+library(RColorBrewer)
+col=RColorBrewer::brewer.pal(n = 5,name = "Set2");
+col=rev(col)
+barplot(1:5,col=col)
+#plot
+par(mar=c(5, 4, 4, 5) + 0.1)
+posX=barplot(as.matrix(tbl2), col=col,
+        #names.arg=(paste(substr(FirstName,1,1),".",LastName)),   #设定横坐标名称
+        names.arg=NULL,
+        space=0.2, #条形间距
+        #xlab="Individual #", 
+        ylab="Percentage",
+        legend.text = rownames(tbl2),
+        args.legend=list(x="right", box.col="white", inset=-0.25,bty="n"),
+        border=NA)
+#加底部x坐标标签
+y = -0.05;
+text(posX, -5, labels=cellNames, adj=1, srt=30, xpd=TRUE) #adj标签与轴的距离，srt设置xlable角度
+#box()
+</pre>
+
 
 
 

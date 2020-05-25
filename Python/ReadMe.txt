@@ -12,6 +12,9 @@ ParallelMe.py
 
 
 
+4. python数据分析篇
+matplotlib画图实例
+
 
 todo
 十五道Python小案例，学会这些，Python基础已过关！

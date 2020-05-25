@@ -1,0 +1,246 @@
+
+
+
+
+========================================
+|-- Matplotlib实例欣赏: 散点图、折线图、直方图、柱状图、箱线图
+----------------------------------------
+
+2.实例：绘制散点图
+# -*- coding: utf-8 -*-
+"""
+绘制散点图
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 数据个数
+n = 1024
+# 均值为0, 方差为1的随机数
+x = np.random.normal(0, 1, n)
+y = np.random.normal(0, 1, n)
+
+# 计算颜色值
+color = np.arctan2(y, x)
+# 绘制散点图
+plt.scatter(x, y, s = 75, c = color, alpha = 0.5)
+# 设置坐标轴范围
+plt.xlim((-1.5, 1.5))
+plt.ylim((-1.5, 1.5))
+
+# 不显示坐标轴的值
+plt.xticks(())
+plt.yticks(())
+
+plt.show()
+
+
+
+
+
+
+3.实例：绘制柱状图，上下方向成对的柱状图
+# -*- coding: utf-8 -*-
+
+"""
+绘制柱状图
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 数据数目
+n = 10
+x = np.arange(n)
+# 生成数据, 均匀分布(0.5, 1.0)之间
+y1 = (1 - x / float(n)) * np.random.uniform(0.5, 1.0, n)
+y2 = (1 - x / float(n)) * np.random.uniform(0.5, 1.0, n)
+
+# 绘制柱状图, 向上
+plt.bar(x, y1, facecolor = 'blue', edgecolor = 'white')
+# 绘制柱状图, 向下
+plt.bar(x, -y2, facecolor = 'green', edgecolor = 'white')
+
+temp = zip(x, y2)
+# 在柱状图上显示具体数值, ha水平对齐, va垂直对齐
+for x, y in zip(x, y1):
+    plt.text(x + 0.05, y + 0.1, '%.2f' % y, ha = 'center', va = 'bottom')
+
+for x, y in temp:
+    plt.text(x + 0.05, -y - 0.1, '%.2f' % y, ha = 'center', va = 'bottom')
+
+# 设置坐标轴范围
+plt.xlim(-1, n)
+plt.ylim(-1.5, 1.5)
+# 去除坐标轴
+plt.xticks(())
+plt.yticks(())
+plt.show()
+
+
+
+
+
+
+
+4.实例：绘制等高线图
+# -*- coding: utf-8 -*-
+"""
+绘制等高线图
+"""
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 定义等高线高度函数
+def f(x, y):
+    return (1 - x / 2 + x ** 5 + y ** 3) * np.exp(- x ** 2 - y ** 2)
+
+# 数据数目
+n = 256
+# 定义x, y
+x = np.linspace(-3, 3, n)
+y = np.linspace(-3, 3, n)
+
+# 生成网格数据
+X, Y = np.meshgrid(x, y)
+
+# 填充等高线的颜色, 8是等高线分为几部分
+plt.contourf(X, Y, f(X, Y), 8, alpha = 0.75, cmap = plt.cm.hot)
+# 绘制等高线
+C = plt.contour(X, Y, f(X, Y), 8, colors = 'black', linewidth = 0.5)
+# 绘制等高线数据
+plt.clabel(C, inline = True, fontsize = 10)
+
+# 去除坐标轴
+plt.xticks(())
+plt.yticks(())
+plt.show()
+
+
+
+
+
+5.实例：绘制heatmap
+# -*- coding: utf-8 -*-
+"""
+绘制Image 
+"""
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 定义图像数据
+a = np.linspace(0, 1, 16).reshape(4, 4)
+# 显示图像数据
+plt.imshow(a, interpolation = 'nearest', cmap = 'bone', origin = 'lower')
+# 添加颜色条
+plt.colorbar()
+# 去掉坐标轴
+plt.xticks(())
+plt.yticks(())
+plt.show()
+
+
+
+
+
+
+
+
+6.实例：绘制3D图形
+# -*- coding: utf-8 -*-
+"""
+绘制3d图形
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+# 定义figure
+fig = plt.figure()
+# 将figure变为3d
+ax = Axes3D(fig)
+
+# 数据数目
+n = 256
+# 定义x, y
+x = np.arange(-4, 4, 0.25)
+y = np.arange(-4, 4, 0.25)
+
+# 生成网格数据
+X, Y = np.meshgrid(x, y)
+
+# 计算每个点对的长度
+R = np.sqrt(X ** 2 + Y ** 2)
+# 计算Z轴的高度
+Z = np.sin(R)
+
+# 绘制3D曲面
+ax.plot_surface(X, Y, Z, rstride = 1, cstride = 1, cmap = plt.get_cmap('rainbow'))
+# 绘制从3D曲面到底部的投影
+ax.contour(X, Y, Z, zdim = 'z', offset = -2, cmap = 'rainbow')
+
+# 设置z轴的维度
+ax.set_zlim(-2, 2)
+
+plt.show()
+
+
+
+
+
+
+
+
+7.实例：subplot绘制多图
+# -*- coding: utf-8 -*-
+"""
+subplot绘制多图 
+"""
+
+import matplotlib.pyplot as plt
+
+plt.figure()
+
+# 绘制第一个图
+plt.subplot(2, 2, 1)
+plt.plot([0, 1], [0, 1])
+# 绘制第二个图
+plt.subplot(2, 2, 2)
+plt.plot([0, 1], [0, 1])
+# 绘制第三个图
+plt.subplot(2, 2, 3)
+plt.plot([0, 1], [0, 1])
+# 绘制第四个图
+plt.subplot(2, 2, 4)
+plt.plot([0, 1], [0, 1])
+plt.show()
+
+
+
+
+第一行占3列的布局：
+# -*- coding: utf-8 -*-
+"""
+subplot绘制多图 
+"""
+import matplotlib.pyplot as plt
+plt.figure()
+
+# 绘制第一个图
+plt.subplot(2, 1, 1) #2行1列的第1行
+plt.plot([0, 1], [0, 1])
+# 绘制第二个图
+plt.subplot(2, 3, 4) #2行3列的第4个
+plt.plot([0, 1], [0, 1])
+# 绘制第三个图
+plt.subplot(2, 3, 5)
+plt.plot([0, 1], [0, 1])
+# 绘制第四个图
+plt.subplot(2, 3, 6)
+plt.plot([0, 1], [0, 1])
+plt.show()
+
+
+
+
+
