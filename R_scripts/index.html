@@ -12,6 +12,7 @@ pre{color: #ca70e8}
 #7ec699; 青色
 */
 </style>
+
 <script>
 var aColor=['#ca70e8','#f08d49','#7ec699','#cc99cd','#f8c555'];
 window.onload=function(){
@@ -33,6 +34,7 @@ window.onload=function(){
 	<li><a href='#t4'>4. volcano火山图</a><li>
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生)</a><li>
+	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -384,7 +386,8 @@ posX=barplot(as.matrix(tbl2), col=col,
         #xlab="Individual #", 
         ylab="Percentage",
         legend.text = rownames(tbl2),
-        args.legend=list(x="right", box.col="white", inset=-0.25,bty="n"),
+        args.legend=list(x="right", #border=NA, #不要图例小方块描边
+			box.col="white", inset=-0.25,bty="n"),
         border=NA)
 #加底部x坐标标签
 y = -0.05;
@@ -398,8 +401,106 @@ text(posX, -5, labels=cellNames, adj=1, srt=30, xpd=TRUE) #adj标签与轴的距
 
 
 
+<a name='t7'></a>
+<h2>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</h2>
+<img src="images/007_pointPlot_multi_gradient_color.png" />
+<p>数据特点：范围是0-1，但是0.5以下很稀疏，峰值在0.8-0.9之间，1也是一个峰。</p>
+<p>由于颜色变量偏斜太厉害，直接使用ggplot2，渐变色只能指定3种颜色，偏斜导致整体颜色太淡。</p>
+<p>目前不会使用ggplot2设置4种颜色的渐变色，只好手动用R原生函数绘制了。</p>
+
+<pre>
+head(dif)
+#	gene	cellNumber meanDPAU	sdDPAU	      RNACounts   cpm	   totalCell	domCell	nonDomCell	ratio
+#RPL8	RPL8	225	99.86553	0.3462266	712259	492539.3	225	225	0	1.0000000
+#RPL3	RPL3	225	99.73653	0.9470744	542531	369992.2	225	223	2	0.9911111
+#...
+
+#fig1: 查看分布图，略。
+hist(dif$ratio, n=200)
+abline(v=0.9, col='red', lty=2)
+#
+
+#fig2: 略。(点的颜色普遍太淡)
+library(ggplot2)
+ggplot(dif, aes(meanDPAU, sdDPAU, color=ratio))+
+    geom_point(size=0.2)+
+    scale_color_gradient2('xx\nRatio', low="navy", mid='white',  high="red", midpoint =0.7)+
+    theme_bw()
+<hr>
+#fig3: 见上图
+# step0: 设置颜色。色彩向量取值范围是0-1，但是数据偏斜向1。0.5以下很稀疏。
+bk0=seq(0.0,0.39,by=0.01) #almost non data
+bk1=seq(0.4,0.59,by=0.01)
+bk2=seq(0.6,0.79,by=0.01)
+bk3=seq(0.8,1,by=0.01)
+#
+colors = c(
+    colorRampPalette(colors = c("navy","blue"))(length(bk0)),
+    colorRampPalette(colors = c("blue","#00BFFF"))(length(bk1)),
+    colorRampPalette(colors = c("#00BFFF","#FFE9E9"))(length(bk2)),
+    colorRampPalette(colors = c("#FFE9E9","red"))(length(bk3)) 
+)
+print( length( seq(0,1,0.01) ) )
+print( length(colors) )
+
+#
+library(Cairo)
+dev.off() #for jupyter bug
+CairoPDF('6_9_domi__testing__.pdf', width=4.5,height=4)
+
+#页面布局
+mat = matrix(c(1,1,1,1,1,1,2,2), nrow=1, byrow=TRUE);
+layout(mat)
+
+############
+#step1: plot
+par(mar=c(4.5,4.5,4,0)) #bottom, left, top, right
+plot(NULL, xlim=c(0,100), ylim=c(0,55), type='n', 
+     xlab="Mean of xx", 
+     ylab="Standard deviation of xx", 
+     main="Colored by xx ratio")
+for(i in 1:nrow(dif)){
+    v=round(dif$ratio[i],2)*100
+    color=colors[v]    
+    points(dif[i,'meanDPAU'], dif[i, 'sdDPAU'],
+           pch=20, cex=0.05, col=color)
+}
+
+############
+#step2: 用image函数画color bar
+par(mar=c(13,2.5,6,5)) #bottom, left, top, right
+n=100
+image(t(matrix(0:n)),col=colors,
+      xaxt="n", yaxt="n", cex = 1.5,
+      mgp=c(0,1,0),
+      #main="Dominant\ncell ratio",
+      bty='n',#box type
+      xlab = "", ylab = ""
+)
+text(x=0,y=1.1,labels=c("xx\nratio"),xpd=T)
+axis(4,at=seq(0,1,by=0.2),
+     labels=seq(0,1,0.20),
+     cex.axis=1, #坐标轴刻度字体大小
+     #col.axis="red", #坐标轴刻度字体颜色
+     #col="purple", #坐标轴颜色
+     lwd=1, #坐标轴刻度粗细
+     las=0)#las=0垂直于轴，2平行于轴
+#
+dev.off()
+</pre>
+
+
+
+
+
+
+
+
+
+
 <a name='tn'></a>
 <h2>n. xx图 todo</h2>
+<p></p>
 
 
 

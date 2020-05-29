@@ -1,5 +1,8 @@
 The changing tracks for bioToolKit.
 format: version number-language comments.
+
+url: https://tool.biomooc.com/R_scripts/
+local: ??
 ------------------------
 
 v0.0.1-R change dir;get ggplot2_dplyr dir from bitbucket.
@@ -37,6 +40,7 @@ v0.0.25 add 批量小提琴图
 v0.0.26 R_scripts/添加5. 基因表达聚类趋势图(pheatmap + ggplot2分面); Python/ParallelMe.py 控制并发; config.py 连接数据库
 v0.0.27 添加链接
 v0.0.28 添加barplot示例
+v0.0.29 添加R散点图+自定义多颜色梯度
 #===> git push origin master
 
 
