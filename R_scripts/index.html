@@ -35,6 +35,7 @@ window.onload=function(){
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
+	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -487,6 +488,72 @@ axis(4,at=seq(0,1,by=0.2),
      las=0)#las=0垂直于轴，2平行于轴
 #
 dev.off()
+</pre>
+
+
+
+
+
+
+
+
+
+
+<a name='t8'></a>
+<h2>8. barplot 组合 百分数barplot图(原生)</h2>
+<img src="images/008_barplot_combine.png">
+<p>组合: 顶部barplot，底下百分数barplot，共用x坐标轴，所以要一一对应。</p>
+<pre>
+library(Cairo)
+# make data
+dt0=diamonds[1:1000,]
+head(dt0)
+dt1=table(dt0$cut, dt0$color)
+dt1
+
+CairoPDF('barplot_combine.pdf', width=4,height=4) #要在布局代码之前保存
+
+#页面布局
+mat = matrix(c(1,1,2,2,2,2), ncol=1, byrow=T);mat
+layout(mat)
+
+### fig1 barplot
+dt.rsum=apply(dt1, 1, sum)
+dt.rsum
+par(mar=c(1,4,4,6)+ 0.1) #bottom, left, top, right
+barplot(as.numeric(dt.rsum), ylab="number",
+        names.arg=NULL,border=NA,space=0.2)
+
+#### fig2 percentage barplot
+tbl2=apply(dt1,1,function(x){ 100*x/sum(x)})
+cellNames=colnames(tbl2)
+colnames(tbl2)=NULL
+tbl2
+#画条状图
+library(RColorBrewer)
+col=RColorBrewer::brewer.pal(n = nrow(tbl2),name = "Set2");
+col=rev(col)
+#barplot(1:5,col=col)
+#plot
+par(mar=c(5, 4, 0, 6) + 0.1) ##bottom, left, top, right
+posX2=barplot(as.matrix(tbl2), col=col,
+             #names.arg=(paste(substr(FirstName,1,1),".",LastName)),   #设定横坐标名称
+             names.arg=NULL,
+             space=0.2, #条形间距
+             #xlab="Individual #", 
+             ylab="Percentage",
+             legend.text = rownames(tbl2),
+             args.legend=list(x="right", border=NA, #不要图例小方块描边
+                            box.col="black", inset=-0.1,bty="n"),
+             border=NA)
+#加底部x坐标标签
+y2 = par('usr')[3]-2;
+text(posX2, y2, labels=cellNames, adj=1, srt=30, xpd=TRUE) #adj标签与轴的距离，srt设置xlable角度
+#box()
+dev.off()
+## 绘图区域的大小
+# par('usr') #c(x1, x2, y1, y2)
+#[1]  -0.032   6.232  -1.000 100.000
 </pre>
 
 
