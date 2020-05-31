@@ -42,6 +42,7 @@ v0.0.27 添加链接
 v0.0.28 添加barplot示例
 v0.0.29 添加R散点图+自定义多颜色梯度
 v0.0.30 add barplot 组合 百分数barplot图(原生)
+v0.0.31 R web 略微改版，代码缩到固定高度显示
 #===> git push origin master
 
 

@@ -1,3 +1,5 @@
+<meta http-equiv=Content-Type content="text/html;charset=utf-8">
+
 <style>
 h2{background:#eee;}
 ul{list-style-type: none;}
@@ -11,6 +13,9 @@ pre{color: #ca70e8}
 #f08d49; 黄色
 #7ec699; 青色
 */
+
+/*本页R代码过长: 最长n px,超过了出现滚动条*/
+pre{max-height:400px; overflow:scroll; background:#000;width:80%; padding:0 10px;}
 </style>
 
 <script>
@@ -27,13 +32,13 @@ window.onload=function(){
 <h1>专题：ggplot2画paper中常见的图</h1>
 
 <ul>
-	目录：
+	<b>目录：</b>
 	<li><a href='#t1'>1. 箱线图/柱状图 + 散点图</a><li>
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
-	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生)</a><li>
+	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生+ggplot2)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	
@@ -42,11 +47,10 @@ window.onload=function(){
 
 
 
-<pre>
-Tips: 看不清请刷新，换个颜色再看。
-1. 比较干净的背景: +theme_bw(); 最干净的背景: +theme_classic()
-2. 参数的解释: <a target="_blank" href="http://www.biomooc.com/R/R-draw-adv-ggplot2.html">生物慕课网</a> 
-</pre>
+<p><b>Tips: 看不清请刷新，换个颜色再看。</b></p>
+<p>1. 比较干净的背景: +theme_bw(); 最干净的背景: +theme_classic()</p>
+<p>2. 参数的解释: <a target="_blank" href="http://www.biomooc.com/R/R-draw-adv-ggplot2.html">生物慕课网</a> </p>
+
 
 
 
@@ -55,8 +59,8 @@ Tips: 看不清请刷新，换个颜色再看。
 
 <a name='t1'></a>
 <h2>1. 箱线图/柱状图 + 散点图</h2>
-<pre>
 <img src="images/001his-jitter.png">
+<pre>
 #############################
 library(ggplot2)
 library(reshape2)
@@ -154,8 +158,8 @@ ggplot(d3, aes(x=type, y=value)) +
 
 <a name='t2'></a>
 <h2>2. 散点图 + 线性拟合曲线with r and p</h2>
-<pre>
 <img src="images/002point-lm.png">
+<pre>
 #怎么处理线性拟合r和p值
 #1.1造数据
 #x=data.frame(
@@ -246,8 +250,8 @@ g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
 
 <a name='t5'></a>
 <h2>5. 基因表达聚类趋势图</h2>
-<pre>
 <img src="images/005heatmap_timeCluster.png">
+<pre>
 # 加载所需的R包
 library(ggplot2)
 library(pheatmap)
@@ -353,9 +357,12 @@ ggplot(data_new,aes(variable, value, group=gene)) + geom_line(color="gray90",siz
 
 
 <a name='t6'></a>
-<h2>6. barplot 百分数堆叠条形图(原生)</h2>
-<pre>
+<h2>6. barplot 百分数堆叠条形图(原生+ggplot2)</h2>
 <img src="images/006_barplot.png" />
+<img src="images/006_barplot_ggplot2.png" />
+<p>左: R原生画图; 右: ggplot2;</p>
+
+<pre>
 ##data: 每群细胞中，各周期细胞数
 mydatatxt="
     G1S	S	G2M	M	MG1
@@ -394,6 +401,43 @@ posX=barplot(as.matrix(tbl2), col=col,
 y = -0.05;
 text(posX, -5, labels=cellNames, adj=1, srt=30, xpd=TRUE) #adj标签与轴的距离，srt设置xlable角度
 #box()
+
+<hr>
+## 使用ggplot2的版本。
+mydatatxt="
+    G1S	S	G2M	M	MG1
+BC_0	28	10	17	19	13
+BC_1	21	13	7	13	28
+HeLa_normal	11	3	3	3	9
+HeLa_sync	3	10	7	7	0
+"
+#从字符串中读取数据框
+tbl1=read.table(text=mydatatxt, header=T) # text设置了，file就要留空
+#转为百分数
+tbl2=as.data.frame(apply(tbl1, 1, function(x){x/sum(x)*100}) )
+tbl2$cycle=rownames(tbl2) #添加一列：行名
+tbl2
+#        BC_0      BC_1 HeLa_normal HeLa_sync cycle
+#G1S 32.18391 25.609756    37.93103  11.11111   G1S
+
+# 变为一列
+dt2=reshape2::melt(tbl2, 
+                   id.vars='cycle', #要保留的id变量(源)
+                   variable.name = "type", #melt后变量名列的名字(目标)
+                   
+                   #measure.vars=c(), #要melt的变量名(列名)(源)
+                   value.name="pct"); #melt后的数据列名字(目标)
+head(dt2)
+#  cycle type      pct
+#1   G1S BC_0 32.18391
+#定义图例顺序
+dt2$cycle=factor(dt2$cycle, levels=c('G1S','S','G2M','M','MG1'))
+ggplot(dt2, aes(x=type,y=pct, fill=cycle ))+
+  geom_bar(stat='identity')+
+  theme_bw()+
+  #+theme(legend.position = "none")+ # 不显示坐标轴
+  labs(x="")+
+  theme(axis.text.x=element_text(angle=60, hjust=1,size=8,color="black") ) #坐标轴文字旋转60度
 </pre>
 
 
