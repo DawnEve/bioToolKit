@@ -9,23 +9,66 @@ a {
     text-decoration: none;
 }
 pre{color: #ca70e8}
-/*
-#f08d49; 黄色
-#7ec699; 青色
-*/
 
 /*本页R代码过长: 最长n px,超过了出现滚动条*/
-pre{max-height:400px; overflow:scroll; background:#000;width:80%; padding:0 10px;}
+pre{max-height:300px; overflow:scroll; background:#000;width:80%; padding:0 10px;}
+
+pre {
+  /*
+  background: #303030;
+  color: #f1f1f1;
+  */
+  padding: 10px 16px;
+  border-radius: 2px;
+  border-top: 4px solid #00aeef;
+  -moz-box-shadow: inset 0 0 10px #000;
+  box-shadow: inset 0 0 10px #000;
+  counter-reset: line;
+}
+
+pre span:before {
+  counter-increment: line;
+  
+  content: counter(line);
+  display: inline-block;
+  border-right: 1px solid #ddd;
+  padding: 0 .5em;
+  margin-right: .5em;
+  color: #888
+}
 </style>
+
 
 <script>
 var aColor=['#ca70e8','#f08d49','#7ec699','#cc99cd','#f8c555'];
 window.onload=function(){
+	//随机颜色
 	var oStyle=document.createElement('style')
 	var i=parseInt(Math.random()*100)%(aColor.length)
 	oStyle.innerHTML="pre{color:"+aColor[i]+";}"
-	document.body.append(oStyle)
+	document.body.append(oStyle);
+	
+	//add number for pre lines
+	aPre=document.getElementsByTagName('pre');
+	for(var j=0; j<aPre.length; j++){
+		var oPre=aPre[j];
+		var aText=oPre.innerText.split('\n');
+		oPre.innerHTML="";
+		for(i in aText){
+			var text=aText[i]
+			oSpan=document.createElement('span')
+			oSpan.innerHTML=text;
+			oSpan.append(document.createElement('br'))
+			//
+			if(i==aText.length-1 && text==''){
+				break;
+			}
+			oPre.append(oSpan)
+		}
+	}
+	
 }
+
 </script>
 
 
@@ -401,8 +444,10 @@ posX=barplot(as.matrix(tbl2), col=col,
 y = -0.05;
 text(posX, -5, labels=cellNames, adj=1, srt=30, xpd=TRUE) #adj标签与轴的距离，srt设置xlable角度
 #box()
+</pre>
 
-<hr>
+
+<pre>
 ## 使用ggplot2的版本。
 mydatatxt="
     G1S	S	G2M	M	MG1
@@ -455,7 +500,7 @@ ggplot(dt2, aes(x=type,y=pct, fill=cycle ))+
 
 <pre>
 head(dif)
-#	gene	cellNumber meanDPAU	sdDPAU	      RNACounts   cpm	   totalCell	domCell	nonDomCell	ratio
+#	       gene	cellNumber meanDPAU	sdDPAU	      RNACounts   cpm	   totalCell	domCell	nonDomCell ratio
 #RPL8	RPL8	225	99.86553	0.3462266	712259	492539.3	225	225	0	1.0000000
 #RPL3	RPL3	225	99.73653	0.9470744	542531	369992.2	225	223	2	0.9911111
 #...
@@ -545,8 +590,9 @@ dev.off()
 
 <a name='t8'></a>
 <h2>8. barplot 组合 百分数barplot图(原生)</h2>
+<p>组合图，比如要求共用x坐标轴时，很难用ggplot2来处理，这时候可以考虑原生绘图，相当给力！</p>
+<p>示例: 顶部barplot，底下百分数barplot，共用x坐标轴，所以要一一对应。</p>
 <img src="images/008_barplot_combine.png">
-<p>组合: 顶部barplot，底下百分数barplot，共用x坐标轴，所以要一一对应。</p>
 <pre>
 library(Cairo)
 # make data
@@ -590,14 +636,27 @@ posX2=barplot(as.matrix(tbl2), col=col,
              args.legend=list(x="right", border=NA, #不要图例小方块描边
                             box.col="black", inset=-0.1,bty="n"),
              border=NA)
-#加底部x坐标标签
+# 加底部x坐标标签
 y2 = par('usr')[3]-2;
 text(posX2, y2, labels=cellNames, adj=1, srt=30, xpd=TRUE) #adj标签与轴的距离，srt设置xlable角度
 #box()
 dev.off()
+
 ## 绘图区域的大小
 # par('usr') #c(x1, x2, y1, y2)
 #[1]  -0.032   6.232  -1.000 100.000
+</pre>
+
+<pre>
+#附: fig1 barplot 如果想在bar顶部标记上数字和百分比
+dt.rsum=apply(dt1, 1, sum);dt.rsum
+dt.rsum=as.numeric(dt.rsum);dt.rsum
+par(mar=c(1,4,5,6)+ 0.1) #bottom, left, top, right
+posX=barplot(dt.rsum, ylab="number",  
+        ylim=c(0,400),
+        names.arg=NULL,border=NA,space=0.2)
+text(x=posX, y=dt.rsum+20, label=paste0(dt.rsum, '\n(', round(dt.rsum/sum(dt.rsum),2)*100,'%)' ),
+    font=1,cex=0.7)
 </pre>
 
 
