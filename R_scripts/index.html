@@ -8,6 +8,7 @@ a {
     color: #0366d6;
     text-decoration: none;
 }
+.light{color:#cccccc;}
 pre{color: #ca70e8}
 
 /*本页R代码过长: 最长n px,超过了出现滚动条*/
@@ -84,6 +85,7 @@ window.onload=function(){
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生+ggplot2)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
+	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -666,6 +668,290 @@ text(x=posX, y=dt.rsum+20, label=paste0(dt.rsum, '\n(', round(dt.rsum/sum(dt.rsu
 
 
 
+<a name='t9'></a>
+<h2>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</h2>
+<p>感觉调试的影响有可能大于生物学意义本身，只能看大趋势，细节的起伏很大程度上被平滑化掩盖掉了。</p>
+<p>1.对于细胞，按照monocle等伪时间顺序排列。<br />
+2.对于基因，使用了log2(cpm+1)作为表达量，按照表达量最高的前20%细胞的中位数排序，选前几十个基因。<br />
+3.对每个基因，使用 LOESS 做平滑化后的基因表达值做heatmap。</p>
+<p>对本模拟数据，span=1左右平滑化似乎最优。</p>
+<p>目标图片: <a target="_blank" href="http://cole-trapnell-lab.github.io/monocle-release/images/vignette/plot_diff_res_pt_heatmap-1.png">monocle at github</a>。下面是本代码效果图。</p>
+<img src="images/009_pseudotime_heatmap.png">
+<pre> #调试和探索函数
+check=function(df){
+  print(dim(df))
+  print(head(df))
+}
+
+
+# 负二项分布，模拟基因的表达，比正态分布更优。
+a1=c(); a2=c()
+for(i in 1:1000){
+  w=rnbinom(cellNumber, size = 100, prob = 0.1)
+  #plot(w)
+  a1=c(a1, mean(w) )
+  a2=c(a2,  sd(w))
+}
+plot(a1,a2)
+w=rnbinom(cellNumber, size = 100, prob = 0.1)
+hist(w)
+
+############### color bar from monocle::plot_pseudotime_heatmap ##############
+# 这个 color bar 来自于monocle，画热图效果很好，不过原理和细节还没搞明白
+# fn1
+table.ramp = function (n, mid = 0.5, sill = 0.5, base = 1, height = 1) {
+  x <- seq(0, 1, length.out = n)
+  y <- rep(0, length(x))
+  sill.min <- max(c(1, round((n - 1) * (mid - sill/2)) + 1))
+  sill.max <- min(c(n, round((n - 1) * (mid + sill/2)) + 1))
+  y[sill.min:sill.max] <- 1
+  base.min <- round((n - 1) * (mid - base/2)) + 1
+  base.max <- round((n - 1) * (mid + base/2)) + 1
+  xi <- base.min:sill.min
+  yi <- seq(0, 1, length.out = length(xi))
+  i <- which(xi > 0 & xi <= n)
+  y[xi[i]] <- yi[i]
+  xi <- sill.max:base.max
+  yi <- seq(1, 0, length.out = length(xi))
+  i <- which(xi > 0 & xi <= n)
+  y[xi[i]] <- yi[i]
+  height * y
+}
+
+# fn2
+rgb.tables=function (n, red = c(0.75, 0.25, 1), green = c(0.5, 0.25, 1),  blue = c(0.25, 0.25, 1)) {
+  rr <- do.call("table.ramp", as.list(c(n, red)))
+  gr <- do.call("table.ramp", as.list(c(n, green)))
+  br <- do.call("table.ramp", as.list(c(n, blue)))
+  rgb(rr, gr, br)
+}
+
+# fn3
+blue2green2red=function (n) {
+  rgb.tables(n, red = c(0.8, 0.2, 1), green = c(0.5, 0.4, 0.8), blue = c(0.2, 0.2, 1))
+}
+
+bks <- seq(-3.1,3.1, by = 0.1)
+hmcols <- blue2green2red(length(bks) - 1)
+hmcols
+# view the color bar
+barplot(rep(1, length(hmcols)), col=hmcols, border = NA, space=0, axes=F)
+
+
+############### make data: 造数据，如果时真实数据，跳过这一步 ##############
+makeData=function(){
+  df=NULL
+  set.seed(2020)
+  for(i in 1:geneNumber){
+    #a=rnorm(cellNumber, mean = 3, sd = 5)
+    a=rnbinom(cellNumber, size = 1000, prob = 0.1) #负二项分布
+    
+    names(a)=paste0('cell', 1:cellNumber)
+    df=rbind(df, a)
+  }
+  #rownames(df)=paste0('gene', 1:geneNumber)
+  dim(df)
+  df[1:10,1:5]
+  
+  ## 倍增仅
+  df=rbind(df,df*0.8) #造数据
+  df=rbind(df*1.9,df*(-1.8) ) #造数据
+  df=rbind(df*(-0.4),df*0.6) #造数据
+  #
+  #负值变正数
+  df=apply(df, 2, function(x){
+    ifelse(x<0, -10*x, 10*x)
+  })
+  df=as.data.frame(df)
+  # 要去掉全是0的行
+  keep=apply(df,1,sum)>0
+  df=df[keep,]
+  row.names(df)=paste0('gene',seq(1:nrow(df)) )#造数据
+  return(df)
+}
+#
+cellNumber=100
+geneNumber=300
+df2=makeData()
+dim(df2)
+df2[1:10,1:5]
+
+# normalization
+df2.cpm=apply(df2, 2, function(x){1e6*x/sum(x)})
+df2.log2cpm=apply(df2.cpm, 2, function(x){log2(x+1)})
+dim(df2.log2cpm)
+head(df2.log2cpm[,1:4])
+
+
+library(pheatmap)
+pheatmap( df2, scale='row') 
+pheatmap( df2.log2cpm, scale='row') #这热图没法看
+
+
+###
+## step2: select genes, by expression
+#筛选前10%细胞表达median值最高的10%的基因
+median_df=NULL
+i=1
+for(gene in rownames(df2.log2cpm)){
+  i=i+1
+  #if(i>10)break;
+  
+  tmp=as.numeric(df2.log2cpm[gene,])
+  tmp=tmp[order(-tmp)]
+  tmp.median=median(tmp[1: round(length(tmp)*0.1)])
+  median_df=rbind(median_df, data.frame(
+    gene=gene,
+    value=tmp.median,
+    sd=sd(tmp)
+  ))
+}
+rownames(median_df)=median_df$gene
+median_df=median_df[order(-median_df$value),]
+check(median_df)
+
+useGenes=rownames(median_df)[1:round(geneNumber*0.05)]
+length(useGenes)
+head(useGenes)
+
+# 使用标准化后的数据
+p=pheatmap(df2.log2cpm[useGenes,] , border_color = NA, scale='row', 
+           color=hmcols, main="log2cpm")
+#使用原始counts数据
+#p=pheatmap(df2[useGenes,] , border_color = NA, scale='row', 
+#           color=hmcols, main="raw counts")
+
+#get cell order from heatmap, and reorder df
+cellOrder=colnames(df2.log2cpm)[p$tree_col$order]
+head(cellOrder)
+df3=df2.log2cpm[,cellOrder]
+head(df3[,1:4])
+
+########################
+## LOESS 平滑化
+########################
+
+##########
+# test one gene
+geneID=1
+y1=df3[geneID,]
+plot(y1, type='l')
+#
+addLine=function(span, color, ...){
+  y2=predict(loess(df3[geneID,] ~ seq(1, ncol(df3)), span=span))
+  lines(y2, type="l", col=color, ...)
+}
+addLine(0.1, 'green')
+addLine(0.2, 'blue')
+addLine(0.5, 'red') #差不多了
+addLine(1, 'purple',lwd=2)
+addLine(2, 'orange',lwd=2, lty=2)
+addLine(8, 'grey',lwd=5, lty=2)
+
+##########
+## 批量化
+testSpan=function(span=0.2){
+  df4=apply(df3, 1, function(x){
+    predict(loess(x ~ seq(1, length(x)), span=span))
+  })
+  df4=as.data.frame(t(df4))
+  colnames(df4)=colnames(df3)
+  dim(df3)
+  dim(df4)
+  head(df4[,1:5])
+  
+  ## heatmap again
+  p=pheatmap(df4[useGenes,] , border_color = NA, scale='row', 
+           clustering_method='ward.D2',
+           cluster_cols = F,
+           show_colnames = F,
+           #gaps_col = c(60),
+           cutree_rows = 3,
+           color=hmcols, main=paste0("span=", span) )
+  return(p)
+}
+
+# test various span for perfect effect
+testSpan(0.1)
+testSpan(0.5)
+testSpan(1) #效果可以
+testSpan(1.5) #
+testSpan(2) #效果可以
+testSpan(4)
+testSpan(8) #之后无变化
+testSpan(16)
+testSpan(32)
+testSpan(100)
+#
+testSpan(0.2)
+testSpan(0.3)
+testSpan(0.4)
+testSpan(0.5)#
+testSpan(0.6)
+testSpan(0.7)
+testSpan(0.8)
+testSpan(0.9)
+
+
+
+# 重绘热图，add row annotation
+p2=testSpan(2)
+# 获取聚类后的基因顺序
+row_cluster = cutree(p2$tree_row,k=3)
+row_cluster
+# 获取每个cluster的基因名字
+gSet1=names(row_cluster[which(row_cluster==1)]) #示例
+#
+
+
+annote_row=data.frame(
+  gene=names(row_cluster),
+  Cluster=paste0("Cluster",unname(row_cluster)),
+  row.names = 1
+)
+annote_row$Cluster=as.factor(annote_row$Cluster)
+head(annote_row)
+
+## 这个自定义颜色必须是list，不能是df!!
+annote_color=list(
+  Cluster=c('Cluster1'="#66C3A6", 'Cluster2'="#FD8D63",'Cluster3'="#FFD92F")
+)
+head(annote_row)
+
+testSpan2=function(annote_row,annote_color, span=0.2){
+  df4=apply(df3, 1, function(x){
+    predict(loess(x ~ seq(1, length(x)), span=span))
+  })
+  df4=as.data.frame(t(df4))
+  colnames(df4)=colnames(df3)
+  dim(df3)
+  dim(df4)
+  head(df4[,1:5])
+  
+  ## heatmap again
+  p=pheatmap(df4[useGenes,] , border_color = NA, scale='row', 
+             clustering_method='ward.D2',
+             cluster_cols = F,
+             show_colnames = F,
+             annotation_row = annote_row,
+             annotation_colors = annote_color,
+             #gaps_col = c(60),
+             cutree_rows = 3,
+             color=hmcols, main=paste0("span=", span) )
+  return(p)
+}
+testSpan2(annote_row,annote_color, span=2) #页码上面的示例图就是这一步的结果
+</pre>
+
+
+
+
+
+
+
+
+
+
 
 
 <a name='tn'></a>
@@ -673,6 +959,26 @@ text(x=posX, y=dt.rsum+20, label=paste0(dt.rsum, '\n(', round(dt.rsum/sum(dt.rsu
 <p></p>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<hr>
+<p class=light>欢迎互相切磋，共同进步: 秋秋号 314649593, 请备注大名、来意。<br>
+秋秋群: 生物信息与R语言 187923577 禁止营销活动，否则飞机票。<br>
+bioToolKit is part of 生物慕课网 www.biomooc.com
+</p>
 
 
 
