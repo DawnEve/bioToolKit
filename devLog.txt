@@ -45,6 +45,7 @@ v0.0.30 add barplot 组合 百分数barplot图(原生)
 v0.0.31 R web 略微改版，代码缩到固定高度显示
 v0.0.32 R web 略微改版，代码前加数字行号，css实现，js配合
 v0.0.33 R web 9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)
+v0.0.34 小修补
 #===> git push origin master
 
 

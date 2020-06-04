@@ -673,9 +673,13 @@ text(x=posX, y=dt.rsum+20, label=paste0(dt.rsum, '\n(', round(dt.rsum/sum(dt.rsu
 <p>感觉调试的影响有可能大于生物学意义本身，只能看大趋势，细节的起伏很大程度上被平滑化掩盖掉了。</p>
 <p>1.对于细胞，按照monocle等伪时间顺序排列。<br />
 2.对于基因，使用了log2(cpm+1)作为表达量，按照表达量最高的前20%细胞的中位数排序，选前几十个基因。<br />
-3.对每个基因，使用 LOESS 做平滑化后的基因表达值做heatmap。</p>
-<p>对本模拟数据，span=1左右平滑化似乎最优。</p>
-<p>目标图片: <a target="_blank" href="http://cole-trapnell-lab.github.io/monocle-release/images/vignette/plot_diff_res_pt_heatmap-1.png">monocle at github</a>。下面是本代码效果图。</p>
+3.对每个基因，使用 LOESS 做平滑化后的基因表达值做heatmap。<br>
+对本模拟数据而言，span=1左右平滑化似乎最优。</p>
+
+<p>目标图片 monocle at github: 
+<a target="_blank" href="http://cole-trapnell-lab.github.io/monocle-release/images/vignette/plot_diff_res_pt_heatmap-1.png">分化过程图</a> | <a target="_blank" href="http://cole-trapnell-lab.github.io/monocle-release/images/vignette/lung_beam_branched_heatmap-1.png">2个分化方向</a> | <br>
+下面是本代码效果图。</p>
+
 <img src="images/009_pseudotime_heatmap.png">
 <pre> #调试和探索函数
 check=function(df){
