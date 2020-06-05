@@ -87,6 +87,7 @@ window.onload=function(){
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
 	
+	
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
 
@@ -701,7 +702,7 @@ w=rnbinom(cellNumber, size = 100, prob = 0.1)
 hist(w)
 
 ############### color bar from monocle::plot_pseudotime_heatmap ##############
-# 这个 color bar 来自于monocle，画热图效果很好，不过原理和细节还没搞明白
+# 这个 color bar 来自于monocle，画热图效果很好。该渐变色原理和细节请参考 http://www.biomooc.com/R/R-color.html#2_3
 # fn1
 table.ramp = function (n, mid = 0.5, sill = 0.5, base = 1, height = 1) {
   x <- seq(0, 1, length.out = n)
