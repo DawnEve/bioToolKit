@@ -86,6 +86,8 @@ window.onload=function(){
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
+	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
+	<li><a href='#t11'>11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -950,6 +952,415 @@ testSpan2(annote_row,annote_color, span=2) #页码上面的示例图就是这一
 
 
 
+
+
+
+
+
+
+
+
+
+<a name='t10'></a>
+<h2>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</h2>
+<p>目标图片: <a target="_blank" href="https://www.cell.com/abstract/S0092-8674(15)00549-8">2015 Cell, Drop seq, </a>Figure 4 Cell-Cycle Analysis of HEK and 3T3 Cells Analyzed by Drop-Seq.<br />
+细胞周期相关基因 list: A complete list of cell-cycle regulated genes can be found in <a target="_blank" href="images/010_Table_S2.zip" title="excel in zip file">Table S2</a></p>
+<p>原文是一段非常高质量的R代码，充分展示了如何嵌套使用apply家族函数、如何函数嵌套、如何定义输入和输出。<br />
+下文为了方便理解，把原来的嵌套函数拆开了。</p>
+<img src="images/010_cell_cycle_asignment_heatmap.png"> 
+<img src="images/010_cell_cycle_genes.png">
+<pre>
+# aim: scRNAseq to determine cell cycle. 
+# 缺陷: 这是对细胞系做的周期分类，没有考虑G0期。
+# source: 2015 cell, drop seq;
+# v0.3 fix filter line.
+
+
+## 准备工作
+#1. 定义资源的路径: infoPath
+infoPath="/home/wangjl/data/cellLines/" 
+#basic information, like cycle gene list, RNA expression matrix, cell type info;
+
+#2.下载周期相关基因列表，命名为 G1S.txt等5个文件，一个基因一行，不加引号。文件放到infoPath下。
+#3. 你自己的单细胞转录组表达矩阵, row为基因，column为cell；
+#4. cell information: 可选参数，用于对表达矩阵的column做筛选，也就是取细胞的子集。
+
+# 经验: 
+#1. 一次对一种细胞做细胞周期鉴定，超过一个种类可能结果不准确;
+#2. 如果细胞的一部分是(药物、刺激等)处理过的，那么用normal部分筛选基因后，对全部细胞做周期鉴定，否则会失真。
+#3. 要保证矩阵不能有全是0的行。本例是3'测序，使用的是log(cpm+1)，如果是全长测序，可以使用log(tpm+1)或log(rpkm+1)
+
+
+setwd("/home/wangjl/data/cellLines/cycle/")
+outputRoot="BC_"
+
+
+#load data: 表达counts矩阵
+fname=paste0(infoPath,"BC_HeLa.225cells.count.V3.csv")
+data=read.csv(fname,row.names = 1)
+dim(data) #[1] 18679   225
+data[1:4,1:4]
+#          c01ROW24 c01ROW35 c01ROW31 c05ROW02
+#A1BG-AS1        0        0        0        0
+#A2M             0        0        0        0
+
+#helper: return cell phase names
+getCellPhaseList=function(){
+  c('G1S', 'S','G2M','M','MG1');
+}
+
+#load data: 细胞类型
+cellType=read.csv( paste0(infoPath,"cellInfo.txt"),row.names = 1)
+head(cellType)
+#         geneNumber countsPerCell countsPerGene     cellType
+#c01ROW24       5693       1950601      342.6315 BC_syncMix
+#c01ROW35       6768       3048970      450.4979 BC_syncMix
+dim(cellType) #225 4
+
+#获取细胞子集：BC
+data2=data[,row.names(cellType[which( substr(cellType$cellType,1,3)=="BC_"  ),])]
+dim(data2) #[1] 18679    169
+#只保留非0的行
+keep=apply(data2>0,1,sum)>0
+table(keep)
+#FALSE  TRUE 
+#403 18276 
+data2=data2[keep,] #filter out all 0 rows
+dim(data2) #[1] 18276   169
+
+
+#load data: 每个时期的gene set,和表达矩阵求基因交集
+geneSets=list();
+for(i in 1:length(getCellPhaseList() )){
+  setName=getCellPhaseList()[i]
+  print( paste(i, setName) )
+  tmpGenes=readLines( paste0(infoPath,setName,'.txt') )
+  print( length(tmpGenes) )
+  #和矩阵的列求交集
+  geneSets[[setName]]=intersect(tmpGenes, row.names(data2))
+  print( length(geneSets[[setName]])) #95
+}
+
+
+## begin
+#step1: exclude genes cor<0.3 with mean of the set
+geneSets2=list();
+for(i in 1:length(getCellPhaseList() )){
+  #求G1S集合中的gene mean
+  setName=getCellPhaseList()[i] #'G1S';
+  print( paste(i, setName) )
+  setMean=apply(data2[geneSets[[setName]], ], 2,mean)
+  #head(setMean)
+  #每个基因和平均值求cor
+  tmpGenes=c()
+  for(g in geneSets[[setName]]){
+    rs=cor(t(data2[g,]), setMean)
+    #print( paste(g,rs) )
+    if(rs>=0.3){
+      tmpGenes=c(tmpGenes,g)
+    }
+  }
+  #[1] "ACD 0.324866931495592"
+  #[1] "ACYP1 0.0858240480040331"
+  #[1] "ADAMTS1 -0.128818193750771"
+  print( length(tmpGenes) )
+  geneSets2[[setName]]=tmpGenes
+}
+geneSets2
+sum(sapply(geneSets2, function(x){length(x)}))  #321
+
+
+# step2: depth norm; log2 norm;
+getNormalizedCts <- function ( cts ) {
+  #ctsPath
+  #cts <- read.table ( ctsPath , header = T , as.is = T )
+  apply ( cts , 2 , function ( x ) { log2 ( ( 10^6 ) * x / sum ( x ) + 1 ) })
+}
+normCts=getNormalizedCts(data2)
+dim(normCts)
+normCts[1:10,1:5]
+#apply(normCts,2,sum)
+
+
+#step3: calculate 5 phase scores each cell(mean of phase genes)
+# Tested. Passed.
+assignSampleScore <- function ( phaseGenesList , normCts ) {
+  scores <- lapply ( phaseGenesList , function ( pGenes ) {
+    print(length(pGenes) )
+    apply ( normCts , 2 , function ( x ) {
+      mean ( x [ pGenes ] )
+    } )
+  } )
+  do.call ( cbind , scores )
+}
+scoreMatrix <- assignSampleScore ( geneSets2 , normCts )
+dim(scoreMatrix) #169 5
+head(scoreMatrix)
+#               G1S        S      G2M        M      MG1
+#c12ROW02 3.774424 3.742809 3.131765 3.524596 4.595119
+#c12ROW03 3.274414 2.999720 3.231767 3.422519 5.221042
+write.table ( scoreMatrix , paste ( outputRoot , "PhaseScores.txt" , sep = "" ) )
+# pheatmap(scoreMatrix, scale='row', border_color = NA)
+
+#step4: z-norm(each phase, then each cell)
+# Tested. Passed.
+getNormalizedScores <- function ( scoreMatrix ) {
+  norm1 <- apply ( scoreMatrix , 2 , scale )
+  normScores <- t ( apply ( t ( norm1 ) , 2 , scale ) )
+  rownames ( normScores ) <- rownames ( scoreMatrix )
+  colnames ( normScores )  <- colnames ( scoreMatrix )
+  normScores
+}
+normScores <- getNormalizedScores ( scoreMatrix )
+head(normScores)
+#                 G1S         S         G2M          M        MG1
+#c12ROW02 -0.5587886  1.71406144 -0.767616785  0.012780937 -0.4004370
+#c12ROW03 -1.0458011 -0.56059069 -0.005651298  0.002073499  1.6099696
+write.table ( normScores , paste ( outputRoot , "PhaseNormScores.txt", sep = "" ) )
+#pheatmap(normScores, scale='row', border_color = NA)
+
+#画出每个细胞的各个周期打分
+i=5;plot(normScores[i,],type='o',col=rainbow(i), main=rownames(normScores)[i])
+i=8;plot(normScores[i,],type='o',col=rainbow(i), main=rownames(normScores)[i])
+
+
+#step5: assign phase for each cell
+getReferenceProfiles <- function () {
+  referenceProfiles <- list (
+    "G1S" = c ( 1 , 0 , 0 , 0 , 0 ) ,
+    "G1S.S" =  c ( 1 , 1 , 0 , 0 , 0 ) ,
+    "S" =  c ( 0 , 1 , 0 , 0 , 0 ) ,
+    "S.G2M" =  c ( 0 , 1 , 1 , 0 , 0 ) ,
+    "G2M" =  c ( 0 , 0 , 1 , 0 , 0 ) ,
+    "G2M.M" =  c ( 0 , 0 , 1 , 1 , 0 ) ,
+    "M" =  c ( 0 , 0 , 0 , 1 , 0 ) ,
+    "M.MG1" =  c ( 0 , 0 , 0 , 1 , 1 ) ,
+    "MG1" =  c ( 0 , 0 , 0 , 0 , 1 ) ,
+    "MG1.G1S" =  c ( 1 , 0 , 0 , 0 , 1 ) ,
+    "all" =  c ( 1 , 1 , 1 , 1 , 1 ) )
+  #referenceProfiles <- lapply ( referenceProfiles , function ( x ) { names ( x ) <- c ( "G1S", "S", "G2" , "G2M" , "MG1" ); x } )
+  referenceProfiles <- lapply ( referenceProfiles ,  function ( x ) { 
+                                  names ( x ) <- c ( 'G1S', 'S','G2M','M','MG1' ); x } )
+  do.call ( rbind , referenceProfiles )
+}
+
+# Tested. Passed.
+assignRefCors <- function ( normScores ) {
+  referenceProfiles <- getReferenceProfiles()
+  t ( apply ( normScores , 1 , function ( sampleScores ) {
+    apply ( referenceProfiles , 1 , function ( refProfile ) {
+      cor ( sampleScores , refProfile ) } )
+  } ) )
+}
+# Tested. Passed.
+getPhases <- function ( ) {
+  #phases <- c ( "G1S", "S", "G2" , "G2M" , "MG1" )
+  phases <- c ( 'G1S', 'S','G2M','M','MG1' )
+  names ( phases ) <- phases
+  phases
+}
+# Tested. Passed.
+assignPhase <- function ( refCors ) {
+  phases <- getPhases ()
+  apply ( refCors [ ,phases ] , 1  , function ( x ) {
+    phases [ which.max ( x ) ]
+  } )
+}
+
+###### Score cycle similarity
+refCors <- assignRefCors ( normScores )
+head(refCors)
+assignedPhase <- assignPhase ( refCors )
+head(assignedPhase)
+#
+table(assignedPhase)
+# assignedPhase
+#G1S G2M   M MG1   S 
+#49  24  32  41  23 
+#
+
+getDFfromNamed=function(Namedxx){
+  data.frame(
+    id=attr(Namedxx,'names'),
+    val=unname(Namedxx),
+    row.names = 1
+  )
+}
+
+rs=getDFfromNamed(assignedPhase)
+head(rs)
+#保存标签结果
+write.csv(rs,paste ( outputRoot , "cellCycle_phase.csv" , sep = "" ) )
+
+#
+#和第四步比较呢？
+i=5;plot(normScores[i,],type='o',col=rainbow(i), main=rownames(normScores)[i])
+#目测几个，就是求最高值
+#
+
+
+#step6 ####### Order cells
+# Tested. Passed.
+orderSamples <- function ( refCors , assignedPhase) {
+  phases <- getPhases()
+  orderedSamples <- list()
+  
+  for ( phase in phases ) {
+    phaseCor <- refCors [ assignedPhase == phase , ]
+    
+    phaseIndex <- which ( colnames ( phaseCor ) == phase )
+    if ( phaseIndex == 1 ) { preceding = ncol ( phaseCor ) - 1 } else { preceding <- phaseIndex - 1 }
+    if ( phaseIndex == ncol ( phaseCor ) - 1 ) { following = 1 } else { following <- phaseIndex + 1 }
+    
+    earlyIndex <- phaseCor [ , preceding ] > phaseCor [ , following ]
+    earlyCor <- subset ( phaseCor , earlyIndex )
+    earlySamples <- rownames ( earlyCor ) [ order ( earlyCor [ , preceding ] , decreasing = T ) ]
+    
+    lateCor <- subset ( phaseCor , ! earlyIndex )
+    lateSamples <- rownames ( lateCor ) [ order ( lateCor [ , following ] , decreasing = F ) ]
+    
+    orderedSamples [[ phase ]] <- c ( earlySamples , lateSamples )
+  }
+  refCors [ do.call ( c , orderedSamples ) , ]
+}
+
+#
+ordCor <- orderSamples ( refCors , assignedPhase )
+write.table ( cbind ( ordCor , "assignedPhase" = assignedPhase [ rownames ( ordCor ) ] ) , 
+              paste ( outputRoot , "PhaseRefCor.txt" , sep = "" ) )
+#
+
+
+#step7 ####### Plot
+# Passed.
+plotCycle <- function  ( phaseCorsMatrix, ... ) {
+  library("pheatmap")
+  library("RColorBrewer")
+  breaks <- seq ( -1 , 1 , length.out = 31 )
+  heatColors <- rev (brewer.pal ( 9, 'RdBu'))
+  heatColors <-colorRampPalette(heatColors)
+  colorPallete <- heatColors((length ( breaks ) - 1 ))
+  
+  # create heatmap
+  hm.parameters <- list(phaseCorsMatrix, border_color=NA,
+                        color = colorPallete,
+                        breaks = breaks,
+                        cellwidth = NA, cellheight = NA, scale = "none",
+                        treeheight_row = 50,
+                        kmeans_k = NA,
+                        show_rownames = T, show_colnames = F,
+                        #main = "",
+                        clustering_method = "average",
+                        cluster_rows = FALSE, cluster_cols = FALSE,
+                        clustering_distance_rows = "euclidean",
+                        clustering_distance_cols = NA ,
+                        legend = T , annotation_legend = F,... )
+  
+  do.call("pheatmap", hm.parameters )
+}
+
+phases <- getPhases()
+#jpeg ( paste ( outputRoot , "PhasePlot.jpg" , sep = "" ) , 5 , 3 , units = "in" , res = 300 )
+plotCycle ( t ( ordCor [ , phases ] ), main= paste0("XX ", nrow(ordCor), ' cells') )
+#dev.off()
+
+
+## check 
+df1=rs
+head(df1)
+table(df1$val)
+cellType2=cellType[rownames(df1),]
+cellType2$cellCycle=df1$val
+head(cellType2)
+table(cellType2$cellType, cellType2$cellCycle)
+#       G1S G2M  M MG1  S
+#BC_0  28  17 19  13 10
+#BC_1  21   7 13  28 13
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+<a name='t11'></a>
+<h2>11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)</h2>
+<p>目标图片: <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5924732/">Science 2018, Fig. 5 The molecular clock across tissues</a><br>
+(C) Distribution of the peak phases of core clock components in the tissues where they are detected as cycling.</p>
+<img src="images/011_expGeneAcrossHours.png">
+<pre>#1. make data
+n=200
+set.seed(10)
+dt=data.frame(
+  time=runif(n, 0,24),
+  gene1=rbinom(n, 1, 0.1),
+  gene2=rbinom(n, 1, 0.4),
+  gene3=rbinom(n, 1, 0.1)
+)
+
+dt[which(dt$gene1==1),]$gene1=7
+dt[which(dt$gene2==1),]$gene2=7.5
+dt[which(dt$gene3==1),]$gene3=9
+#table(dt$gene3)
+library(reshape2)
+df=melt(dt, id="time")
+head(df)
+# 第一列时间点(0-24), 第二列基因名字，第三列基因表达是与否(0或1)
+#    time     variable  value
+#1 12.179477    gene1     0
+#2  7.362444    gene1     0
+#3 10.245784    gene1     0
+
+#2. draw
+draw=function(df){
+  #step1 定义一个无数据的空坐标系统
+  g=ggplot()+
+    theme_bw()+
+    theme(panel.grid =element_blank(), ## 删去网格线
+          panel.border = element_blank(), #去掉外边框
+          plot.title = element_text(hjust = 0.5), #标题居中
+          axis.text.y = element_blank(), #删掉y轴文字
+          axis.ticks = element_blank() #删去坐标刻度
+          ) +
+    #coord_cartesian(ylim=c(1.5,2.8))+
+    scale_y_continuous( expand = c(0,0), #去掉图与y轴间隙
+                       limits=c(5,10))+ #y轴显示范围
+    scale_x_continuous(expand = c(0,0),
+                       breaks=seq(0,24,2), #每2个一个刻度
+                       labels=seq(0,24,2))+
+    labs(x="", y="", title="XX gene expression level\nacross the hours")
+  
+  #step2 添加网格线: 放射线
+  g=g + geom_vline(aes(xintercept= seq(0,24,2) ), color="#D0D0D0", size=0.8,
+                   linetype="dashed")
+
+  #step3 添加网格线: 圆圈线
+  for(i in c( 7, 7.5, 9)){
+   g=(function(i2){
+     print(i2)# 不加这一句不更新，会遇到闭包问题
+     g + geom_hline(aes(yintercept=i2), color="#DFDFDF", size=1,
+                    linetype="dashed")
+   })(i)
+  }
+  g=g + geom_hline(aes(yintercept=c(6,10) ), color="#DFDFDF", size=1,
+                linetype="solid")
+  #step4 添加数据
+  g=g+geom_point(mapping= aes(time, value, fill=variable),
+                 shape=21, color="NA", size=3,
+                 data=df)+
+    scale_fill_manual('XX Gene', values = c('red', 'blue', 'purple'))+
+    geom_rect(data = NULL, # 中心圆环
+              aes(ymin = 5,  ymax = 5.9),
+              xmin = -Inf, xmax = Inf,
+              fill = "white", colour = "white", size = 1,
+              linetype="solid")
+  return(g)
+};draw(df)+coord_polar()</pre>
 
 
 
