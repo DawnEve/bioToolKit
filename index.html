@@ -13,6 +13,10 @@ ul li{margin:10px 0;}
 
 .footer{border-top:5px solid black;background:#eeefee; padding:10px;}
 .footer a{}
+
+.light{color: #ddd;}
+.smaller{font-size:smaller;}
+
 </style>
 <base target="_blank" />
 </head>
@@ -20,12 +24,14 @@ ul li{margin:10px 0;}
 <body>
 
 <div class=wrap>
-	<h1>Bioinformatics Tools Powered on Javascript.</h1>
+	<h1>bioToolKit <span class="light smaller"> 
+		<br>Bioinformatics Toolkit: R/Python3/shell/</span></h1>
 
 
 	
 	
 	<ul><h2>Tools</h2>
+		<p class=light>Powered by Javascript.</p>
 		<li><a href="http://www.biomooc.com">Navigator</a> Short cuts for bioinformatics.</li>
 		<li><a href="tool/transphage.html">TransPhage</a> A tool for Translating peptide from phage display[Ph.Dc7c,Ph.D7,Ph.D12].</li>
 		<li><a href="tool/revCom.html">revCom</a> A tool for DNA translation, reverse complement.</li>
@@ -37,19 +43,31 @@ ul li{margin:10px 0;}
 	
 	
 	<ul><h2>Blogs</h2>
+		<li><a target="_blank" href="https://github.com/miostudio/txtBlog.py">txtBlog.py</a> at localhost <span class=light>Powered by Python3.6</span></li>
+	<!--
 		<li><a href="http://agetouch.blog.163.com/">ageTouch</a> My bioinfo blog.</li>
 		<li><a href="http://tigomall.blog.163.com/">tigoMall</a> My experi blog.</li>
+		-->
 	</ul>
 	
 	
 	
 	<ul><h2>Data</h2>
 		<li><a href="tool/TF_list.txt">TF_list.txt</a> All TF gene names up to now.</li>
+		<li><a href="https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp">MSigDB Collections</a> The 25724 gene sets in the Molecular Signatures Database (MSigDB) are divided into 8 major collections, and several sub-collections.</li>
+	</ul>	
+	
+	
+	
+	<ul><h2>Visualization</h2>
+		<p class=light>R, ggplot2; matplotlib, seaborn</p>
+		<li><a href="http://www.biomooc.com/R/R-draw-adv-ggplot2.html">learn ggplot2</a></li>
+		<li>Fancy pictures driven by data: <a href="R_scripts/index.html">专题：ggplot2画paper中常见的图</a></li>
 	</ul>
 	
 	
-	<div class="footer">
-		JimmyMall at 163 dot com | <a href="https://github.com/DawnEve/bioToolKit">My Github</a>
+	<div class="footer light">
+		JimmyMall at 163 dot com | <a href="https://github.com/DawnEve/bioToolKit">Fork me on Github</a>
 	</div>
 </div>
 </body>

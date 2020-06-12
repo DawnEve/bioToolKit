@@ -48,6 +48,7 @@ v0.0.33 R web 9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)
 v0.0.34 小修补
 v0.0.35 小修补
 v0.0.36 11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)
+v0.1.0 微调首页，添加内链
 #===> git push origin master
 
 
