@@ -11,6 +11,16 @@ a {
 .light{color:#cccccc;}
 pre{color: #ca70e8}
 
+#GoTop{
+	display: inline-block;
+    padding: 10px;
+    text-align: center;
+	border: 1px solid #000;
+}
+#GoTop:hover{
+	background:#ddd;
+}
+
 /*本页R代码过长: 最长n px,超过了出现滚动条*/
 pre{max-height:300px; overflow:scroll; background:#000;width:80%; padding:0 10px;}
 
@@ -88,6 +98,7 @@ window.onload=function(){
 	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
 	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
 	<li><a href='#t11'>11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)</a><li>
+	<li><a href='#t12'>12. 散点图: 自定义颜色、为点添加注释文字、图例放底部、放大图例的点(ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -1375,6 +1386,58 @@ draw=function(df){
 
 
 
+<a name='t12'></a>
+<h2>12. 散点图: 自定义颜色、为点添加注释文字、图例放底部、放大图例的点(ggplot2)</h2>
+<img src="images/012_point_plot_with_legend_bottom.png">
+<p></p>
+<pre>
+head(df3) #数据 7776    5
+#        mean_normal mean_sync     mean     delta status
+#SPARC    0.02001691  3.917605 1.866243 -4.884748   down
+#COX5BP1  0.01877168  4.004604 1.906797 -4.871463   down
+
+#求平均数和标准差
+m1=mean(df3$delta)
+sd1=sd(df3$delta)
+# 统计status列每个值的个数
+tb=table(df3$status);tb
+#down   ns   up 
+# 124 7454  198 
+
+#ggplot2 画图
+g=ggplot(df3, aes( x= mean , y=delta, color=factor(status,levels=c('up','ns','down')) ) ) +
+  geom_point(alpha=0.5,size=0.1)+
+  labs( title="xxx", x='Mean log RNA expression', y="Delta CV" ) + theme_bw()+
+  theme(legend.box = "horizontal", # 图例，水平，标到底部
+        legend.key.size=unit(10,"pt"), #图例方块的高度
+        legend.position="bottom") +
+  scale_color_manual('Change', labels=c( paste0("up(",tb[3],")"),paste0('n.s.(',tb[2],')'),paste0("down(",tb[1],")") ), #图例文字
+                     values=c("red", "grey",'blue') )+ #自定义颜色
+  #scale_shape(guide = guide_legend(title.position = "top", size=12)) +
+  geom_hline(aes(yintercept=m1+sd1*2), color="#aaaaaa", linetype="dashed")+
+  geom_hline(aes(yintercept=m1-sd1*2), color="#aaaaaa", linetype="dashed");g
+
+# 为点添加文字注释
+library(ggrepel)
+dd_text=df3[which(df3$delta >m1+sd1*7 | df3$delta < (m1-sd1*8) ),];dim(dd_text)
+g2=g+geom_text_repel(data=dd_text, aes(x=mean, y=delta, label=rownames(dd_text)),
+                  color="black",size=3,alpha=0.6)+
+  guides(colour = guide_legend(override.aes = list(alpha = 1,size=2)))#放大图例的点
+# 保存到文件
+library(Cairo)
+CairoPDF(file="03_RNA_Sync_vs_normal_HeLa_CV_changed_genes_v3.pdf",width=4,height=4)
+print(g2)
+dev.off()
+</pre>
+
+
+
+
+
+
+
+
+
 <a name='tn'></a>
 <h2>n. xx图 todo</h2>
 <p></p>
@@ -1404,7 +1467,7 @@ bioToolKit is part of 生物慕课网 www.biomooc.com
 
 
 
-<div id="GoTop"><a onclick="gotop()">GoTop</a></div>
+<div id="GoTop"><a href="javascript:void(0)" onclick="gotop()">GoTop</a></div>
 <script>
 var gotop=function(){
 	window.scroll(0,0);
