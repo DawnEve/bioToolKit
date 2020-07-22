@@ -1,88 +1,14 @@
+<html>
+<head>
 <meta http-equiv=Content-Type content="text/html;charset=utf-8">
-
-<style>
-h2{background:#eee;}
-ul{list-style-type: none;}
-#GoTop{ position: fixed; right: 30px; bottom: 20px;}
-a {
-    color: #0366d6;
-    text-decoration: none;
-}
-.light{color:#cccccc;}
-pre{color: #ca70e8}
-
-#GoTop{
-	display: inline-block;
-    padding: 10px;
-    text-align: center;
-	border: 1px solid #000;
-}
-#GoTop:hover{
-	background:#ddd;
-}
-
-/*本页R代码过长: 最长n px,超过了出现滚动条*/
-pre{max-height:300px; overflow:scroll; background:#000;width:80%; padding:0 10px;}
-
-pre {
-  /*
-  background: #303030;
-  color: #f1f1f1;
-  */
-  padding: 10px 16px;
-  border-radius: 2px;
-  border-top: 4px solid #00aeef;
-  -moz-box-shadow: inset 0 0 10px #000;
-  box-shadow: inset 0 0 10px #000;
-  counter-reset: line;
-}
-
-pre span:before {
-  counter-increment: line;
-  
-  content: counter(line);
-  display: inline-block;
-  border-right: 1px solid #ddd;
-  padding: 0 .5em;
-  margin-right: .5em;
-  color: #888
-}
-</style>
+<title>Visualization using R</title>
+<script src="../static/js/tongji.js"></script>
+<link rel="stylesheet" href="../static/css/main.css" />
+<script src='../static/js/main.js'></script>
+</head>
 
 
-<script>
-var aColor=['#ca70e8','#f08d49','#7ec699','#cc99cd','#f8c555'];
-window.onload=function(){
-	//随机颜色
-	var oStyle=document.createElement('style')
-	var i=parseInt(Math.random()*100)%(aColor.length)
-	oStyle.innerHTML="pre{color:"+aColor[i]+";}"
-	document.body.append(oStyle);
-	
-	//add number for pre lines
-	aPre=document.getElementsByTagName('pre');
-	for(var j=0; j<aPre.length; j++){
-		var oPre=aPre[j];
-		var aText=oPre.innerText.split('\n');
-		oPre.innerHTML="";
-		for(i in aText){
-			var text=aText[i]
-			oSpan=document.createElement('span')
-			oSpan.innerHTML=text;
-			oSpan.append(document.createElement('br'))
-			//
-			if(i==aText.length-1 && text==''){
-				break;
-			}
-			oPre.append(oSpan)
-		}
-	}
-	
-}
-
-</script>
-
-
+<body>
 <h1>专题：ggplot2画paper中常见的图</h1>
 
 <ul>
@@ -1473,3 +1399,5 @@ var gotop=function(){
 	window.scroll(0,0);
 }
 </script>
+</body>
+</html>
