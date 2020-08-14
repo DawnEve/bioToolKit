@@ -25,6 +25,7 @@
 	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
 	<li><a href='#t11'>11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)</a><li>
 	<li><a href='#t12'>12. 散点图: 自定义颜色、为点添加注释文字、图例放底部、放大图例的点(ggplot2)</a><li>
+	<li><a href='#t13'>13. 大块文字(R text())</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -1357,6 +1358,86 @@ dev.off()
 </pre>
 
 
+
+
+
+
+
+
+
+<a name='t13'></a>
+<h2>13. 大块文字(R text())</h2>
+<p>可以使用 text()</p>
+<img src="images/013_R_text.png">
+
+<pre>
+# 读取文件
+text1=read.delim("fun.txt",header=FALSE) #该文件在文末
+text1
+len=nrow(text1); #29
+b=20;   
+
+# 绘图
+#tiff(filename="haha.tif",width=25,height=12,units="cm",compression="lzw",bg="white") #?
+#png(file="aaaa.png",width=800,height=600);
+#svg('aaaa.svg', width=8, height=6)
+
+pdf('aaaa.pdf', width=10, height=6)
+# 左边的图
+par(fig=c(0,0.55,0,1),bty="n"); 
+plot(c(0,1,4,9,16,25), type='o',ylab="y", pch=20)
+
+# 右边的图: 文字
+par(fig=c(0.4,1,0,1),bty="n", new=TRUE); #fig=c(x1, x2, y1, y2), 添加到新图 new = TRUE
+plot(1:b,1:b,type="n", #type="n"不生成任何点和线，创建坐标系
+     xaxt="n",yaxt="n",
+     xlab="",ylab="");
+sum=b+b/(2*len); #20.3448
+for(i in 1:(len)){
+  if (i %in% c(1,7,18,27) ){
+    text(1,sum,text1[i,],adj=0,cex=0.8,font=2); #大号字体
+  }else{
+    text(1,sum,text1[i,],adj=0,cex=0.8, col='grey20')
+  }
+  sum=sum-b/(len); #一行的高度差不多是 20/1.6896
+  print(sum)
+}
+dev.off()
+
+
+
+####### 补充材料
+$ cat fun.txt
+INFORMATION STORAGE AND PROCESSING
+[J] Translation, ribosomal structure and biogenesis 
+[A] RNA processing and modification 
+[K] Transcription 
+[L] Replication, recombination and repair 
+[B] Chromatin structure and dynamics 
+CELLULAR PROCESSES AND SIGNALING
+[D] Cell cycle control, cell division, chromosome partitioning 
+[Y] Nuclear structure 
+[V] Defense mechanisms 
+[T] Signal transduction mechanisms 
+[M] Cell wall/membrane/envelope biogenesis 
+[N] Cell motility 
+[Z] Cytoskeleton 
+[W] Extracellular structures 
+[U] Intracellular trafficking, secretion, and vesicular transport 
+[O] Posttranslational modification, protein turnover, chaperones 
+METABOLISM
+[C] Energy production and conversion 
+[G] Carbohydrate transport and metabolism 
+[E] Amino acid transport and metabolism 
+[F] Nucleotide transport and metabolism 
+[H] Coenzyme transport and metabolism 
+[I] Lipid transport and metabolism 
+[P] Inorganic ion transport and metabolism 
+[Q] Secondary metabolites biosynthesis, transport and catabolism 
+POORLY CHARACTERIZED
+[R] General function prediction only 
+[S] Function unknown
+</pre>
 
 
 
