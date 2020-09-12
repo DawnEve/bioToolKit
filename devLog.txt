@@ -58,6 +58,7 @@ v0.1.3 添加本地url
 	dev0.1.4 加入R text()
 	dev0.1.5 加入python/txtBBS.py, 开始收集R/src/代码集
 	dev0.1.6 python/txtBBS.py 改进IP地址
+	dev0.1.7 python/markdownReader.py 单个md查看
 ##==> commit
 ##=====> git push origin
 

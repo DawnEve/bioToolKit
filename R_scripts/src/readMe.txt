@@ -14,6 +14,7 @@
 		|-01_map.markdown #记录结果，看怎么方便阅读吧。
 	|-scripts/ 放脚本，编号、命名写好。
 		|-2020-10-07_simulation_fish_count.Rmd 脚本首行绝对路径: setwd("xxx/xx/results/")
+		|-2020-10-15_simulation_fish_count.R 脚本首行绝对路径: setwd("xxx/xx/results/")
 	|-src/  函数的定义，被引用到script中。R的source('x.R')，比如 source("../src/base/tool.df.R")
 		|-readMe.txt #记录主要过程。保存在 bioToolKit/R_scripts/src/
 		|-base/tool.init.R
@@ -21,7 +22,7 @@
 		|-base/tool.color.R
 	|-data/ 放原始数据，设置为只读。
 	|-results/
-		|-01_map_result/ 图片png,jpg,svg等，及pdf输出
+		|-01_map_result/ 图片png,jpg,svg等，及pdf输出, 及数据文件txt,csv等
 		|-02_RNA_cor/
 #
 
