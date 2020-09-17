@@ -26,6 +26,7 @@
 	<li><a href='#t11'>11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)</a><li>
 	<li><a href='#t12'>12. 散点图: 自定义颜色、为点添加注释文字、图例放底部、放大图例的点(ggplot2)</a><li>
 	<li><a href='#t13'>13. 大块文字(R text())</a><li>
+	<li><a href='#t14'>14. 重绘GO条形图(ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -1438,6 +1439,79 @@ POORLY CHARACTERIZED
 [R] General function prediction only 
 [S] Function unknown
 </pre>
+
+
+
+
+
+
+
+<a name='t14'></a>
+<h2>14. 重绘GO条形图(ggplot2)</h2>
+<p>怎么让GO分析结果更高大上呢？</p>
+<img src="images/014_ggplot_GObarplot.png">
+<pre> #数据源是 metascape 做的GO分析结果: http://www.metascape.org/
+
+# install.packages('xlsx')
+loadGOfromXLS=function(fname){
+  library(xlsx)
+  dat = read.xlsx(fname, sheetName = "Enrichment", encoding = 'UTF-8')
+  #dim(dat) #164 9
+  # (1)filter by p value
+  dt2=dat[which(dat$Log.q.value. < log10(0.05)),]
+  head(dt2[,c(1,2,3,6)])
+  #dim(dt2) #17 9
+  #colnames(dt2)
+  #1."GroupID"       "Category"      "Term"     "Description"   "LogP"          "Log.q.value." 
+  #7 "InTerm_InList" "Genes"         "Symbols"
+  
+  # (2)filter out duplicate terms
+  dt3=dt2[!duplicated(dt2[,'Description']),]
+  # (3) keep Summary only
+  dt4=dt3[grep('Summary',dt3$GroupID),]
+  return(dt4)
+}
+
+library(ggplot2)
+GO_barplot=function(dt0){
+  dt0=dt0[order(-dt0$Log.q.value.),]
+  ggplot(dt0, aes(x=Description, y=-Log.q.value.
+                  #, fill=Category
+                  ))+
+    geom_bar(stat="identity", width=0.15, fill="black")+
+    rotate()+
+    scale_x_discrete(limits=dt0$Description,labels = NULL )+
+    theme_classic()+
+    theme(legend.position="none")+
+    scale_y_continuous(expand = c(0,0))+ #去掉坐标轴两端的空白
+    annotate("text", x=seq(1, nrow(dt0))-0.3, y=0, #位置
+             hjust = 0, #文字左对齐
+             label= dt0$Description)+
+    labs(x="", y="-Log10(q-value)")+
+    theme( axis.ticks.y = element_blank(),
+           axis.line.y = element_blank(),
+           axis.text.y = element_blank() )
+}
+
+# read and plot
+fname="F:\\c1_Figure\\Fig2\\vstVar_changed_HeLa\\down-313\\all.tfo2sgtfh\\metascape_result.xlsx"
+dt4=loadGOfromXLS(fname)
+GO_barplot(dt4)</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
