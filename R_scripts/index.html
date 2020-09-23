@@ -25,6 +25,9 @@
 	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
 	<li><a href='#t11'>11. 基因随24h时间周期表达圆圈图 - 极坐标系(ggplot2)</a><li>
 	<li><a href='#t12'>12. 散点图: 自定义颜色、为点添加注释文字、图例放底部、放大图例的点(ggplot2)</a><li>
+	<li><a href='#t13'>13. 大块文字(R text())</a><li>
+	<li><a href='#t14'>14. 重绘GO条形图(ggplot2)</a><li>
+	<li><a href='#t15'>15. 使用mean+sd画 errorbar(原生)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -50,6 +53,7 @@
 <a name='t1'></a>
 <h2>1. 箱线图/柱状图 + 散点图</h2>
 <img src="images/001his-jitter.png">
+
 <pre>
 #############################
 library(ggplot2)
@@ -137,6 +141,7 @@ ggplot(d3, aes(x=type, y=value)) +
   ylab( expression(paste( italic("Sox2")," Expression(normalization)") ) )
   #ylab("Sox2 Expression\n(normalization)") 
 </pre>
+
 
 
 
@@ -1355,6 +1360,251 @@ CairoPDF(file="03_RNA_Sync_vs_normal_HeLa_CV_changed_genes_v3.pdf",width=4,heigh
 print(g2)
 dev.off()
 </pre>
+
+
+
+
+
+
+
+
+
+<a name='t13'></a>
+<h2>13. 大块文字(R text())</h2>
+<p>可以使用 text()</p>
+<img src="images/013_R_text.png">
+
+<pre>
+# 读取文件
+text1=read.delim("fun.txt",header=FALSE) #该文件在文末
+text1
+len=nrow(text1); #29
+b=20;   
+
+# 绘图
+#tiff(filename="haha.tif",width=25,height=12,units="cm",compression="lzw",bg="white") #?
+#png(file="aaaa.png",width=800,height=600);
+#svg('aaaa.svg', width=8, height=6)
+
+pdf('aaaa.pdf', width=10, height=6)
+# 左边的图
+par(fig=c(0,0.55,0,1),bty="n"); 
+plot(c(0,1,4,9,16,25), type='o',ylab="y", pch=20)
+
+# 右边的图: 文字
+par(fig=c(0.4,1,0,1),bty="n", new=TRUE); #fig=c(x1, x2, y1, y2), 添加到新图 new = TRUE
+plot(1:b,1:b,type="n", #type="n"不生成任何点和线，创建坐标系
+     xaxt="n",yaxt="n",
+     xlab="",ylab="");
+sum=b+b/(2*len); #20.3448
+for(i in 1:(len)){
+  if (i %in% c(1,7,18,27) ){
+    text(1,sum,text1[i,],adj=0,cex=0.8,font=2); #大号字体
+  }else{
+    text(1,sum,text1[i,],adj=0,cex=0.8, col='grey20')
+  }
+  sum=sum-b/(len); #一行的高度差不多是 20/1.6896
+  print(sum)
+}
+dev.off()
+
+
+
+####### 补充材料
+$ cat fun.txt
+INFORMATION STORAGE AND PROCESSING
+[J] Translation, ribosomal structure and biogenesis 
+[A] RNA processing and modification 
+[K] Transcription 
+[L] Replication, recombination and repair 
+[B] Chromatin structure and dynamics 
+CELLULAR PROCESSES AND SIGNALING
+[D] Cell cycle control, cell division, chromosome partitioning 
+[Y] Nuclear structure 
+[V] Defense mechanisms 
+[T] Signal transduction mechanisms 
+[M] Cell wall/membrane/envelope biogenesis 
+[N] Cell motility 
+[Z] Cytoskeleton 
+[W] Extracellular structures 
+[U] Intracellular trafficking, secretion, and vesicular transport 
+[O] Posttranslational modification, protein turnover, chaperones 
+METABOLISM
+[C] Energy production and conversion 
+[G] Carbohydrate transport and metabolism 
+[E] Amino acid transport and metabolism 
+[F] Nucleotide transport and metabolism 
+[H] Coenzyme transport and metabolism 
+[I] Lipid transport and metabolism 
+[P] Inorganic ion transport and metabolism 
+[Q] Secondary metabolites biosynthesis, transport and catabolism 
+POORLY CHARACTERIZED
+[R] General function prediction only 
+[S] Function unknown
+</pre>
+
+
+
+
+
+
+
+<a name='t14'></a>
+<h2>14. 重绘GO条形图(ggplot2)</h2>
+<p>怎么让GO分析结果更高大上呢？</p>
+<img src="images/014_ggplot_GObarplot.png">
+<pre> #数据源是 metascape 做的GO分析结果: http://www.metascape.org/
+
+# install.packages('xlsx')
+loadGOfromXLS=function(fname){
+  library(xlsx)
+  dat = read.xlsx(fname, sheetName = "Enrichment", encoding = 'UTF-8')
+  #dim(dat) #164 9
+  # (1)filter by p value
+  dt2=dat[which(dat$Log.q.value. < log10(0.05)),]
+  head(dt2[,c(1,2,3,6)])
+  #dim(dt2) #17 9
+  #colnames(dt2)
+  #1."GroupID"       "Category"      "Term"     "Description"   "LogP"          "Log.q.value." 
+  #7 "InTerm_InList" "Genes"         "Symbols"
+  
+  # (2)filter out duplicate terms
+  dt3=dt2[!duplicated(dt2[,'Description']),]
+  # (3) keep Summary only
+  dt4=dt3[grep('Summary',dt3$GroupID),]
+  return(dt4)
+}
+
+library(ggplot2)
+GO_barplot=function(dt0){
+  dt0=dt0[order(-dt0$Log.q.value.),]
+  ggplot(dt0, aes(x=Description, y=-Log.q.value.
+                  #, fill=Category
+                  ))+
+    geom_bar(stat="identity", width=0.15, fill="black")+
+    rotate()+
+    scale_x_discrete(limits=dt0$Description,labels = NULL )+
+    theme_classic()+
+    theme(legend.position="none")+
+    scale_y_continuous(expand = c(0,0))+ #去掉坐标轴两端的空白
+    annotate("text", x=seq(1, nrow(dt0))-0.3, y=0, #位置
+             hjust = 0, #文字左对齐
+             label= dt0$Description)+
+    labs(x="", y="-Log10(q-value)")+
+    theme( axis.ticks.y = element_blank(),
+           axis.line.y = element_blank(),
+           axis.text.y = element_blank() )
+}
+
+# read and plot
+fname="F:\\c1_Figure\\Fig2\\vstVar_changed_HeLa\\down-313\\all.tfo2sgtfh\\metascape_result.xlsx"
+dt4=loadGOfromXLS(fname)
+GO_barplot(dt4)</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t15'></a>
+<h2>15. 使用mean+sd画 errorbar(原生)</h2>
+
+<img src="images/015barplot_errorbar.png">
+<img src="images/015lineplot_errorbar.png">
+<p>左: barplot 添加error bar; 
+<br>右: line plot 添加error bar; 对坐标轴axis和轴标题、刻度标签间的距离、刻度长度的控制。</p>
+
+<pre># R base 版 barplot
+data = data.frame(mean = c(8, 15), sd = c(9, 17))
+rownames(data) = c("case", "control")
+
+par(lwd = 2) 
+xPos = barplot(data$mean, col =c('#e82364', '#5bc4ba'), #c("red", "blue"), 
+               ylim = c(0, 25), axes = F, font = 2)
+b=xPos
+text(x=xPos, y=-1.2, labels=rownames(data), 
+     xpd=TRUE, #允许绘制在绘图区外
+     adj=1, #adj=1右上对齐
+     srt=30) #倾斜30度
+
+arrows(xPos[1], data$mean[1], b[1], data$sd[1], angle = 90) # error bar
+arrows(xPos[2], data$mean[2], b[2], data$sd[2], angle = 90) # error bar
+
+# 顶上的虚线
+lines( x = c(b[1], b[1], b[2], b[2]), y = c( data$sd[1] * 1.05 , data$sd[2] * 1.1,  data$sd[2] * 1.1, data$sd[2] * 1.05), lty = 2)
+# 星号
+text( x = b[1] + (b[2] - b[1]) / 2, y = data$sd[2] * 1.1, label = "****", cex = 2, adj = c(0.5, 0))
+# 加坐标轴
+axis(side = 2, lwd = 2, font = 2, cex = 1.5)
+</pre>
+
+
+
+<pre># R base 版: line plot
+# 输入数据是均值和标准差
+> head(dfB2)
+         mean          sd
+1 0.000000000 0.000000000
+2 0.008797837 0.001955405
+3 0.020597459 0.005301535
+
+########## 3rd Edition: use mean and sd plot
+library(Cairo)
+CairoPDF("10x_c1.geneBodyCoverage.curves-3.pdf", width=5, height=3)
+x=1:100
+plot(NULL, NULL, type='l', xlim=c(0,100), ylim=c(0,1), axes = F,
+     mgp=c(1.5,0.5,0),
+     xlab="Gene body percentile (5'->3')",  ylab="Coverage",lwd=0.8,col=icolor[1])
+# 10x
+icolor = colorRampPalette(c("#F8766D"))(10)
+#
+arrows(x0=seq(1,100), y0=dfA2$mean-dfA2$sd, x1=seq(1,100), y1=dfA2$mean+dfA2$sd, 
+      angle=90, length = 0.015, col='#FEB1AB', lwd=0.5)
+lines(seq(1,100),dfA2$mean, col=icolor[1], lwd=2)
+
+
+# C1
+icolor = colorRampPalette(c("#00BFC4"))(10)
+#
+arrows(x0=seq(1,100), y0=dfB2$mean-dfB2$sd, x1=seq(1,100), y1=dfB2$mean+dfB2$sd, 
+       angle=90, length = 0.015, col='#02F8FE', lwd=0.5)
+lines(seq(1,100),dfB2$mean, col=icolor[1], lwd=2)
+
+#
+legend(0,0.99, col=c('#F8766D', '#00BFC4'),lty=1, legend = c('10x', 'C1'), bty='n', lwd=2)
+axis(side = 1,  #x轴
+     lwd = 1, font = 1, cex = 1.5,
+     mgp=c(1.5,0.3,0), #标签文字与坐标轴的距离
+     tck=-0.04) #刻度线长度
+axis(side = 2, lwd = 1, font = 1, cex = 1.5,mgp=c(1.5,0.3,0),tck=-0.04)
+dev.off()</pre>
+
+
+
+
+
+
+
+
+
+
+
 
 
 
