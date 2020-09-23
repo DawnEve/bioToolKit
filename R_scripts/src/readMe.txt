@@ -24,6 +24,7 @@
 	|-results/
 		|-01_map_result/ 图片png,jpg,svg等，及pdf输出, 及数据文件txt,csv等
 		|-02_RNA_cor/
+	|-test/ 测试数据和结果
 #
 
 
