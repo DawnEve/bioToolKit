@@ -155,6 +155,8 @@ ggplot(d3, aes(x=type, y=value)) +
 <h2>2. 散点图 + 线性拟合曲线with r and p</h2>
 <img src="images/002point-lm.png">
 <pre>
+# V2.0 去掉图中文字的red/green glow
+
 #怎么处理线性拟合r和p值
 #1.1造数据
 #x=data.frame(
@@ -202,7 +204,7 @@ library(ggplot2)
 library(cowplot)
 g=ggplot(data=x,aes(a,b))+
   geom_smooth(method='lm', se=F)+ #se=F不要置信区间的阴影
-  geom_text(aes(x=16,y=15,label=paste0("r = ",r0,"\n p = ",p0)))+
+  geom_text(data=data.frame(), aes(x=16,y=15,label=paste0("r = ",r0,"\n p = ",p0)))+
   theme_cowplot() + #除掉主题背景阴影
   xlab( expression(paste( italic("CD8A")," expression") ) )+
   ylab( expression(paste( italic("ITGAE")," expression") ) )
@@ -219,10 +221,149 @@ g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
 
 
 
+
+
+
 <a name='t3'></a>
 <h2>3. heatmap图</h2>
 <img src="images/003pheatmap.png"><br>
 代码见：<a target="_blank" href="visulization/pheatmap_demo-ForSunjiaxin.R">pheatmap_demo-ForSunjiaxin.R</a>
+<pre>
+#目的: 给出数据矩阵，计算gene1和其余gene的相关系数，并画cor的heatmap。
+# v0.1
+#pheatmap 帮助文档 https://www.jianshu.com/p/1c55ea64ff3f
+
+source("https://bioconductor.org/biocLite.R")
+#biocLite("WGCNA")
+#biocLite("ggplot2")
+#biocLite("dplyr")
+#biocLite("Seurat")
+#biocLite("monocle")
+
+
+setwd("C:\\Users\\DELL\\Desktop")
+
+
+################
+#read file H
+msiH=read.csv("MSI-h.csv",row.names = 1)
+msiH[1:3,1:3]
+dim(msiH) #[1]  45 135
+
+
+################
+#read file 
+msiM=read.csv("MSIL-MSS.csv",row.names = 1)
+msiM[1:3,1:3]
+dim(msiM) #[1] 199 135
+
+
+
+#check 重复项
+genelist=colnames(msiM);genelist
+
+
+
+#################
+#defin function
+getCorDF=function(msi){
+  #cor.test
+  ido1=msi$IDO1
+  df=NULL
+  for(i in 3:ncol(msi)){
+    
+    data2=msi[,i]
+    symbol=colnames(msi)[i]
+    
+    rs=cor.test(ido1, data2)
+    p=rs$p.value
+    correlation=as.numeric(rs$estimate)
+    
+    tmp_df=data.frame(
+      symbol=symbol,
+      p=p,
+      correlation=correlation
+    )
+    
+    #
+    df=rbind(df, tmp_df)
+  }
+  return(df)
+}
+
+
+df.h=getCorDF(msiH)
+dim(df.h) #[1] 133   2
+head(df.h)
+row.names(df.h)=df.h$symbol
+#df.h=df.h[,-1]
+
+
+df.m=getCorDF(msiM)
+dim(df.m) #[1] 133   2
+row.names(df.m)=df.m$symbol
+#df.m=df.m[,-1]
+head(df.m)
+
+cDF=data.frame(
+  symbol=row.names(df.m),
+  "MSI_H"=df.h$correlation,
+  "NON_MSI_H"=df.m$correlation,
+  row.names = 1
+)
+head(cDF)
+dim(cDF) #[1] 133   2
+
+
+
+
+
+########################
+#heatmap
+########################
+library(pheatmap)
+
+# 构建列 注释信息
+type=read.csv("type.csv")
+head(type)
+dim(type) #[1] 133   2
+
+annotation_col = data.frame(
+  #CellType = factor(rep(c("CT1", "CT2","CT3", "CT4","CT5"), 27))
+  type=type$type
+)
+rownames(annotation_col) = rownames(cDF)  #type$sample # paste("Test", 1:10, sep = "")
+head(annotation_col)
+
+
+#
+# 自定注释信息的颜色列表
+ann_colors = list(
+  #Time = c("white", "firebrick"),
+  type = c("Act CD4" = "#FF81F2", "Act CD8" = "#00B9FF","HLA" = "#39B54A",
+           "immune checkpoint" = "#FF0000","Tem CD4" = "#FF8B99","Tem CD8" = "#0000FF",
+           "Treg" = "#FF8000")
+)
+head(ann_colors)
+
+
+
+# pheatmap 
+library(Cairo)
+CairoPDF("sunjiaxin_10_col.pdf",width=25,height=3)
+pheatmap(t(cDF), cluster_rows=F,#是否聚类 row
+         cluster_cols=T, #是否聚类 列
+         #display_numbers = TRUE,number_color = "blue", #标上p值
+         
+         annotation_col = annotation_col, #列 注释
+         
+         annotation_colors = ann_colors,
+         
+         angle_col=90,fontsize=10, #角度，字号
+         border=FALSE #没有边框
+)
+dev.off()</pre>
+
 
 
 
@@ -237,7 +378,48 @@ g+geom_point(aes(color=factor(clazz)))+ #使用分类变量后
 <h2>4. volcano火山图</h2>
 <img src="images/004volcano-small.png"><br>
 代码见：<a target="_blank" href="visulization/volcano-plot-forGEO2R-ForZhouxm.R">volcano-plot-forGEO2R-ForZhouxm.R</a>
+<pre>
+# V2.0 修改背景颜色为白色
 
+#http://agetouch.blog.163.com/blog/static/22853509020161194123526/
+# https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE1323
+#  Using ggplot2 for volcano plots 使用ggplot2画火山图
+library(ggplot2)
+
+#读取数据 #data download from GEO2R result
+setwd("C:\\Users\\Administrator\\Desktop")
+dif=read.table(file="Primary Tumor_Normal Colon.txt",header=T,row.names=1)
+dif[1:3,1:4]
+
+#添加显著与否标签
+no_of_genes=nrow(dif);no_of_genes #4653
+dif$threshold = as.factor(abs(dif$logFC) > 2 & dif$P.Value < 0.05/no_of_genes)
+
+#画火山图
+g = ggplot(data=dif, aes(x=logFC, y=-log10(P.Value), colour=threshold)) +
+  geom_point(alpha=0.4, size=1.75) +
+  #opts(legend.position = "none") + 
+  theme(legend.title=element_blank()) +
+  scale_colour_hue(labels=c("Not sig.","Sig."))+
+  #xlim(c(-10, 10)) + ylim(c(0, 15)) +
+  xlab("log2[fold change]") + ylab("-log10[p-value]") +
+  theme_bw()+	# 背景色淡化
+  labs(title="Volcano plot")
+g
+
+#只标注显著基因的基因名
+# 选出一部分基因：FC大且p小的基因
+dd_text = dif[(abs(dif$logFC) > 2) & (dif$P.Value < 0.05/no_of_genes),]
+head(dd_text)
+
+#添加文字-基因名
+g + geom_text(data=dd_text, aes(x=logFC, y=-log10(P.Value), label=dd_text$Gene.symbol), colour="black")
+
+
+#为了防止遮挡，建议使用包添加文字
+library(ggrepel)
+g + geom_text_repel(data=dd_text, aes(x=logFC, y=-log10(P.Value), label=dd_text$Gene.symbol), colour="black")
+</pre>
 
 
 
