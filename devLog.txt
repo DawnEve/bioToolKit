@@ -2,7 +2,7 @@ The changing tracks for bioToolKit.
 format: version number-language comments.
 
 url: https://tool.biomooc.com/R_scripts/
-local: ??
+local: tool.dawneve.cc, tool.m.biomooc.com
 ------------------------
 
 v0.0.1-R change dir;get ggplot2_dplyr dir from bitbucket.
@@ -64,6 +64,7 @@ v0.1.3 添加本地url
 	dev0.2.0 合并到master  [2020.9.23]
 # merge to master
 	dev0.2.1 fix R脚本; 添加 mRNA 标准化函数;  [2020.10.10]
+	dev0.2.2 add IF 2019; add Python/EyeDefender.py [2020.10.14]
 ##==> commit
 ##=====> git push origin
 

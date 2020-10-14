@@ -10,13 +10,19 @@ from PIL import ImageTk, Image
 ################
 mode="run" #debug or run
 
-
 interval=3 #弹窗间隔时间，单位 秒seconds，测试
 sleepTime=1 #休眠时间，期间不检查时间，一般要比间隔小
 
 if mode ==  'run':
-    interval=60*45 #45min
+    interval=60*10 #45min
     sleepTime=60 # check once per min.
+# get para from cmd
+if len(sys.argv)>1:
+    interval=int(sys.argv[1])
+# adjust sleepTime
+if sleepTime > interval/5:
+    sleepTime=interval/5
+#
 
 # picture path array
 img_paths=[r"C:\Users\admin\Desktop\blog_pics\机器学习ML\Tree\image-20150907-22253-rnp0iv.jpg",
@@ -33,7 +39,7 @@ while True:
     i=i+1
     if i>10:break;
     time.sleep(sleepTime)
-    print(i, 'seconds elapsed.')
+    print(i*sleepTime, 'seconds elapsed.')
     if time.time()-start>interval:
         root=Tk()
         root.title("EyeDefender.py")
