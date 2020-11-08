@@ -65,6 +65,7 @@ v0.1.3 添加本地url
 # merge to master
 	dev0.2.1 fix R脚本; 添加 mRNA 标准化函数;  [2020.10.10]
 	dev0.2.2 add IF 2019; add Python/EyeDefender.py [2020.10.14]
+	dev0.2.3 添加QQ群号提醒 [2020.11.8]
 ##==> commit
 ##=====> git push origin
 
