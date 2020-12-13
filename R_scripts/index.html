@@ -1665,7 +1665,7 @@ GO_barplot=function(dt0){
                   #, fill=Category
                   ))+
     geom_bar(stat="identity", width=0.15, fill="black")+
-    rotate()+
+    coord_flip()+
     scale_x_discrete(limits=dt0$Description,labels = NULL )+
     theme_classic()+
     theme(legend.position="none")+
@@ -1682,7 +1682,18 @@ GO_barplot=function(dt0){
 # read and plot
 fname="F:\\c1_Figure\\Fig2\\vstVar_changed_HeLa\\down-313\\all.tfo2sgtfh\\metascape_result.xlsx"
 dt4=loadGOfromXLS(fname)
-GO_barplot(dt4)</pre>
+GO_barplot(dt4)
+
+
+# or plot using part of these items.
+g2=GO_barplot(dt2[c(seq(1,8), 11,15,16,18,19,20),])
+g2
+
+## save to pdf
+library(Cairo)
+CairoPDF(file='F:/c1_Figure/GO_replot/06_CCNB1-pearson_cor-89genes.pdf',width=7,height=5)
+g2
+dev.off()</pre>
 
 
 
