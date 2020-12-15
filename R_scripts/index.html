@@ -28,6 +28,7 @@
 	<li><a href='#t13'>13. 大块文字(R text())</a><li>
 	<li><a href='#t14'>14. 重绘GO条形图(ggplot2)</a><li>
 	<li><a href='#t15'>15. 使用mean+sd画 errorbar(原生)</a><li>
+	<li><a href='#t16'>16. 左右barplot - GSVA结果展示(ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -1788,6 +1789,78 @@ axis(side = 1,  #x轴
      tck=-0.04) #刻度线长度
 axis(side = 2, lwd = 1, font = 1, cex = 1.5,mgp=c(1.5,0.3,0),tck=-0.04)
 dev.off()</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t16'></a>
+<h2>16. 左右barplot - GSVA结果展示(ggplot2)</h2>
+<img src="images/016_GSVA_bi_barplot.png">
+<p>特点: 左右双向条形图。</p>
+
+<pre># 模拟输入数据 GSVA的输出结果，包含name和t两列
+rs1=data.frame(
+  name=c('term1', 'term2', 'term3', 'term4', 'term5', 'term6', 'term7', 'term8'),
+  t=c(-20,-10,2,5,15, 16,25,30)
+)
+head(rs1)
+
+
+# 绘图函数
+drawGSVA=function(data, n=10){
+  #n=3 #20
+  data_0 = rbind(
+    data[order(data$t,decreasing = T),][1:n,], #选择t值最极端的2*n个
+    data[order(data$t,decreasing = F),][1:n,])
+  # t的最值，用于优化坐标轴，默认注释掉，不用
+  #a = round(min(data_0$t));  b = round(max(data_0$t))
+  
+  library(ggplot2)
+  # 画barplot
+  p=ggplot(data_0,aes(x=reorder(name,t),y=t,fill=t))+
+    geom_bar(stat = "identity",colour="black",width = 0.78,position = position_dodge(0.7))+
+    xlab("")+ylab("t value of GSVA score") +
+    # scale_y_continuous(breaks = seq(a,b,(b-a)/6))+
+    coord_flip() # 翻转xy轴
+  
+  # 主题修饰
+  p=p+theme_bw()+
+    theme(panel.grid.major.y = element_blank(),panel.grid.minor.y = element_blank(),
+          axis.text.y = element_blank(),panel.border = element_blank(),
+          axis.ticks.y = element_blank(),axis.line.x = element_line(),
+          axis.text.x = element_text(face="bold"),axis.title.x = element_text(face="bold"))
+  # 加上文字
+  p2=p+geom_text(aes(y=ifelse(t>0,-1,1),label=name), #文字的y坐标。旋转后
+                 hjust=ifelse(data_0$t>0,1,0), #按照t值正负，水平调整文字左右对齐
+                 fontface=4,size=3.8
+                 )+
+    scale_fill_gradient2(low="#366488",high="red",mid="white",midpoint = 0,name="t")+
+    # ylim(-60,60) + # 设置y轴的范围
+    theme(legend.text = element_text(face="bold"),legend.title = element_text(face="bold"),
+          # legend.position = c(0.9,0.3),
+          legend.direction = "vertical")
+  return(p2)
+}
+
+# 测试
+drawGSVA(rs1, n=3)</pre>
+
 
 
 

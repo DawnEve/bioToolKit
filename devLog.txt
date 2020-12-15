@@ -68,6 +68,7 @@ v0.1.3 添加本地url
 	dev0.2.3 添加QQ群号提醒 [2020.11.8]
 	dev0.2.4 添加R/counts2TPM function [2020.12.3]
 	dev0.2.5 fix [2020.12.13]
+	dev0.2.6 加入R双向条形图 [2020.12.15]
 ##==> commit
 ##=====> git push origin
 
