@@ -16,6 +16,11 @@ ParallelMe.py
 matplotlib画图实例
 
 
+5. 保护眼睛的程序，每45分钟(可调)弹窗一次全屏。
+EyeDefender.py
+
+
+
 todo
 十五道Python小案例，学会这些，Python基础已过关！
 https://cloud.tencent.com/developer/article/1157671
