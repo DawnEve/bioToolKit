@@ -5,6 +5,7 @@
 <script src="../static/js/tongji.js"></script>
 <link rel="stylesheet" href="../static/css/main.css" />
 <script src='../static/js/main.js'></script>
+<link rel="shortcut icon" href="/images/favicon.ico">
 </head>
 
 
@@ -30,6 +31,7 @@
 	<li><a href='#t14'>14. 重绘GO条形图(ggplot2)</a><li>
 	<li><a href='#t15'>15. 使用mean+sd画 errorbar(原生)</a><li>
 	<li><a href='#t16'>16. 左右barplot - GSVA结果展示(ggplot2)</a><li>
+	<li><a href='#t17'>17. cumulative 累计密度曲线图(K-S test) (原生)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -1863,6 +1865,81 @@ drawGSVA=function(data, n=10){
 drawGSVA(rs1, n=3)</pre>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t17'></a>
+<h2>17. cumulative 累计密度曲线图(K-S test) (原生)</h2>
+<img src="images/017_cumulativePlot_KS-test.png">
+<p>目标图片: <a target="_blank" href="https://pubmed.ncbi.nlm.nih.gov/32576858/">Nat Commun. 2020 Widespread transcript shortening through alternative polyadenylation in secretory cell differentiation</a><br />
+<b>Fig. 4. Single-cell analysis reveals short 3ʹUTRs in SCTs.</b>
+(c) Cumulative distribution function (CDF) curves comparing 3ʹUTR APA REDs in SCTs vs. VCTs (from Vento-Tormo et al. data) for genes showing 3ʹUTR shortening in the hESC model (blue curve, 685 genes from Fig. 2c) and all 3ʹUTR APA genes (black curve, 2379 genes). P-value (K–S test) for significance of difference between the two gene sets is indicated. </p>
+
+<p>该图用来比较2个分布的异质性，曲线上升最快的区域对应的x轴区域，是数据集中区域。KS test用于检验2个分布的差异是否显著。</p>
+<pre>
+##########
+# 累计密度曲线，并做K-S检验
+##########
+set.seed(2)
+control=rnorm(150,-0.5,1)
+treatment=rnorm(150, 0.5, 1)
+#
+hist(control, n=100)
+hist(treatment, n=100)
+#
+pos1=min(c(control, treatment))
+pos2=max(c(control, treatment))
+## K-S test
+rs.test=ks.test(control, treatment)
+p=rs.test$p.value;p
+p0=formatC(p, format = "e", digits = 2) #保留2位有效数字
+p0
+# plot
+pdf("xx005.pdf", width=3.5, height=4)
+plot(ecdf(control), col="black", 
+     verticals = TRUE, do.points = FALSE, #画竖线，不画点
+     cex=0.4, xlim=c(pos1, pos2),
+     main="Proliferation genes",
+     xlab=expression( atop( paste("Log"["2"], "Ratio of expression"), 
+                            "(Group1 vs. Group2)") ),
+     mgp=c(3,0.6,0),
+     ylab="Cumulative fraction")
+abline(v=0, col="grey", lty=2)
+abline(h=0.5, col="grey", lty=2)
+
+lines(ecdf(treatment), col="red", 
+      verticals = TRUE, do.points = FALSE,
+      cex=0.4)
+#添加图例
+legend('bottomright', 
+       box.col = NA, bg = NA,
+       legend=c("treatment", "control"),  # text in the legend
+       col=c("red","black"),  # point colors
+       pch=15)  # specify the point type to be a square
+#添加p值
+text(-2.5,0.9, adj=0, labels = paste("p", "=", p0), col="#666666")
+dev.off()
+# Fail: 想把P设置斜体，同时显示P=1.2x10-9的形式，显示x而不是e，使用上标
+#text(-2.5,0.9, adj=0, labels = expression(paste(italic("P"), " =", p0)))
+#text(-1.6,0.9,adj=0, labels=p0)
+# end
+</pre>
 
 
 
