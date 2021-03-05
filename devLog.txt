@@ -72,6 +72,10 @@ v0.1.3 添加本地url
 # merge to master [2020.12.15]
 	dev0.2.7 去掉个人信息 [2020.12.27]
 	dev0.2.8 顶部显眼位置添加QQ群 [2021.1.4]
+# merge to master [2021.1.15]
+	dev0.2.9 制作齿轮四色logo, 添加cumulative曲线 [2021.1.27]
+	dev0.3.0 add density plot, 双色，加注释 [2021.3.5]
+
 ##==> commit
 ##=====> git push origin
 
