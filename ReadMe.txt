@@ -53,6 +53,7 @@ R常用代码片段
 ========================
 js常用代码片段
 	JavaScript/sankey/index.html 桑基图
+	JavaScript/mathJax_demo.html LaTeX Math Preview 预览数学公式
 #
 
 

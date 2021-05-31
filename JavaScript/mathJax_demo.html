@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>LaTeX Math Preview
+	v0.1
+	</title>
+	<script id="MathJax-script" async src="/JavaScript/static/MathJax-tex-mml-chtml-3-es5.js"></script>
+<style>
+h3{margin:0; padding:0;}
+textarea{width:100%; height:150px;}
+#MathPreview{padding: 20px; 10px; border: 5px solid #ddd; margin:10px;}
+.light{color: #aaa;}
+#renderHTML{float: right;}
+</style>
+</head>
+
+
+<body>
+<!--
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+当字体找不到时，可以去这里下载
+@font-face /* 6 */ {
+  font-family: MJXTEX-S1;
+  src: url("https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2/MathJax_Size1-Regular.woff") format("woff");
+}
+
+-->
+
+<h3>LaTeX Math Preview</h3>
+
+Input your LaTeX code:<br>
+<textarea id="MathInput">
+  When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are
+  \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]
+  
+$$\alpha \times \beta = \gamma | \omega \times \Omega = \theta + \Theta$$
+ 
+$$
+S^{(r) } =
+\begin{pmatrix}
+s_1 &0 & 0 &0 &...\\
+0&s_2&0 & 0 &...\\
+0& 0& ...& ... & ...\\
+0 & 0 & ... & s_r &...\\
+...& ...& ...& 0 & 0 \\
+\end{pmatrix}
+$$
+</textarea>
+<span class=light>E.g.: Enclose in double dolar marks: \alpha \times \beta = \gamma</span>
+
+<button id="renderHTML">render HTML</button> <span class=light>[ ctrl + enter ]</span>
+
+<div id="MathPreview"></div>
+
+
+<pre class=light>
+
+Font URL is like this:
+https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2/MathJax_Size1-Regular.woff
+
+Supported by <a target="_blank" href="https://www.mathjax.org/#demo">MathJax</a>;
+</pre>
+
+
+
+
+
+
+<script>
+var log=console.log;
+
+window.onload=function(){
+	var input = document.getElementById('MathInput');
+	var output = document.getElementById('MathPreview');
+	var button = document.getElementById('renderHTML');
+
+	function render(){
+		log('begin render now ...')
+		//值替换
+		button.disabled = true;
+        output.innerHTML = input.value.trim();
+		//初始化函数
+		MathJax.texReset();
+		MathJax.typesetClear();
+		
+		MathJax.typesetPromise([output]).catch(function (err) {
+			output.innerHTML = '';
+			output.appendChild(document.createTextNode(err.message));
+			console.error(err);
+		}).then(function () {
+			button.disabled = false;
+		});
+	}
+	
+	
+	// 单击时渲染
+	button.onclick=render;
+	
+	// 按下ctrl+enter时渲染
+	document.onkeydown =function(evt){
+		if(evt.code=="Enter" && evt.ctrlKey==true){
+			render();
+		}
+	}
+		
+	// 初始化页面时渲染
+	render();
+}
+
+
+</script>
+
+</body>
+</html>
