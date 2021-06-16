@@ -26,6 +26,9 @@ Python常用代码片段
 	concurrence_demo.py 自己写的py并发框架，todo: 包装成更好用的py包。
 	txtBBS.py 自己写的简易BBS系统，能发言，记录IP，基于txt文件。
 	markdownReader.py 自己写的简易markdown文档阅读器，单文档阅读。
+	snakemake/ 添加流程
+		微生物 meta分析：跟着science学习宏基因组-原流程
+		GATK4 分析 germline mutation
 
 
 ========================

@@ -33,6 +33,7 @@
 	<li><a href='#t16'>16. 左右barplot - GSVA结果展示(ggplot2)</a><li>
 	<li><a href='#t17'>17. cumulative 累计密度曲线图(K-S test) (原生)</a><li>
 	<li><a href='#t18'>18. density plot with 2 colors, annotation(原生+ggplot2)</a><li>
+	<li><a href='#t19'>19. 柱状图 with 底部双向箭头(原生)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -2048,6 +2049,65 @@ ggplot()+
 <p></p>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t19'></a>
+<h2>19. 柱状图 with 底部双向箭头(原生)</h2>
+<p>第一版没有error bar，模仿 <a href="https://pubmed.ncbi.nlm.nih.gov/25409906/">fig.3c</a></p>
+<img src="images/019_barplot_arrow.png" />
+<pre>
+ct=c(33, 62, 48, 57)
+#
+dt2=data.frame(
+  length=c("lengthen","lengthen", '', "shorten","shorten"),
+  exp=c('up','down', '', 'up','down'),
+  #value=c(54,84,NA,85,83)
+  value=c(ct[1:2],NA, ct[3:4])
+)
+dt2
+
+pdf("xx_barPlot.pdf", width=2.8, height=3.8)
+par(mgp=c(1.4,0.5,0) )
+posX=barplot( rev(dt2$value), col=rev(c("red",'blue','white',"red",'blue')),
+              ylim=c(0,70), border=NA, ylab="Gene number" )
+text(x=posX, y=rev(dt2$value)+4, labels=rev(dt2$value) )
+#text(x=posX-0.3, y=-6, offset = 1,
+#     srt = 30, xpd = TRUE, cex=0.9,
+#     labels=rev(dt2$exp) )
+# arrows
+arrows(3.5,-5,6,-5, length = 0.08,
+       col='black', xpd = T, code=2, lwd=2)
+text(x=5, y=-12,  xpd = TRUE, cex=0.9,
+     labels="Lengthen" )
+#
+arrows(0,-5,2.5,-5, length = 0.08,
+       col='black', xpd = T, code=1, lwd=2)
+text(x=1, y=-12,  xpd = TRUE, cex=0.9,
+     labels="Shorten" )
+#
+legend(-2.5,-15,xpd = TRUE, horiz=T,
+       #box.lwd=3,
+       text.width=2.5, 
+       x.intersp=0.5,
+       border=NA, cex=0.8,
+       #title="RNA", title.adj=1,
+       fill=c('white','blue',"red"), legend = c('RNA level','down', 'up'), bty='n' )
+dev.off()
+</pre>
 
 
 

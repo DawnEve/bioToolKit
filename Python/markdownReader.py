@@ -224,7 +224,7 @@ addEvent(window, 'load', function(){
 
 </script>
 '''
-	return '<body><title>Markdown Viewer(simple) v0.2</title>'+\
+	return '<body><meta charset="utf-8"><title>Markdown Viewer(simple) v0.2</title>'+\
 		css+css2+'<h1 class=title><p>Markdown Viewer(simple)</p> file path: '+filePath+'</h1>'+\
 		md+	footer+"</body>"+js
 #

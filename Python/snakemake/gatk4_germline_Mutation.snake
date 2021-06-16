@@ -1,0 +1,276 @@
+# 使用gatk4生成正常样本的germline突变数据库的流程图
+# 生信技能树 2020-04-27
+
+# 了解gatk4的数据预处理流程（Data pre-processing for variant discovery）和
+# 生成正常样本的germline突变数据库的流程（A step-by-step guide to the new Mutect2 Panel of Normals Workflow）。
+
+软件依赖
+	trim_galore
+	GATK4 及其资源包 bundle
+
+
+文件结构
+├── sample1
+│   ├── sample1.L1-B1.R1.fastq.gz
+│   └── sample1.L1-B1.R2.fastq.gz
+├── sample2
+│   ├── sample2.L1-B1.R1.fastq.gz
+│   └── sample2.L1-B1.R2.fastq.gz
+├── sample3
+│   ├── sample3.L1-B1.R1.fastq.gz
+│   └── sample3.L1-B1.R2.fastq.gz
+├── database
+│   ├── hg19.fa
+│   ├── hapmap_3.3.hg19.sites.vcf
+│   ├── 1000G_omni2.5.hg19.sites.vcf
+│   ├── dbsnp_138.hg19.sites.vcf
+│   ├── 1000G_phase1.indels.hg19.sites.vcf
+│   ├── Mills_and_1000G_gold_standard.indels.hg19.sites.vcf
+│   └── af-only-gnomad.raw.sites.hg19.vcf.gz
+├── bed
+│   └── Covered.bed
+├── config.yaml
+└── Snakefile
+
+
+配置文件
+config.yaml
+samples:
+    - sample1
+    - sample2
+    - sample3
+
+然后是snakemake文件
+
+# 引入配置文件config.yaml
+configfile: "config.yaml"
+
+
+# 目标文件
+rule all:
+    input:
+        "gatk4_mutect2_pon.vcf.gz"
+
+# 第一步是去接头（trim_galore）
+rule trim_galore:
+    input:
+        "{sample}/{sample}.L1-B1.R1.fastq.gz",
+        "{sample}/{sample}.L1-B1.R2.fastq.gz"
+    output:
+        "{sample}/clean_fq/{sample}.L1-B1.R1_val_1.fq.gz",
+        "{sample}/clean_fq/{sample}.L1-B1.R2_val_2.fq.gz"
+    shell:
+        "trim_galore --paired --retain_unpaired -q 20 --phred33 --length 30 --stringency 3 --gzip --cores 4 -o {wildcards.sample}/clean_fq {input}"
+#==> 解释
+# input 输入原始文件；output输出的去接头后的文件名。
+# shell 是要执行的shell命令。
+# 1.snakemake会自动创建不存在的目录；2.如果shell命令没有定义输出文件，也可以不写output
+# 3.这一步使用了{sample}这个参数，但实际上{sample}还没有定义，单独运行这一步会报错，{sample}的定义在后面的rule。
+# 另外，如果在shell中要使用这个参数，还需要加上前缀wildcards，即{wildcards.sample}。
+
+
+# 第二步，bwa比对（bwa_map）
+rule bwa_map:
+    input:
+        "database/hg19.fa",
+        "{sample}/clean_fq/{sample}.L1-B1.R1_val_1.fq.gz",
+        "{sample}/clean_fq/{sample}.L1-B1.R2_val_2.fq.gz"
+    output:
+        "{sample}/{sample}.mem.bam"
+    params:
+        rg=r"@RG\tID:{sample}.L1-B1\tSM:{sample}\tLB:L1-B1\tPL:ILLUMINA"
+    shell:
+        "bwa mem \
+    -M -Y \
+    -R '{params.rg}' \
+    -t 16 \
+    {input} | \
+samtools view -1 - > {output}"
+#==> 解释
+# 这一步用到了params 参数，在这里定义命令中用到的参数，也可以直接从配置文件中读取。
+# 	如果有特殊符号的字符，比如反斜杠，则字符串最前面整体加上r""防止字符串转义。https://www.cnblogs.com/YangtzeYu/p/7875634.html
+# shell命令中的双引号，需要使用\进行转义或者使用单引号。
+# 可以在shell命令中间使用 空格反斜线回车 换行，更方便阅读
+
+
+
+# 第三步，标记重复序列（MarkDuplicates）
+rule MarkDuplicates:
+    input:
+        "{sample}/{sample}.mem.bam"
+    output:
+        bam = "{sample}/{sample}.markdup.bam",
+        txt = "{sample}/{sample}.markdup_metrics.txt"
+    params:
+        aso = r"queryname",
+        so = r"coordinate"
+    shell:
+        "gatk MarkDuplicates \
+    --INPUT {input} \
+    --OUTPUT /dev/stdout \
+    --METRICS_FILE {output.txt} \
+    --VALIDATION_STRINGENCY SILENT \
+    --OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 \
+    --ASSUME_SORT_ORDER '{params.aso}' \
+    --CREATE_MD5_FILE false \
+    --REMOVE_DUPLICATES false | \
+gatk SortSam \
+    --INPUT /dev/stdin \
+    --OUTPUT {output.bam} \
+    --SORT_ORDER '{params.so}' \
+    --CREATE_INDEX false \
+    --CREATE_MD5_FILE false"
+#==> 解释
+# params 两个参数，中间用逗号隔开。
+# 这是两个命令同时执行，第一个命令输出到 /dev/stdout， 第二个命令输入是 /dev/stdin, 然后输出到文件。
+# 测试 $ echo "good" #good
+# $ echo "good" >/dev/stdout #good
+
+
+
+
+# 第四步，碱基质量分数重校准（BaseRecalibrator）
+rule BaseRecalibrator:
+    input:
+        "{sample}/{sample}.markdup.bam"
+    output:
+        "{sample}/{sample}.bqsr_data.table"
+    shell:
+        "gatk BaseRecalibrator \
+    -R database/hg19.fa \
+    -I {input} \
+    --use-original-qualities \
+    -O {output} \
+    --known-sites database/hapmap_3.3.hg19.sites.vcf \
+    --known-sites database/1000G_omni2.5.hg19.sites.vcf \
+    --known-sites database/dbsnp_138.hg19.sites.vcf \
+    --known-sites database/1000G_phase1.indels.hg19.sites.vcf \
+    --known-sites database/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf"
+# 解释:
+# 对于固定的数据库文件，直接写死也好，直观，反正用的地方也不多。
+
+
+
+
+
+
+# 第五步，应用碱基质量分数重校准（ApplyBQSR）
+rule ApplyBQSR:
+    input:
+        bam = "{sample}/{sample}.markdup.bam",
+        table = "{sample}/{sample}.bqsr_data.table"
+    output:
+        "{sample}/{sample}.bqsr.bam"
+    shell:
+        "gatk ApplyBQSR \
+    -R database/hg19.fa \
+    -I {input.bam} \
+    -O {output} \
+    -bqsr {input.table} \
+    --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 \
+    --add-output-sam-program-record \
+    --create-output-bam-index true \
+    --create-output-bam-md5 true \
+    --use-original-qualities"
+
+
+
+
+
+# 第六步，Mutect2找变异（Mutect2）
+rule Mutect2:
+    input:
+        "{sample}/{sample}.bqsr.bam"
+    output:
+        "{sample}/{sample}.vcf.gz"
+    shell:
+        "gatk Mutect2 \
+    -R database/hg19.fa \
+    -I {input} --max-mnp-distance 0 \
+    -O {output}"
+
+
+
+
+
+# 第七步，基因组数据库导入（GenomicsDBImport）
+rule GenomicsDBImport:
+    input:
+        expand("{sample}/{sample}.vcf.gz", sample=config["samples"])
+    output:
+        directory("pon_db")
+    params:
+        " -V ".join(expand("{sample}/{sample}.vcf.gz", sample=config["samples"]))
+    shell:
+        "gatk GenomicsDBImport \
+    -R database/hg19.fa \
+    --genomicsdb-workspace-path {output} \
+    -V {params} \
+    -L bed/Covered.bed"
+# 解释:
+# 这一步需要用到所有样本的vcf文件，使用python的expand()函数将每个样本的vcf文件依次添加到一个列表中。
+# 	参数sample，Snakemake从rule all回溯到这里的时候就知道了sample代表的具体样本名。
+# 如果output定义的是一个目录，需要加上directory；相反如果input定义的是一个目录，就不需要加directory
+
+
+
+
+
+
+# 第八步，创建正常样本的数据库（CreateSomaticPanelOfNormals）
+rule CreateSomaticPanelOfNormals:
+    input:
+        "pon_db"
+    output:
+        "gatk4_mutect2_pon.vcf.gz"
+    shell:
+        "gatk CreateSomaticPanelOfNormals -R database/hg19.fa \
+    --germline-resource database/af-only-gnomad.raw.sites.hg19.vcf.gz \
+    -V gendb://{input} \
+    -O {output}"
+# 解释：
+# 这里的output就是rule all的input，是目标文件，最后一个实际步骤。
+#	然后上溯其input在哪里生成的？在第七步。... 最后上溯到现有的硬盘文件就停止了。
+
+
+
+
+
+
+# 流程图
+# 保存Snakefile文件。运行命令snakemake --dag | dot -Tpdf > dag.pdf 就可以生成每个文件被处理的流程图。
+
+
+
+# 运行
+# 运行命令snakemake -np可以预览所有的shell命令，初步检查语法。
+# 通过添加--cores/--jobs/-j N参数可以指定并行数，如果不指定N，则使用当前最大可用的核心数。
+
+# 一切准备妥当，运行命令snakemake --cores 16，程序就跑起来了。
+# 如果脚本文件名不是 Snakefile，而是 xx.sf，则使用参数-s xx.sf指定脚本文件名。
+# snakemake -s xx.sf -j 16
+
+
+
+
+# 扩展
+# rule中还可以添加其他的参数，比如说threads、log。
+# 如果输出文件重要，可以添加protected参数设置为保护文件，
+# 相反，如果跑完程序就可以删除的文件，可以添加temp参数设置为临时文件。
+
+rule NAME:
+    input: 
+        "path/to/inputfile", 
+        "path/to/other/inputfile"
+    output: 
+        protected("path/to/outputfile"), 
+        temp("path/to/another/outputfile")
+    log: 
+        "logs/abc.log"
+    threads: 
+        8
+    shell: 
+        "somecommand --threads {threads} {input} {output}"
+# 更多用法请前往Snakemake的官方文档
+
+# End.
