@@ -29,6 +29,7 @@ Python常用代码片段
 	snakemake/ 添加流程
 		微生物 meta分析：跟着science学习宏基因组-原流程
 		GATK4 分析 germline mutation
+	IF/IF2html.py  生成影响因子网页
 
 
 ========================
