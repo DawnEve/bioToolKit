@@ -17,14 +17,17 @@ matplotlib画图实例
 
 
 5. 保护眼睛的程序，每45分钟(可调)弹窗一次全屏。
-EyeDefender.py  //失败，窗口弹出不凶狠，有时候根本看不到。
+EyeDefender.py  //失败，窗口弹出不明显，有时候根本看不到。
+
 
 
 
 6. 网页运行python代码
-
-$ python web_run_python3.py
+$ python web_run_python3.py  #不好用。
 Ready for Python code on port 39093...
+
+https://onecompiler.com/python
+
 
 
 
