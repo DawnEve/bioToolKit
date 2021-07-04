@@ -81,6 +81,8 @@ v0.1.3 添加本地url
 	dev0.3.3 Python/snakemake/; web run py [2021.6.17]
 	dev0.3.4 R/ index_pkgs.html  [2021.7.3]
 	dev0.3.5 IF/ 2020 [2021.7.3]
+	dev0.3.6 IF/ 2019 [2021.7.4]
+
 
 ##==> commit
 ##=====> git push origin
@@ -88,6 +90,25 @@ v0.1.3 添加本地url
 
 
 #
+
+
+
+
+
+
+
+
+
+
+
+
+#
+
+
+
+
+
+
 
 
 
