@@ -34,6 +34,7 @@
 	<li><a href='#t17'>17. cumulative 累计密度曲线图(K-S test) (原生)</a><li>
 	<li><a href='#t18'>18. density plot with 2 colors, annotation(原生+ggplot2)</a><li>
 	<li><a href='#t19'>19. 柱状图 with 底部双向箭头(原生)</a><li>
+	<li><a href='#t20'>20. 治疗前后的连线点图</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -2109,6 +2110,79 @@ legend(-2.5,-15,xpd = TRUE, horiz=T,
 dev.off()
 </pre>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t20'></a>
+<h2>20. 治疗前后的连线点图</h2>
+<p>今天发现pdf硬盘占用比png小很多，尝试在网页嵌入pdf图片。缺点是有黑边，不知道怎么去掉。</p>
+<p>难点: 对x坐标重排序，对y坐标对数尺度; 组内连线;</p>
+<p>模仿 <a target="_blank" href="https://www.ncbi.nlm.nih.gov/labs/pmc/articles/PMC8385563/">N Engl J Med. 2021. Fig.1B</a></p>
+<iframe src="images/020_dot_line_plot.pdf#toolbar=0&view=fit,100" width="240" height="320" ></iframe>
+
+<pre>
+library(ggplot2)
+library(dplyr)
+
+# 生成数据 ID, treatment, time和values
+set.seed(20211103)
+
+mydata <- data.frame(
+  ID = c(rep(1:10, 2), rep(11:20, 2)),
+  treatment = rep(c("v", "p"), each = 20),
+  time = rep(c("Before", "After", "Before1", "After1"), each = 10),
+  values = c(rnorm(10, mean = 100, sd = 60), 
+             rnorm(10, mean = 155, sd = 60), 
+             rnorm(10, mean = 105, sd = 60), 
+             rnorm(10, mean = 100, sd = 60))
+)
+mydata$values=10^( mydata$values / ( max(mydata$values)-min(mydata$values) ) *4 )
+
+mydata
+summary(mydata$values)
+# ID代表受试者的编号；
+# treatment有两个水平，v代表疫苗组，p为安慰剂组；
+# time分为before和after，分别指代治疗前和治疗后；
+# values代表血液中的抗体水平。
+
+str(mydata)
+#'data.frame':	40 obs. of  4 variables:
+#  $ ID       : int  1 2 3 4 5 6 7 8 9 10 ...
+#$ treatment: chr  "v" "v" "v" "v" ...
+#$ time     : chr  "Before" "Before" "Before" "Before" ...
+#$ values   : num  27.781 21.426 1.857 0.712 9.931 ...
+
+#png("00test.png", width=72*3*0.8, height=72*4*0.8, res=72)
+#svg("00test.svg", width=3*0.8, height=4*0.8)
+pdf("00test.pdf", width=3*0.8, height=4*0.8, useDingbats=F)
+ggplot(mydata, aes(time, log10(values), fill=time))+
+  #scale_y_log10()+ #纵坐标取对数
+  geom_point(shape=21, size=3, show.legend = F)+
+  scale_x_discrete(limits = c("Before", "After", "Before1", "After1"),
+                   labels = c("Before", "After", "Before", "After")) +  # 修改x轴刻度上的标签
+  scale_y_continuous( breaks = seq(-1,6,1),
+    labels = 10^seq(-1,6,1) ) +  # 修改x轴刻度上的标签
+  scale_fill_manual(values = c("indianred3", "steelblue", "indianred3", "steelblue")) + # 修改颜色
+  geom_hline(yintercept = 2, linetype = "dashed") + # 添加水平虚线
+  geom_line(data = filter(mydata, treatment == "v"), aes(group = ID)) + # 添加疫苗组的点对点线条
+  geom_line(data = filter(mydata, treatment == "p"), aes(group = ID)) + # 添加安慰剂组的点对点线条
+  xlab( "mRNA-xxx    Placebo") +        # 修改x轴的标签
+  ylab("Anti-RBD Antibody (U/ml)") + # 修改y轴的标签
+  theme_classic()
+dev.off()
+</pre>
 
 
 
