@@ -6,7 +6,7 @@
 
 	<style>
 	.wrap{width:1000px;margin:0 auto; }
-	a{color:#ff9600;text-decoration: none}
+	a{color:#FF0097;text-decoration: none}
 	a:hover{text-decoration:underline}
 
 	ul{border:1px dashed #ccc; padding:10px; margin:10px; list-style:none;}
@@ -36,10 +36,16 @@
 	
 	
 	<ul><h2>Tools</h2>
-		<p class=light>Powered by Javascript.</p>
-		<li><a href="http://www.biomooc.com">Navigator</a> Short cuts for bioinformatics.</li>
+		<h3>Web Tools<span class=light> Powered by Javascript.</span></h3>
+		<li><a href="http://www.biomooc.com/index2.html">Navigator</a> Short cuts for bioinformatics.</li>
 		<li><a href="tool/transphage.html">TransPhage</a> A tool for Translating peptide from phage display[Ph.Dc7c,Ph.D7,Ph.D12].</li>
 		<li><a href="tool/revCom.html">revCom</a> A tool for DNA translation, reverse complement.</li>
+		
+		<li><a href="JavaScript/mathJax_demo.html">LaTeX Math Preview</a> to preview LaTeX Math expression, based on MathJax.js</li>
+
+
+		<h3>Linux Tools</h3>
+		<li><a target="_blank" href="http://biomooc.dawneve.cc/linux/docker_images.html">Docker images</a> of Rstudio with Seurat, Monocle, ...</li>
 	</ul>
 
 	
@@ -61,7 +67,12 @@
 		<li><a href="tool/TF_list.txt">TF_list.txt</a> All TF gene names up to now.</li>
 		<li><a href="https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp">MSigDB Collections</a> The 25724 gene sets in the Molecular Signatures Database (MSigDB) are divided into 8 major collections, and several sub-collections.</li>
 		<hr>
-		<li><a href="/IF/JournalHomeGrid-IF2019-sim.csv">IF 2019</a> Journal Data Filtered By:  Selected JCR Year: 2019 Selected Editions: SCIE,SSCI Selected Category Scheme: WoS</li>
+		<li>Impact factor: 
+			<a href="/IF/IF_2020-high.html">2020-high</a> 
+				(<a href="/IF/backup/IF_2020.html">2020_all</a>) | 
+			<a href="/IF/JournalHomeGrid-IF2019-sim.csv">2019 csv</a> 
+				(<a href="/IF/backup/IF_2019.html">2019</a>) |
+		</li>
 	</ul>	
 	
 	
@@ -74,13 +85,14 @@
 		<b>Fancy pictures driven by data: </b><br>
 		<ol>
 			<li><a href="R_scripts/index.html">专题：ggplot2画paper中常见的图</a></li>
+			<li><a href="R_scripts/index_pkgs.html">专题：R包画paper中常见的图</a>: 生存分析、热图</li>
 			<li><a href="JavaScript/index.html">专题：JavaScript画paper中常见的图</a></li>
 		</ol>
 	</ul>
 	
 	
 	<div class="footer light">
-		JimmyMall at 163 dot com | <a href="https://github.com/DawnEve/bioToolKit">Fork me on Github</a>
+		JimmyMall at 163 dot com | Fork me on <a href="https://github.com/DawnEve/bioToolKit">Github</a>
 	</div>
 </div>
 </body>

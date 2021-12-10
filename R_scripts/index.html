@@ -22,6 +22,7 @@
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生+ggplot2)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
+	<li><a href='#t7_2'><span class=indent2>7_2. 散点图: 连续型变量到渐变色的映射(cut函数)(原生)</span></a><li>
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
 	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
@@ -33,6 +34,8 @@
 	<li><a href='#t16'>16. 左右barplot - GSVA结果展示(ggplot2)</a><li>
 	<li><a href='#t17'>17. cumulative 累计密度曲线图(K-S test) (原生)</a><li>
 	<li><a href='#t18'>18. density plot with 2 colors, annotation(原生+ggplot2)</a><li>
+	<li><a href='#t19'>19. 柱状图 with 底部双向箭头(原生)</a><li>
+	<li><a href='#t20'>20. 治疗前后的连线点图(ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -718,6 +721,128 @@ axis(4,at=seq(0,1,by=0.2),
 #
 dev.off()
 </pre>
+
+
+
+
+
+
+
+
+
+
+<a name='t7_2'></a>
+<h2>7_2. 散点图: 连续型变量到渐变色的映射(cut函数)(原生)</h2>
+<iframe src="images/07_2_scatter_mapColor.pdf#toolbar=0&view=fit,100" width="240" height="210" ></iframe>
+<pre>
+#cut(x, breaks): Convert Numeric to Factor
+
+# 1. 生成数据
+set.seed(20211119)
+dat_1=rnorm(100, 0, 1)
+
+
+# 3. 数据和颜色的映射
+# fun1: 使用cut 函数，连续型变量变成分窗的因子
+continuousDat2bins=function(dat, binwidth=NA){
+  # to get min and max
+  l1=min(dat);l1 #-1.868331
+  u1=max(dat);u1 #2.796254
+  
+  l2=floor(l1*10)/10; l2 #-1.9
+  u2=ceiling(u1*10)/10; u2 #2.8
+  
+  # get binwidth
+  if(is.na(binwidth)){
+    binwidth=(u2-l2)/100
+  }
+  
+  # get breaks, include the max number
+  breaks=seq(l2, u2, binwidth)
+  if(max(breaks) &lt; u2){ breaks=c(breaks, u2)}
+  
+  # convert dat to factors
+  dat_3=cut(dat, breaks = breaks ); 
+  dat_3
+}
+#dat_3=continuousDat2bins(dat_1)
+
+
+# fun2: 分窗的因子变为渐变色颜色
+bins2colors=function(bins, colors=c('green4','white','maroon3')){
+  # 定义渐变色
+  colors2=colorRampPalette(colors = colors, interpolate ="linear")( length(levels(bins)) )
+  
+  # map dat to colors, by index of bin index
+  plotcol = colors2[ bins ];
+  return(list(plotcol, colors2) )
+}
+#bins2colors(dat_3)
+
+# fun3: 合并以上2个函数，连续型变量映射到渐变色颜色
+continuousDat2Colos=function(dat, binwidth=NA, colors=c('green4','white','maroon3')){
+  bins2colors(continuousDat2bins(dat, binwidth), colors )
+}
+#continuousDat2Colos(dat_1)
+colors2=continuousDat2Colos(dat_1, colors=c("purple", "purple4", "black", "yellow3", "yellow"))
+colors2
+
+
+# 4. 画图
+#pdf("01.pdf", width=3.2, height=2.8)
+png("01.png", width=3.2*72, height=2.8*72, res=72)
+mat=matrix(c(1,2),ncol=2)
+layout(mat, widths = c(3,1)) #右图: 左右3:1
+
+par(mar=c(3,3,1,0))
+# left
+plot(dat_1, pch=20, 
+     col=colors2[[1]],
+     bty="l", 
+     mgp=c(2,0.8,0),
+     ylab="XX value",
+     main="")
+box(bty="l", lwd=2) #坐标轴加粗
+
+# right
+#par(mar=c(3,1,3,5))
+par(mar=c(7,0.5,2, 3))
+len=length(colors2[[2]]) #颜色长度
+barplot( rep(1, len), col=colors2[[2]], 
+         border=NA, space=0, horiz =T,
+         ann=F, axes=F)
+
+# 图例上的数字怎么能靠近整数关口? //todo
+# fun: 图例表示的数值data，渐变色的长度len，获取渐变色上的刻度位置和刻度值。
+getTicks=function(dat, len){ #需要手动修正
+  # (Real)from min(dat) to max(dat)
+  # (mark)to 0 to len
+  real_tick_len=(max(dat) - min(dat)) / 4
+  real_tick=seq(min(dat), max(dat), real_tick_len)
+  real_tick=round(real_tick, 2)
+  
+  mark_tick=seq(0, len, (len-0)/4)
+  return( list(
+    label=real_tick, #等差数列，来自dat，刻度值
+    at=mark_tick # 等差数列，来自渐变色长度 len，刻度位置
+  ) )
+}
+ticks=getTicks(dat_1, len)
+
+axis(side=4, at=ticks$at, #刻度位置
+     labels=ticks$label, #刻度值
+     tcl=-0.1, # 刻度线长度
+     mgp=c(1,0.3,0), #刻度值与颜色条距离
+     las=2)
+dev.off()
+</pre>
+
+
+
+
+
+
+
 
 
 
@@ -2049,6 +2174,138 @@ ggplot()+
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t19'></a>
+<h2>19. 柱状图 with 底部双向箭头(原生)</h2>
+<p>第一版没有error bar，模仿 <a href="https://pubmed.ncbi.nlm.nih.gov/25409906/">fig.3c</a></p>
+<img src="images/019_barplot_arrow.png" />
+<pre>
+ct=c(33, 62, 48, 57)
+#
+dt2=data.frame(
+  length=c("lengthen","lengthen", '', "shorten","shorten"),
+  exp=c('up','down', '', 'up','down'),
+  #value=c(54,84,NA,85,83)
+  value=c(ct[1:2],NA, ct[3:4])
+)
+dt2
+
+pdf("xx_barPlot.pdf", width=2.8, height=3.8)
+par(mgp=c(1.4,0.5,0) )
+posX=barplot( rev(dt2$value), col=rev(c("red",'blue','white',"red",'blue')),
+              ylim=c(0,70), border=NA, ylab="Gene number" )
+text(x=posX, y=rev(dt2$value)+4, labels=rev(dt2$value) )
+#text(x=posX-0.3, y=-6, offset = 1,
+#     srt = 30, xpd = TRUE, cex=0.9,
+#     labels=rev(dt2$exp) )
+# arrows
+arrows(3.5,-5,6,-5, length = 0.08,
+       col='black', xpd = T, code=2, lwd=2)
+text(x=5, y=-12,  xpd = TRUE, cex=0.9,
+     labels="Lengthen" )
+#
+arrows(0,-5,2.5,-5, length = 0.08,
+       col='black', xpd = T, code=1, lwd=2)
+text(x=1, y=-12,  xpd = TRUE, cex=0.9,
+     labels="Shorten" )
+#
+legend(-2.5,-15,xpd = TRUE, horiz=T,
+       #box.lwd=3,
+       text.width=2.5, 
+       x.intersp=0.5,
+       border=NA, cex=0.8,
+       #title="RNA", title.adj=1,
+       fill=c('white','blue',"red"), legend = c('RNA level','down', 'up'), bty='n' )
+dev.off()
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t20'></a>
+<h2>20. 治疗前后的连线点图(ggplot2)</h2>
+<p>注: 今天发现pdf硬盘占用比png小很多，尝试在网页嵌入pdf图片。缺点是有黑边，不知道怎么去掉。</p>
+<p>难点: 对x坐标重排序，对y坐标对数尺度; 组内连线;</p>
+<p>模仿 <a target="_blank" href="https://www.ncbi.nlm.nih.gov/labs/pmc/articles/PMC8385563/">N Engl J Med. 2021. Fig.1B</a></p>
+<iframe src="images/020_dot_line_plot.pdf#toolbar=0&view=fit,100" width="240" height="320" ></iframe>
+
+<pre>
+library(ggplot2)
+library(dplyr)
+
+# 生成数据 ID, treatment, time和values
+set.seed(20211103)
+
+mydata = data.frame(
+  ID = c(rep(1:10, 2), rep(11:20, 2)),
+  treatment = rep(c("v", "p"), each = 20),
+  time = rep(c("Before", "After", "Before1", "After1"), each = 10),
+  values = c(rnorm(10, mean = 100, sd = 60), 
+             rnorm(10, mean = 155, sd = 60), 
+             rnorm(10, mean = 105, sd = 60), 
+             rnorm(10, mean = 100, sd = 60))
+)
+mydata$values=10^( mydata$values / ( max(mydata$values)-min(mydata$values) ) *4 )
+
+mydata
+summary(mydata$values)
+# ID代表受试者的编号；
+# treatment有两个水平，v代表疫苗组，p为安慰剂组；
+# time分为before和after，分别指代治疗前和治疗后；
+# values代表血液中的抗体水平。
+
+str(mydata)
+#'data.frame':	40 obs. of  4 variables:
+#  $ ID       : int  1 2 3 4 5 6 7 8 9 10 ...
+#$ treatment: chr  "v" "v" "v" "v" ...
+#$ time     : chr  "Before" "Before" "Before" "Before" ...
+#$ values   : num  27.781 21.426 1.857 0.712 9.931 ...
+
+#png("00test.png", width=72*3*0.8, height=72*4*0.8, res=72)
+#svg("00test.svg", width=3*0.8, height=4*0.8)
+pdf("00test.pdf", width=3*0.8, height=4*0.8, useDingbats=F)
+ggplot(mydata, aes(time, log10(values), fill=time))+
+  #scale_y_log10()+ #纵坐标取对数
+  geom_point(shape=21, size=3, show.legend = F)+
+  scale_x_discrete(limits = c("Before", "After", "Before1", "After1"),
+                   labels = c("Before", "After", "Before", "After")) +  # 修改x轴刻度上的标签
+  scale_y_continuous( breaks = seq(-1,6,1),
+    labels = 10^seq(-1,6,1) ) +  # 修改x轴刻度上的标签
+  scale_fill_manual(values = c("indianred3", "steelblue", "indianred3", "steelblue")) + # 修改颜色
+  geom_hline(yintercept = 2, linetype = "dashed") + # 添加水平虚线
+  geom_line(data = filter(mydata, treatment == "v"), aes(group = ID)) + # 添加疫苗组的点对点线条
+  geom_line(data = filter(mydata, treatment == "p"), aes(group = ID)) + # 添加安慰剂组的点对点线条
+  xlab( "mRNA-xxx    Placebo") +        # 修改x轴的标签
+  ylab("Anti-RBD Antibody (U/ml)") + # 修改y轴的标签
+  theme_classic()
+dev.off()
+</pre>
 
 
 

@@ -185,18 +185,10 @@ ggdotchart(dfm, x = "name", y = "mpg",
 
 
 
+library(ggplot2)
+head(mtcars)
+ggplot(mtcars, aes( factor(am), gear))+geom_violin()+geom_jitter(width=0.2, height=0)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+match( c(-1,3, -1,100),  c(-1,1,2,3,4))
 

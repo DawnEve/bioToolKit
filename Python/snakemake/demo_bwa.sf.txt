@@ -1,0 +1,184 @@
+$ ls -R data
+data:
+genome.fa  genome.fa.amb  genome.fa.ann  genome.fa.bwt  genome.fa.fai  genome.fa.pac  genome.fa.sa  samples
+
+data/samples:
+A.fastq  B.fastq  C.fastq
+
+
+
+$ cat r1.sf 
+rule bwa:
+	input:
+		"data/genome.fa",
+		"data/samples/A.fastq"
+	output:
+		"mapped/A.bam"
+	shell:
+		"bwa mem {input} | samtools view -Sb - >{output}"
+
+# $ snakemake -np -s r1.sf
+
+
+
+
+
+
+
+
+############## Begin
+
+$ cat r2.sf 
+samples = ["A", "B", "C"] #放到文件顶部, calling 步骤需要
+
+# 最终目标
+rule all:
+    input:
+        "stat/stat.txt"
+
+# 使用通配符
+rule bwa:
+    input:
+        "data/genome.fa",
+        "data/samples/{sample}.fastq"
+    output:
+        "mapped/{sample}.bam"
+    shell:
+        "bwa mem {input} | samtools view -Sb - > {output}"
+# $ snakemake -np -s r2.sf mapped/{A,B,C}.bam
+
+
+
+# 添加 sort 规则
+rule sort:
+    input:
+        "mapped/{sample}.bam"
+    output:
+        "mapped/{sample}.sorted.bam"
+    shell:
+        "samtools sort -o {output} {input} && echo 'step sort' {wildcards.sample}"
+## 这一步 sample = "A"
+
+# 建立索引
+rule samtools_index:
+    input:
+        "mapped/{sample}.bam"
+    output:
+        "mapped/{sample}.bam.bai"
+    shell:
+        "samtools index {input}  && echo 'step samtools_index' {wildcards.sample}"
+## 这一步 sample = "A.sort"
+
+
+# 添加 calling 规则，这里需要三个文件同时输入。
+rule calling:
+  input:
+      fa="data/genome.fa",
+      bam=expand("mapped/{sample}.sorted.bam", sample=samples),
+      bai=expand("mapped/{sample}.sorted.bam.bai", sample=samples)
+  output:
+      "calling/all.vcf"
+  shell:
+      "samtools mpileup -g -f {input.fa} {input.bam} | "
+	  #"bcftools mpileup -g -f {input.fa} {input.bam} | "
+      "bcftools call -mv - > {output}"
+
+# 调用自己写的脚本
+rule stats:
+    input:
+        "calling/all.vcf"
+    output:
+        "stat/stat.txt"
+    script:
+        "scripts/stat.py"
+
+$ snakemake -np -s r2.sf mapped/{A,B,C}.bam
+$ snakemake -np -s r2.sf
+
+
+其中外部py脚本
+$ vim scripts/stat.py
+fr=open(snakemake.input[0])
+fw=open(snakemake.output[0], 'w')
+
+i=0
+for lineR in fr.readlines():
+	i+=1
+	fw.write(str(i)+"\t"+lineR)
+fr.close()
+fw.close()
+
+#import pandas as pd
+#data=pd.read_table(snakemake.input[0])
+# data=data.sort_values("id")
+#data.to_csv(snakemake.output[0], sep="\t")
+
+############## End
+
+
+
+
+
+
+
+
+
+
+
+
+执行
+$ snakemake -s r2.sf -j 4
+$ snakemake -F -s r2.sf -j 4  # -F则强制全部重新执行，无论之前是否已经(部分)执行过
+
+
+画流程图
+$ snakemake --forceall --dag -s r2.sf -j 4 | dot -Tsvg > dag.svg
+$ snakemake --forceall --dag -s r2.sf -j 4 | dot -Tpdf > dag.pdf
+
+$ snakemake --rulegraph 2>/dev/null -s r2.sf -j4 | dot -T svg > workflow.svg
+
+
+
+
+
+排查错误:
+
+(1)警告:[warning] samtools mpileup option `g` is functional, but deprecated. Please switch to using bcftools mpileup in future.
+而 bcftools 又报错 [main] Unrecognized command.
+$ bcftools
+Program: bcftools (Tools for data in the VCF/BCF formats)
+Version: 0.1.19-44428cd
+是不是版本太古老了?
+
+
+(2)ubuntu上的版本是
+$ bcftools
+Program: bcftools (Tools for variant calling and manipulating VCFs and BCFs)
+Version: 1.11-35-g8a744dd (using htslib 1.11-27-g246c146)
+
+
+(3)改装后的版本:
+$ bcftools
+Version: 1.12-66-g42baa31 (using htslib 1.12-50-g0313654)
+
+是包含该子命令的：
+bcftools mpileup
+参数
+-g, --gvcf INT[,...]    group non-variant sites into gVCF blocks according
+                          to minimum per-sample DP
+-f, --fasta-ref FILE    faidx indexed reference sequence file
+      --no-reference      do not require fasta reference file
+#
+
+
+逐行执行呢？
+$ samtools faidx data/genome.fa
+$ bcftools mpileup -f data/genome.fa mapped/A.sorted.bam mapped/B.sorted.bam mapped/C.sorted.bam | bcftools call -mv - > calling/all.vcf
+有 -g 会报错: Could not parse: --gvcf -f
+
+
+改回去吧
+$ samtools mpileup -g -f data/genome.fa mapped/A.sorted.bam mapped/B.sorted.bam mapped/C.sorted.bam | bcftools call -mv - > calling/all.vcf
+
+-rw-r--r--. 1 wangjl jinwf 733K Jun 16 15:16 sam.xx  #samtools 生成的文件更小，是二进制的。
+-rw-r--r--. 1 wangjl jinwf 7.3M Jun 16 15:15 bcf.xx  #bcftools 生成的是文本文件。

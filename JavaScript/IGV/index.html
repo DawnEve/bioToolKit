@@ -1,0 +1,42 @@
+<meta charset="utf-8">
+
+<script src="js/igv.min-2.8.2.js"></script>
+
+<h1>IGV demo 2: 看SNP位点</h1>
+<pre>
+http://tool.m.biomooc.com/JavaScript/IGV/
+</pre>
+
+
+<div id="igv-div"></div>
+
+<script>
+//1. get node
+var igvDiv = document.getElementById("igv-div");
+
+//2. settings
+var options =
+{
+    // demo2: 看SNP位点
+    genome: "hg19",
+	locus: 'chr22:46,627,620-46,628,300', 
+	tracks: [{
+		type: "variant",
+		format: "vcf",
+		url: "https://s3.amazonaws.com/1000genomes/release/20130502/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz",
+		indexURL: "https://s3.amazonaws.com/1000genomes/release/20130502/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz.tbi",
+		name: "1KG variants (chr22)",
+		squishedCallHeight: 1,
+		expandedCallHeight: 4,
+		displayMode: "squished",
+		visibilityWindow: 1000
+	}]
+};
+
+
+//3. init
+igv.createBrowser(igvDiv, options)
+        .then(function (browser) {
+            console.log("Created IGV browser");
+        })
+</script>
