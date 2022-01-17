@@ -17,6 +17,8 @@
 	<b>目录 Contents：</b>
 	<li><a href='#t1'>1. 使用 survminer 包可视化生存分析</a><li>
 	<li><a href='#t2'>2. 使用 ggpubr 包球棍图 (棒棒糖图 Lollipop Chart)</a><li>
+	<li><a href='#t3'>3. 使用 cowplot 包合并2个 ggplot2 对象并对齐y坐标</a><li>
+	<li><a href='#t4'>4. 使用 grid 包修改 ggplot2 分面顶标签:去掉三面的方框线</a><li>
 		
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -85,7 +87,7 @@ boxplot(time~status, data=lung)
 
 # 看性别是否对生存期有影响
 # 构建模型
-fit <- survfit(Surv(time, status) ~ sex, data=lung)
+fit = survfit(Surv(time, status) ~ sex, data=lung)
 # 绘制原生KM曲线
 plot(fit)
 #可优化点：
@@ -97,11 +99,11 @@ plot(fit)
 
 
 #1) 线的颜色是啥？----
-p1 <- ggsurvplot(fit)
+p1 = ggsurvplot(fit)
 p1
 
 #2) 坐标轴，标题，主题优化 ----
-p2 <- ggsurvplot(fit, data = lung,
+p2 = ggsurvplot(fit, data = lung,
                  surv.median.line = "hv",  #添加中位生存曲线
                  palette=c("red", "blue"), #更改线的颜色
                  legend.labs=c("Male","Female"),  #标签
@@ -118,7 +120,7 @@ p2
 
 
 #3) Risk Table ----
-p3 <- ggsurvplot(fit, data = lung,
+p3 = ggsurvplot(fit, data = lung,
                  surv.median.line = "hv", #添加中位生存曲线
                  palette=c("red", "blue"),
                  legend.labs=c("Male","Female"), #标签
@@ -139,7 +141,7 @@ p3
 
 #4) 添加注释信息 ----
 # 添加KM的P值
-P4 <- ggsurvplot(fit, data = lung,
+P4 = ggsurvplot(fit, data = lung,
                  
                  pval = TRUE,#添加P值
                  pval.coord = c(0, 0.03), #调节Pval的位置
@@ -162,7 +164,7 @@ P4
 
 # 添加COX回归hazard ratio值等相关信息 ----
 ###添加HR ,CI ,P
-res_cox<-coxph(Surv(time, status) ~sex, data=lung)
+res_cox = coxph(Surv(time, status) ~sex, data=lung)
 p5=p3
 p5$plot = p3$plot + 
   ggplot2::annotate("text",x = 90, y = 0.15, size=3,
@@ -238,6 +240,173 @@ ggdotchart(dfm, x = "name", y = "mpg",
            xlab=""
 )
 </pre>
+
+
+
+
+
+
+
+
+
+
+
+<a name='t3'></a>
+<h2>3. 使用 cowplot 包合并2个 ggplot2 对象并对齐y坐标</h2>
+<p>如果一个是分面的，则很难能否对齐坐标轴，但也不是不可能。参数 axis = "bt" 很关键。</p>
+<img src="images_pkgs/03_cowplot.png" />
+
+<pre>
+# 预先准备好 Seurat(v4.0.4) 对象sce和各个类之间的差异基因top11。
+
+> sce
+An object of class Seurat 
+13714 features across 745 samples within 1 assay 
+Active assay: RNA (13714 features, 2000 variable features)
+ 3 dimensional reductions calculated: pca, umap, tsne
+
+> head(top11)
+# A tibble: 6 × 7
+# Groups:   cluster [1]
+      p_val avg_log2FC pct.1 pct.2 p_val_adj cluster     gene 
+1 3.75e-112      1.09  0.912 0.592 5.14e-108 Naive CD4 T LDHB 
+2 9.57e- 88      1.36  0.447 0.108 1.31e- 83 Naive CD4 T CCR7 
+3 1.15e- 76      0.935 0.845 0.406 1.58e- 72 Naive CD4 T CD3D
+
+
+
+# 开始画图
+topN=top11 %>% group_by(cluster) %>% top_n(5, wt=avg_log2FC)
+dim(topN)
+head(topN)
+
+# 使用 Seurat::DotPlot 画主图，并修饰主题。
+g0_plot=DotPlot(sce, features=split(topN$gene, topN$cluster),
+                cols= c("lightyellow", "red3") )+
+  RotatedAxis()+theme(
+    # 各个画板
+    panel.border = element_rect(color="black"),#要边框
+    panel.spacing = unit(1, "mm"), #画板间距
+
+    axis.title = element_blank(), #去掉 坐标轴 label
+    axis.text.y=element_blank(), #去掉y轴文字
+  ); g0_plot
+
+
+# 使用 ggplot2 画左边的文字和彩色圆圈。
+colors=c("#96C3D8", "#5F9BBE", "#F5B375", "#C0937E", "#67A59B", "#A5D38F", "#4A9D47", "#F19294", "#E45D61", "#3377A9",
+         "#BDA7CB", "#684797", "#8D75AF", "#CD9C9B", "#D62E2D", "#DA8F6F", "#F47D2F")
+df1=data.frame(x=0, y= levels(sce), stringsAsFactors = F )
+df1$y=factor(df1$y, levels = df1$y )
+# df1$y
+g1_left=ggplot(df1, aes(x,y, color=factor(y) ))+
+  geom_point(size=6, show.legend = F)+
+  scale_color_manual(values=colors)+
+  theme_classic()+
+  scale_x_continuous(expand=c(0,0))+
+  theme(
+    plot.margin =margin(r=0), #no margin on the right
+    axis.title = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank(),
+    axis.text.y=element_text(size=12)
+  ); g1_left
+
+
+# 拼合图形
+library(cowplot)
+# https://wilkelab.org/cowplot/articles/aligning_plots.html
+# we can align both the bottom and the top axis (axis = "bt").
+plot_grid(g1_left, g0_plot, align ="h", axis="bt", rel_widths = c(1, 9))
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t4'></a>
+<h2>4. 使用 grid 包修改 ggplot2 分面顶标签:去掉三面的方框线</h2>
+<p>This solution is based on grobs: find positions of "strip-t" (top strips) and then substitute the rect grobs with line grobs.</p>
+<img src="images_pkgs/04_grid_ggplot2.png" />
+
+<pre>
+library(ggplot2)
+
+p1=ggplot(iris, aes(Sepal.Length, Sepal.Width, color=Species))+
+  geom_point(size=1.5)+
+  theme_classic()+
+  facet_grid(~Species,
+             space = "free_x", #x轴宽度自由
+             scales = "free_x")+ #x坐标轴范围自由
+  theme(
+    panel.border = element_rect(color="black", size=0.8, fill="#00112200"),
+    strip.placement = "outside", #分面顶部标签和主图分离
+    strip.background = element_rect(linetype = 1, size=2 ), #边框线条
+    strip.text.x = element_text(margin = margin(0,0,0.2,0, "cm")), # 控制分面顶部框内边距
+    # strip.background = element_rect(),
+    axis.line = element_blank(), #不要坐标轴的线
+    axis.ticks = element_blank(), #不要坐标轴的刻度
+    axis.title = element_blank(), #不要坐标轴label
+    axis.text.x=element_text(angle=60, hjust = 1), #旋转60度
+); p1
+
+
+# 去掉分面标签的3面的边
+# https://stackoverflow.com/questions/54471816/remove-three-sides-of-border-around-ggplot-facet-strip-label
+
+library(grid)
+lg = linesGrob(x=unit(c(0,1),"npc"), y=unit(c(0,0)+0.2,"npc"),
+                gp=gpar(col="red", lwd=3))
+
+# grid.newpage(); grid.draw(lg) #预览效果
+
+
+q = ggplotGrob(p1) #ggplot2 变 grid 对象
+q$layout$name #先预览
+
+# 替换
+for (k in grep("strip-t",q$layout$name)) {
+  q$grobs[[k]]$grobs[[1]]$children[[1]] = lg
+}
+# 画图
+grid.draw(q)
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
