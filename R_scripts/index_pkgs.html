@@ -19,6 +19,7 @@
 	<li><a href='#t2'>2. 使用 ggpubr 包球棍图 (棒棒糖图 Lollipop Chart)</a><li>
 	<li><a href='#t3'>3. 使用 cowplot 包合并2个 ggplot2 对象并对齐y坐标</a><li>
 	<li><a href='#t4'>4. 使用 grid 包修改 ggplot2 分面顶标签:去掉三面的方框线</a><li>
+	<li><a href='#t5'>5. 使用 grid 包修改 ggplot2 图例: 矩形改为圆角矩形</a><li>
 		
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -396,6 +397,87 @@ grid.draw(q)
 </pre>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t5'></a>
+<h2>5. 使用 grid 包修改 ggplot2 图例: 矩形改为圆角矩形</h2>
+<p></p>
+
+<img src="images_pkgs/05_grid_ggplot_roundrect.png" />
+
+<pre>
+library(ggplot2)
+head(mtcars)
+
+cols=c("darkred", "orange","darkblue")
+
+p1=ggplot(mtcars, aes(mpg, cyl, color=factor(gear) ))+
+  geom_line()+
+  facet_grid(~gear)+
+  theme_bw()+
+  theme(
+    strip.background = element_blank(), #rm分面标题的背景
+    
+    legend.position = "top", #图例在上面
+    legend.justification = "left", #图例左对齐
+    legend.margin=margin(t = 0, r = 0, b = -8, l = 0, unit = "pt"), #move legend litter lower
+    legend.title = element_text( margin=margin(r=10) ),
+    legend.text = element_text( margin = margin(r = 15)), #每个文字小盒子的外间距
+    legend.spacing.x = unit(0, 'mm'), #一个颜色块和对应文字的距离
+    legend.key.width = unit(2, "mm"), #control legend width and height
+    legend.key.height = unit(3, "mm"), #最大空间的高度(可能用不到，但最多这么多)
+  )+
+  scale_color_manual(name="Gear", values=cols)+
+  guides(color = guide_legend(override.aes = list(size = 3, title="Gear")));p1
+
+{
+	#1. ggplot 2 grob
+	q = ggplotGrob(p1)
+	q$layout$name
+	length(q$layout$name)
+
+	#2. define round rect Grob
+	library(grid)
+	getRR=function(color="red"){
+	  roundrectGrob(width=0.5, height=0.9, 
+					r=unit(0.3, "snpc"),
+					gp=gpar(col=color, fill=color))
+	}
+	#3. replace ggplot legend box with Grob
+	q$grobs[[20]]$grobs[[1]]
+	q$grobs[[20]]$grobs[[1]]$grobs[[3]]=getRR(cols[1])
+	q$grobs[[20]]$grobs[[1]]$grobs[[4]]=zeroGrob()
+	q$grobs[[20]]$grobs[[1]]$grobs[[5]]=getRR(cols[2])
+	q$grobs[[20]]$grobs[[1]]$grobs[[6]]=zeroGrob()
+	q$grobs[[20]]$grobs[[1]]$grobs[[7]]=getRR(cols[3])
+	q$grobs[[20]]$grobs[[1]]$grobs[[8]]=zeroGrob()
+	
+	#4. draw
+	grid.newpage()
+	grid.draw(q)
+}
+# https://stackoverflow.com/questions/46683956/create-two-legends-for-one-ggplot2-graph-and-modify-them
+</pre>
 
 
 
