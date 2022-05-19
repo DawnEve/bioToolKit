@@ -89,6 +89,7 @@ v0.1.3 添加本地url
 # merge to master [2021.12.10]
 	dev0.4.1 R包合并、修改 ggplot2 对象[2022.01.17]
 	dev0.4.2 添加 grid 修改 ggplot2 图例：圆角矩形 [2022.01.18]
+	dev0.4.3 js 版 Markdown Reader [2022.05.19]
 ##==> commit
 ##=====> git push DawnEve
 
