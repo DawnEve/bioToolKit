@@ -6,6 +6,13 @@ You can write a file in markdown, and render it with this app locally.
 
 Below is a simple guide for how to write .md or .markdown file.
 
+## How to use this Markdown Reader?
+
+- Put a .md file under the root directory of this system, which is specified on top of this page;
+- Use http://ip:80/?file=xx.md to overview the rendered markdown file.
+- default, http://ip:80/ is the same as http://ip/index.html?file=help.md 
+- After updating the .md file, please use shift+F5 to reload the .md file on your browser side.
+
 
 ## Chapter 1 list1
 
