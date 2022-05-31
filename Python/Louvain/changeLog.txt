@@ -4,4 +4,6 @@
 
 
 * Louvain_1.py 可以检测社区，然后画图，搜到的实现; 模板;
-* Louvain_2.py 仅检测社区，注释 phageI;
+* Louvain_2.py 仅检测社区，注释 phageI; 添加 iter 次数 计数器;
+* Louvain_3.py 仅检测社区，注释 phageII; 同时输出到文件，输出成2列标签数字(顶点id 社区id)
+
