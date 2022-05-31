@@ -1,0 +1,7 @@
+# https://blog.csdn.net/qq_16543881/article/details/122825957
+# https://github.com/xmweijh/CommunityDetection/blob/main/Louvain.py
+# with resolution: https://github.com/taynaud/python-louvain
+
+
+* Louvain_1.py 可以检测社区，然后画图，搜到的实现; 模板;
+
