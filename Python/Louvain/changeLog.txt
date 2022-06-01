@@ -10,8 +10,7 @@
 	效果差不多。就是 resolution 比较怪异: 调大或调小都可能导致 clsuter 数增大。
 
 * pyLouvain_v1.py 和 Seurat 结果差距较大，有些cluster在UMAP上是撕裂的。速度慢。
-
-* Louvain_4.py 测试 10x 数据: 输入SNN稀疏矩阵，输出2列，和 Seurat 结果作比较。
+* Louvain_4.py 测试 10x 数据: 输入SNN稀疏矩阵，输出2列，和 Seurat 结果作比较。每个cell一类，失败。
 
 
 
