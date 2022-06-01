@@ -287,7 +287,7 @@ if __name__ == '__main__':
     #input_file='data/t3.txt'
 
     # input SNN_sparse_pbmc3k
-    #input_file='backup/snn_df.txt'
+    input_file='backup/snn_df.txt'
     G = load_graph(input_file)
     
     # 开始检查社群    
