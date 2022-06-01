@@ -74,7 +74,7 @@ class Louvain:
 
         # 先list才能随机化
         visit_sequence = list(self._G.keys()) #所有顶点
-        random.shuffle(visit_sequence) # 随机访问 ========================> //todo 为了调试方便，先不打乱了。
+        random.shuffle(visit_sequence) # 随机访问 ========================> //todo 为了固定，调试时先不打乱
         #print(">>> visit_sequence in PhaseI:", visit_sequence)
         #print("G:", self._G)
         iter_times_phaseI=0; #phageI 迭代次数
@@ -84,6 +84,7 @@ class Louvain:
             log_max_deltaQ=0
 
             iter_times_phaseI+=1;
+            # 当前 cluster 总数
             cluster_num = len([k for k,v in self._cid_vertices.items() if len(v)>0])
             print(f"0=> phaseI iter:{iter_times_phaseI} (max:{MAX_PHASE_I}) | cluster_num:{cluster_num}" )
 
@@ -126,11 +127,16 @@ class Louvain:
                         delta_Q1 = k_v_in - k_v * tot / self._m  # 由于只需要知道delta_Q的正负，所以少乘了1/(2*self._m)
                         # above is deltaQ(i->C)
 
+
+
                         # below is deltaQ(D->i)
+                        # 这一部分公式是不是推导错了？ //todo
                         k_v_in2=sum([v for k, v in self._G[v_vid].items() if k in self._cid_vertices[v_cid]])
                         tot2 = sum(
                             [ sum(self._G[k].values()) + self._vid_vertex[k]._kin  for k in self._cid_vertices[v_cid]] )
                         delta_Q2 = -k_v_in2 - (k_v*k_v - 2*k_v*tot2)/ (2*self._m)
+
+
 
                         # add the 2 deltas.
                         delta_Q = delta_Q1 #+ delta_Q2 #加上 delta_Q2 后结果不稳定
@@ -287,7 +293,7 @@ if __name__ == '__main__':
     #input_file='data/t3.txt'
 
     # input SNN_sparse_pbmc3k
-    input_file='backup/snn_df.txt'
+    input_file='data/snn_df.txt'
     G = load_graph(input_file)
     
     # 开始检查社群    
