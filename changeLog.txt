@@ -91,6 +91,9 @@ v0.1.3 添加本地url
 	dev0.4.2 添加 grid 修改 ggplot2 图例：圆角矩形 [2022.01.18]
 	dev0.4.3 js 版 Markdown Reader [2022.05.19]
 	dev0.4.4 js/ Markdown Reader, update desc [2022.05.20]
+# merge to master [2022.5.20]
+	dev0.4.5 js/ IGV.js 单独开 repo 学习: scIGV [2022.05.30]
+
 ##==> commit
 ##=====> git push DawnEve
 
