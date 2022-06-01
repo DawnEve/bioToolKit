@@ -6,4 +6,60 @@
 * Louvain_1.py 可以检测社区，然后画图，搜到的实现; 模板;
 * Louvain_2.py 仅检测社区，注释 phageI; 添加 iter 次数 计数器;
 * Louvain_3.py 仅检测社区，注释 phageII; 同时输出到文件，输出成2列标签数字(顶点id 社区id)
+* 调包 community_v1.py (官方实现的调包，带分辨率) 测试 10x 数据: 输入SNN稀疏矩阵，输出2列，和 Seurat 结果作比较。
+	效果差不多。就是 resolution 比较怪异: 调大或调小都可能导致 clsuter 数增大。
+
+
+
+
+R 版本的: https://www.statworx.com/en/content-hub/blog/community-detection-with-louvain-and-infomap/
+
+
+####################
+==> Step1: 从 Seurat 对象获取3列稀疏矩阵:
+####
+snn=pbmc@graphs$RNA_snn
+dim(snn) #2638 2638
+
+# 转为稀疏矩阵
+library(Matrix)
+class(snn)
+snn2=as(snn, "dgCMatrix")
+
+# 检测大小
+object.size(snn)  #2811480 bytes
+object.size(snn2) #2811256 bytes 确实小了一点点
+
+snn2[1:10,1:5]
+snn_df=as.data.frame(summary(snn2))
+snn_df[1:5,]
+#    i j          x
+#1   1 1 1.00000000
+#2   7 1 0.11111111
+
+dim(snn_df) #[1] 194568      3
+
+# 写入文件
+write.table(snn_df, "backup/snn_df.txt", quote = F, row.names = F, col.names = F)
+####
+
+检查:
+$ head backup/snn_df.txt 
+1 1 1
+7 1 0.111111111111111
+77 1 0.0810810810810811
+103 1 0.212121212121212
+168 1 0.0810810810810811
+
+194568  583704 5145564 backup/snn_df.txt
+
+
+==> step2: input to Louvain_4.py
+####################
+
+
+
+
+
+
 
