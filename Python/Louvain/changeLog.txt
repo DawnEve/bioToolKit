@@ -13,7 +13,7 @@
 * Louvain_4.py 测试 10x 数据: 输入SNN稀疏矩阵，输出2列，和 Seurat 结果作比较。每个cell一类，失败。
 *v0.1.7@Louvain pyLouvain_v2.py py 可视化
 *v0.1.8@Louvain Louvain_4.py 修订版 v2.0, pbmc 3k 数据集可用，虽然不好；但是 10 点小数据集不行;
-
+*v0.1.9@Louvain github_v1.py 测试: 大小样本都通过; 不支持分辨率 [Good]
 
 
 R 版本的: https://www.statworx.com/en/content-hub/blog/community-detection-with-louvain-and-infomap/
