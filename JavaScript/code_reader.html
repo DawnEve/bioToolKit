@@ -1,0 +1,109 @@
+<meta charset="utf-8"/>
+<title>code_reader.html</title>
+
+<style>
+.center{
+	color:#ddd;
+	text-align: center;
+	font-size: 10px;
+}
+#filename{color:#aaa}
+
+#code{
+	display:block;
+	color:#fff;
+	font-size: 14px;
+    line-height: 22px;
+	
+	/*
+	height:100%;
+	*/
+	background:#282c34;
+	
+	border-radius:20px;
+	width:80%;
+	margin:0 auto;
+	padding:10px 20px;
+}
+</style>
+
+<body>
+<p class=center>File: code_reader.html?file=<span id=filename></span></p>
+
+<pre><code id=code></code></pre>
+<!--
+
+<textarea id=code></textarea>
+-->
+<br>
+<hr>
+<p class=center>-- End --</p>
+<br>
+</body>
+
+
+<script>
+// Tools
+//get parameters from URL
+function getUrlParam(name) {
+	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+	var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+	if (r != null) return unescape(r[2]); return null; //返回参数值
+}
+
+
+// html tag to entity
+//https://blog.csdn.net/weixin_42411715/article/details/117720381
+function convertHTML(str) {
+  if(str.includes("&")){
+    str = str.replace(/&/g,'&amp;');
+  }
+  if(str.includes("<")){
+    str = str.replace(/\</g,'&lt;');
+  }
+  if(str.includes(">")){
+    str = str.replace(/\>/g,'&gt;');
+  }
+  if(str.includes("'")){
+    str = str.replace(/\'/g,'&apos;');
+  }
+  if(str.includes('"')){
+    str = str.replace(/\"/g,'&quot;');
+  }
+  //console.log(str)
+  return str;
+}
+
+
+
+//ajax get file contents;
+function ajax(fileName, obj){
+	var xmlhttp=new XMLHttpRequest(); //1.获取对象
+	//2.绑定回调函数
+	xmlhttp.onreadystatechange=function(){
+		if (xmlhttp.readyState==4 && xmlhttp.status==200){
+			var text =xmlhttp.responseText;
+			//替换html标签为实体
+			text = convertHTML(text);
+			obj.innerHTML= text;
+		}
+	}
+	//3.设定访问的url
+	xmlhttp.open("GET", fileName, true);
+	//4.发送请求
+	xmlhttp.send();
+}
+
+
+
+// Action after window OK;
+window.onload=function(){
+	// get parameter from URL;
+	var filename=getUrlParam("file");
+	filename = filename || "code_reader.html";
+	// update toast
+	document.getElementById("filename").innerHTML=filename;
+	//render md to html
+	ajax(filename, document.getElementById('code'))
+}
+</script>
