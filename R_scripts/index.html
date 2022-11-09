@@ -1,11 +1,11 @@
 <html>
 <head>
-<meta http-equiv=Content-Type content="text/html;charset=utf-8">
-<title>Visualization using R</title>
-<script src="../static/js/tongji.js"></script>
-<link rel="stylesheet" href="../static/css/main.css" />
-<script src='../static/js/main.js'></script>
-<link rel="shortcut icon" href="/images/favicon.ico">
+	<meta http-equiv=Content-Type content="text/html;charset=utf-8">
+	<title>Visualization using R</title>
+	<script src="../static/js/tongji.js"></script>
+	<link rel="stylesheet" href="../static/css/main.css" />
+	<script src='../static/js/main.js'></script>
+	<link rel="shortcut icon" href="/images/favicon.ico">
 </head>
 
 
@@ -1292,7 +1292,7 @@ setwd("/home/wangjl/data/cellLines/cycle/")
 outputRoot="BC_"
 
 
-#load data: 表达counts矩阵
+#load data: 表达counts矩阵 (确定是 raw counts矩阵，第一步过后会有标准化)
 fname=paste0(infoPath,"BC_HeLa.225cells.count.V3.csv")
 data=read.csv(fname,row.names = 1)
 dim(data) #[1] 18679   225
@@ -1351,7 +1351,8 @@ for(i in 1:length(getCellPhaseList() )){
   #每个基因和平均值求cor
   tmpGenes=c()
   for(g in geneSets[[setName]]){
-    rs=cor(t(data2[g,]), setMean)
+    #rs=cor(t(data2[g,]), setMean)
+	rs=cor(as.numeric(data2[g,]), setMean)
     #print( paste(g,rs) )
     if(rs>=0.3){
       tmpGenes=c(tmpGenes,g)
@@ -1367,6 +1368,9 @@ geneSets2
 sum(sapply(geneSets2, function(x){length(x)}))  #321
 
 
+
+
+
 # step2: depth norm; log2 norm;
 getNormalizedCts <- function ( cts ) {
   #ctsPath
@@ -1377,6 +1381,9 @@ normCts=getNormalizedCts(data2)
 dim(normCts)
 normCts[1:10,1:5]
 #apply(normCts,2,sum)
+
+
+
 
 
 #step3: calculate 5 phase scores each cell(mean of phase genes)
@@ -1399,6 +1406,10 @@ head(scoreMatrix)
 write.table ( scoreMatrix , paste ( outputRoot , "PhaseScores.txt" , sep = "" ) )
 # pheatmap(scoreMatrix, scale='row', border_color = NA)
 
+
+
+
+
 #step4: z-norm(each phase, then each cell)
 # Tested. Passed.
 getNormalizedScores <- function ( scoreMatrix ) {
@@ -1419,6 +1430,9 @@ write.table ( normScores , paste ( outputRoot , "PhaseNormScores.txt", sep = "" 
 #画出每个细胞的各个周期打分
 i=5;plot(normScores[i,],type='o',col=rainbow(i), main=rownames(normScores)[i])
 i=8;plot(normScores[i,],type='o',col=rainbow(i), main=rownames(normScores)[i])
+
+
+
 
 
 #step5: assign phase for each cell
@@ -1496,6 +1510,9 @@ i=5;plot(normScores[i,],type='o',col=rainbow(i), main=rownames(normScores)[i])
 #
 
 
+
+
+
 #step6 ####### Order cells
 # Tested. Passed.
 orderSamples <- function ( refCors , assignedPhase) {
@@ -1528,6 +1545,9 @@ write.table ( cbind ( ordCor , "assignedPhase" = assignedPhase [ rownames ( ordC
 #
 
 
+
+
+
 #step7 ####### Plot
 # Passed.
 plotCycle <- function  ( phaseCorsMatrix, ... ) {
@@ -1558,8 +1578,12 @@ plotCycle <- function  ( phaseCorsMatrix, ... ) {
 
 phases <- getPhases()
 #jpeg ( paste ( outputRoot , "PhasePlot.jpg" , sep = "" ) , 5 , 3 , units = "in" , res = 300 )
+pdf( paste0( outputRoot, "a7_PhasePlot.pdf"), width=4, height=2.5)
 plotCycle ( t ( ordCor [ , phases ] ), main= paste0("XX ", nrow(ordCor), ' cells') )
 #dev.off()
+
+
+
 
 
 ## check 
@@ -2361,7 +2385,8 @@ dev.off()
 <a name='t21'></a>
 <h2>21. GO分析雷达图 (ggplot2)</h2>
 <iframe src="images/021_radar_GO.pdf#toolbar=0&view=fit,100" width="350" height="350" ></iframe>
-<p>来源: 群有提问。paper: //todo</p>
+<p>来源: 群友提问。paper: //todo</p>
+<p>后续整理版: <a href="https://mp.weixin.qq.com/s/QrFLQqObbog1a1magV6WYA">微信公众号 雷达图</a></p>
 <p>喜欢这个GO富集结果可视化效果，距离圆心越远表示越显著，颜色越深表示基因个数越多。</p>
 
 
@@ -2382,13 +2407,47 @@ Amoebiasi,10,3.782,6
 
 
 画图: 
-# 尝试3.2: 给一个函数版本 //todo
+# 尝试 v3: 给一个函数版本 //todo
 # 两个主要变量:
 #  几边形?  10
 #  分成几层? 4
 #  最大半径? 10
 
-library(ggplot2)
+
+# 多边形数据: 获取圆上的n个点的坐标
+# rotate: 为了美观，整体逆时针旋转的弧度
+getPointsOnCircle=function( radius=1, npoints=10, center=c(0,0), rotate=pi/2){
+  angle=seq(0, 2*pi, length.out=npoints+1)
+  xx=center[1] + radius*cos(angle+rotate)
+  yy=center[2] + radius*sin(angle+rotate)
+  return(data.frame(x=xx, y=yy))
+}
+
+# 画多边形
+drawPolygon = function(radius, npoints=10, linetype=1, size=0.5){
+  geom_polygon(data= getPointsOnCircle(radius, npoints), aes(x, y),
+               linetype=linetype,
+               size=size, fill="#FFFFFF00", color="#AAAAAA")
+}
+
+
+# (原点到各个顶点)放射线 顶点坐标
+getRadialLines = function(maxR=10, npoints=10){
+  arr=pi/2 + seq(0, 2*pi, length.out=npoints+1);
+  x=c()
+  y=c()
+  for(i in arr){
+    x=c(x, c(0, maxR)*cos(i))
+    y=c(y, c(0, maxR)*sin(i))
+  }
+
+  return(data.frame(x, y))
+}
+
+
+
+
+
 
 # 读取数据
 dat=read.csv("dustbin/8dat.csv"); head(dat)
@@ -2402,54 +2461,27 @@ dat2$y=dat2$log10padj * sin(dat2$angle)
 dat2
 
 
-# 多边形边界线: 获取11个点
-circFun=function( r=1, center=c(0,0), npoints=11){
-  tt=seq(0, 2*pi, length.out=npoints)
-  #tt=stt=seq(0, 2*pi, length.out=npoints)[1:3]
-  xx=center[1] + r*cos(tt+pi/2)
-  yy=center[2] + r*sin(tt+pi/2)
-  return(data.frame(x=xx, y=yy))
-}
-
-# 多边形边界线: 11个点连线称为多边形
-draw_polygon = function(radius, linetype=1){
-  geom_polygon(data= circFun(radius), aes(x, y),
-               linetype=linetype,
-               size=0.5, fill="#FFFFFF00", color="#AAAAAA")
-}
-
-# 放射线
-getPolar = function(maxR=10, len=11){
-  arr=pi/2 + seq(0, 2*pi, length.out=len);
-  x=c()
-  y=c()
-  for(i in arr){
-    x=c(x, c(0, maxR)*cos(i))
-    y=c(y, c(0, maxR)*sin(i))
-  }
-
-  return(data.frame(x, y))
-}
 
 
-radial_lines=getPolar()
-# ggplot()+geom_path(data=radial_lines, mapping=aes(x, y))+ labs(title=bquote(-log[10]*Padj))
 
 
+
+
+library(ggplot2)
 
 g1=ggplot()+ xlim(-12, 12) + ylim(-12, 12)+
-  draw_polygon(10)+draw_polygon(7.5)+draw_polygon(5)+draw_polygon(2.5)+ #雷达图外多边形
-  geom_path(data=radial_lines, mapping=aes(x,y), color="#AAAAAA", linetype=1)+ #雷达图放射直线
-  geom_polygon(data=dat2, aes(x, y), fill="#CB5656",alpha=0.5, color="#CF0015",size=1 )+ #填充多边形
+  drawPolygon(10)+drawPolygon(7.5)+drawPolygon(5)+drawPolygon(2.5)+ #雷达图 几层多边形
+  geom_path(data=getRadialLines(10, 10), mapping=aes(x,y), color="#AAAAAA", linetype=1)+ #雷达图放射直线
+  geom_polygon(data=dat2, aes(x, y), fill="#CB5656",alpha=0.5, color="#CF0015",size=1 )+ #填充不规则多边形
   #
   geom_point(data=dat2, aes(x,y, fill=Count), size=5, shape=21, color="black", stroke=0.5)+ #添加大点
   scale_fill_gradient(low="white", high="#00B858", breaks=seq(5, 11, 2) )+ #点的渐变色。控制图例数字 breaks+labels
   #
   geom_text(data=data.frame(x=-0.8, y=seq(0,10,2.5) ), aes(x, y, label=y),
-            color='black', angle=0, hjust=1, vjust=1 )+ # 仿y坐标值
+            color='black', angle=0, hjust=1, vjust=1 )+ # 仿y坐标值刻度 tick
   annotate(geom="text",x=0.2, y=5,
            label="-log[10]*italic(P)*adj", parse=T,
-           color="black", angle=90, vjust=1 )+ #仿y轴名字
+           color="black", angle=90, vjust=1 )+ #仿y轴名字 label
   #
   geom_text(data=dat2, aes(x=11*cos(angle), y=11*sin(angle), label=Desc), color="black")+# 每条边的文字
   #
@@ -2459,12 +2491,12 @@ g1=ggplot()+ xlim(-12, 12) + ylim(-12, 12)+
     legend.position = "top",
     legend.justification = "left", #靠左对齐
     legend.key = element_rect(fill = "black") #不起作用 //todo
-  ); g1
-
+  )
+g1
 pdf("dustbin/radar.pdf", width=4, height=4)
 g1
 dev.off()
-#矢量图，最后可以使用 Illustrator 编辑文字。比如左侧没有显示全的字母T</pre>
+# 输出pdf矢量图，然后可以使用 Illustrator 编辑文字：添加换行、调整文字位置、字号等。</pre>
 
 
 

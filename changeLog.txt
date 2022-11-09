@@ -99,6 +99,7 @@ v0.1.3 添加本地url
 	dev0.4.8 R/ add fig sc火山图, GO雷达图 [2022.9.24]
 		js/ code_reader.html
 		py/ Louvain
+	dev0.4.9 R/ update 雷达图, 发公众号 [2022.11.9]
 ##==> commit
 ##=====> git push DawnEve
 
