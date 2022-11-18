@@ -1,0 +1,198 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Code Reader | 
+v0.2 |
+Single file app
+</title>
+<!--
+##############################
+How to use:
+##############################
+1. Start a static server, choose one from: Nginx, python, nodeJS, ...
+$ python3 -m http.server --bind 192.168.2.120 8891
+  Note: Rstudio server is not supported up to now.
+
+
+2. Save this html file on your server, where you can browse it on your browser;
+3. Add relative path of your code/script file using `file` param, like: xx.html?file=relative/path/to/this/html/xx.R
+  Note: you can specify code color using `color`, like `xx.hmtl?file=xx.R&color=orange`; default random color;
+
+4. Hit enter.
+
+
+##############################
+change logs:
+##############################
+v0.1 basic
+v0.2 try to use Prism to hightlight code, but failed
+-->
+
+
+<style>
+html, body, p, div{margin:0; padding:0;}
+html{background:#000;}
+.center{
+	color:#aaa;
+	text-align: center;
+	font-size: small;
+}
+.info{
+	background:#881798;
+	padding:5px 10px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	color:#DBC3DC;
+	
+	word-wrap: break-word;
+	/*
+    太长了自动换行
+	*/
+}
+#filename{color:#DBC3DC; font-weight:bold;}
+
+
+#code{
+	display:block;
+	color:#fff;
+	font-size: 18px;
+    line-height: 22px;
+
+	background:#282c34;
+	
+	border-radius:20px;
+	width:80%;
+	margin:0 auto;
+	padding:10px 20px;
+	
+	/*
+	height:100%;
+	overflow-y: scroll;
+	*/
+	
+	word-wrap: break-word;
+    white-space: pre-wrap;
+}
+</style>
+</head>
+
+
+
+<body>
+
+<p class="center info">
+	Relative file path: <br>code_reader.html?file=<span id=filename></span>
+</p>
+
+<pre><code id=code></code></pre>
+<!--
+
+<textarea id=code></textarea>
+-->
+<br>
+<hr>
+<p class=center>-- End --</p>
+<p class=center> <a href="https://github.com/DawnEve/bioToolKit/blob/dev/JavaScript/code_reader.html">code_reader.html @Github</a> </p>
+<br>
+</body>
+
+
+<script>
+// Tools
+//get parameters from URL
+function getUrlParam(name) {
+	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+	var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+	if (r != null) return unescape(r[2]); return null; //返回参数值
+}
+
+
+// html tag to entity
+//https://blog.csdn.net/weixin_42411715/article/details/117720381
+function convertHTML(str) {
+  if(str.includes("&")){
+    str = str.replace(/&/g,'&amp;');
+  }
+  if(str.includes("<")){
+    str = str.replace(/\</g,'&lt;');
+  }
+  if(str.includes(">")){
+    str = str.replace(/\>/g,'&gt;');
+  }
+  if(str.includes("'")){
+    str = str.replace(/\'/g,'&apos;');
+  }
+  if(str.includes('"')){
+    str = str.replace(/\"/g,'&quot;');
+  }
+  //console.log(str)
+  return str;
+}
+
+
+
+//ajax get file contents;
+function ajax(fileName, obj){
+	var xmlhttp=new XMLHttpRequest(); //1.获取对象
+	//2.绑定回调函数
+	xmlhttp.onreadystatechange=function(){
+		if (xmlhttp.readyState==4 && xmlhttp.status==200){
+			var text =xmlhttp.responseText;
+			//2.1替换html标签为实体
+			text = convertHTML(text);
+			obj.innerHTML= "$ cat "+fileName +"<br>" + text;
+		}else{
+			obj.innerHTML= "FileNotFoundError: "+fileName +" ";
+		}
+	}
+	//3.设定访问的url
+	xmlhttp.open("GET", fileName, true);
+	//4.发送请求
+	xmlhttp.send();
+}
+
+
+//random color
+function RandomColor(){
+	var colorDict=new Map([["Apricot","#FBB982"],["Aquamarine","#00B5BE"],["Bittersweet","#C04F17"],["Black","#221E1F"],["Blue","#2D2F92"],["BlueGreen","#00B3B8"],["BlueViolet","#473992"],["BrickRed","#B6321C"],["Brown","#792500"],["BurntOrange","#F7921D"],["CadetBlue","#74729A"],["CarnationPink","#F282B4"],["Cerulean","#00A2E3"],["CornflowerBlue","#41B0E4"],["Cyan","#00AEEF"],["Dandelion","#FDBC42"],["DarkOrchid","#A4538A"],["Emerald","#00A99D"],["ForestGreen","#009B55"],["Fuchsia","#8C368C"],["Goldenrod","#FFDF42"],["Gray","#949698"],["Green","#00A64F"],["GreenYellow","#DFE674"],["JungleGreen","#00A99A"],["Lavender","#F49EC4"],["LimeGreen","#8DC73E"],["Magenta","#EC008C"],["Mahogany","#A9341F"],["Maroon","#AF3235"],["Melon","#F89E7B"],["MidnightBlue","#006795"],["Mulberry","#A93C93"],["NavyBlue","#006EB8"],["OliveGreen","#3C8031"],["Orange","#F58137"],["OrangeRed","#ED135A"],["Orchid","#AF72B0"],["Peach","#F7965A"],["Periwinkle","#7977B8"],["PineGreen","#008B72"],["Plum","#92268F"],["ProcessBlue","#00B0F0"],["Purple","#99479B"],["RawSienna","#974006"],["Red","#ED1B23"],["RedOrange","#F26035"],["RedViolet","#A1246B"],["Rhodamine","#EF559F"],["RoyalBlue","#0071BC"],["RoyalPurple","#613F99"],["RubineRed","#ED017D"],["Salmon","#F69289"],["SeaGreen","#3FBC9D"],["Sepia","#671800"],["SkyBlue","#46C5DD"],["SpringGreen","#C6DC67"],["Tan","#DA9D76"],["TealBlue","#00AEB3"],["Thistle","#D883B7"],["Turquoise","#00B4CE"],["Violet","#58429B"],["VioletRed","#EF58A0"],["White","#FFFFFF"],["WildStrawberry","#EE2967"],["Yellow","#FFF200"],["YellowGreen","#98CC70"],["YellowOrange","#FAA21A"]]);
+	//colorDict.values()
+	
+	var colors=[];
+	for(var k of colorDict.keys()){
+		//console.log(k, colorDict.get(k))
+		colors.push(colorDict.get(k));
+	}
+	var len=colors.length;
+	var rand=Math.floor(Math.random()*len*5);
+	//80% white, 20% other color
+	return rand<len? colors[rand]:"white";
+}
+
+
+// Action after window load
+function init(){
+	// get parameter from URL;
+	var filename=getUrlParam("file");
+	filename = filename || "code_reader.html";
+
+	// update toast
+	document.getElementById("filename").innerHTML=filename;
+	// set class 
+	var oCode=document.getElementById("code")
+	//oCode.setAttribute("class", "language-javascript");
+	// set font color
+	//get color from url
+	var color=getUrlParam("color");
+	oCode.style.color = color || RandomColor();
+	//set bg	
+	
+	//render md to html
+	ajax(filename, oCode)
+}
+
+// bind event
+window.addEventListener('load', init, false);
+
+</script>
+
+</html>
