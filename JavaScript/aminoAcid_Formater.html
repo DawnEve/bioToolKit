@@ -44,7 +44,10 @@
 	<body>
 <div id=header>
 <h1>Format amino acid sequence to patent style</h1>
-<p><span class=light>说明: 这是"使用 VBA 把氨基酸单字母转换成三字母缩写" 升级版，基于js的</span> <b>web-v0.2</b></p>
+<p>
+	<span class=light>说明: 这是"使用 VBA 把氨基酸单字母转换成三字母缩写" 升级版，基于js的</span> 
+	<b>web-v0.3</b>
+</p>
 
 <h2>Step1: Input some amino acid, in single letter format.</h2>
 <textarea class="input" id="input">
@@ -105,7 +108,7 @@ function blankAndNum(num){
 // blankAndNum(2)
 // blankAndNum(250)
 
-arr={
+var arr={
   "G": "Gly",
   "A": "Ala",
   "V": "Val",
@@ -127,31 +130,6 @@ arr={
   "N": "Asn",
   "Q": "Gln"
 };
-
-/*
-var arr={};
-arr["G"]="Gly";
-arr["A"]="Ala";
-arr["V"]="Val";
-arr["L"]="Leu";
-arr["I"]="Ile";
-arr["P"]="Pro";
-arr["C"]="Cys";
-arr["M"]="Met";
-arr["F"]="Phe";
-arr["W"]="Trp";
-arr["Y"]="Tyr";
-arr["S"]="Ser";
-arr["T"]="Thr";
-arr["R"]="Arg";
-arr["K"]="Lys";
-arr["H"]="His";
-arr["D"]="Asp";
-arr["E"]="Glu";
-arr["N"]="Asn";
-arr["Q"]="Gln";
-//print(arr);
-*/
 
 function transform(){
 	// 1. 获取数据
@@ -219,9 +197,11 @@ window.onload=function(){
 
 
 <div id="footer">
+	原2012年的 VBA 版本已遗失，VBA 编程本身也有版本更新，我已经不会 VBA 编程。请不要再问我 VBA 的问题了。能达到目的即可。<br>
+	氨基酸表参考: https://www.albert.io/blog/amino-acid-study-guide-structure-and-function/<br>
+	<hr>
 	如有任何建议和意见，欢迎反馈到 jimmymall@163.com.<br>
 	声明:作者尽力保证程序正确，但对结果的正确性不作任何保证；请在仔细验证后使用！<br>
-	原2012年的 VBA 版本已经遗失，VBA 也有版本变化，我已经不会用 VBA。请不要再问我 VBA 的问题了。能达到目的即可。<br>
 	Distributed under the MIT license.
 	©2014-2022 By Jimmy | 
 
