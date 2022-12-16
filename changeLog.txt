@@ -102,6 +102,8 @@ v0.1.3 添加本地url
 	dev0.4.9 R/ update 雷达图, 发公众号 [2022.11.9]
 	dev0.5.0 js/ code reader add to index.html [2022.11.18]
 	dev0.5.1 add to index.html: js/ markdown reader [2022.11.18]
+# merge to master: after update /index.html [2022.11.18]
+	dev0.5.2 add js/ aminoAcid_Formater [2022.12.16]
 ##==> commit
 ##=====> git push DawnEve
 

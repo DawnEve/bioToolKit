@@ -1,0 +1,238 @@
+<html>
+	<head>
+	<title>氨基酸序列 格式化为 专利格式</title>
+	<style>
+	textarea{margin:5px 0;}
+	#input,
+	#output {
+		font-family: monospace;
+		border-color: rgb(169, 169, 169);
+		width: 100%;
+		height: 100px;
+		font-size: 12px;
+		padding: 5px;
+	}
+	#output{height: 300px;
+		font-family: "宋体";
+		font-size: 5pt;
+	}
+	input[type="button"]{width:100px; height:30px; margin-right:50px;}
+
+	#header, #footer {
+		width: 960px;
+		margin: 2px auto;
+	}
+	h2 {
+		padding: 2px 10px;
+		background: rgba(0,150,255,0.1);
+		margin: 15px 0 5px;
+	}
+
+	#footer {
+		clear: both;
+		padding: 10px 5px;
+		background: #0096ff;
+		font-size: 12px;
+		line-height: 15px;
+		color: #fff;
+	}
+	.light{color:#aaa;}
+	</style>
+	</head>
+
+
+	<body>
+<div id=header>
+<h1>Format amino acid sequence to patent style</h1>
+<p><span class=light>说明: 这是"使用 VBA 把氨基酸单字母转换成三字母缩写" 升级版，基于js的</span> <b>web-v0.2</b></p>
+
+<h2>Step1: Input some amino acid, in single letter format.</h2>
+<textarea class="input" id="input">
+VDAFLGTWKL VDSKNFDDYM KSLGVGFATR QVASMTKPTT IIEKNGDILT LKTHSTFKNT
+EISFKLGVEF DETTADDRKV KSIVTLDGGK LVHLQKWDGQ ETTLVRELID GKLILTLTHG
+TAVCTRTYEK E
+</textarea>
+
+<h2>Step2: Click the submit button</h2>
+<input type="button" id="submit" value="submit">
+<input type="button" id="reset" value="reset">
+
+<h2>Step3: 把下列输出结果粘贴到word中，设置格式为: "宋体, 5号字"</h2>
+<textarea class="input" id="output" readonly>
+</textarea>
+<p>提示: 拖动 输出框 右下角，可以拉长该框。</p>
+
+<script>
+// tools
+var print=console.log;
+
+function $(s){
+	return document.getElementById(s);
+}
+
+
+
+//每个数字的位数
+function digit(n){
+	var x=0;
+	while(n>0){
+		n=Math.floor(n/10);
+		x++;
+	}
+	return x;
+}
+//返回n个空表
+function blank(n){
+	var text="";
+	while(n>0) {
+		text += "    "; 
+		n--;
+	}
+	return text;
+}
+//从字符串后，删除n个字符
+function pop(str, n){
+	return str.substring(0, str.length-n);
+}
+// 生成氨基酸下的数字行, 空格隔开的3个数字
+function blankAndNum(num){
+	var text=blank(4)+(num-10);
+	text += pop(blank(5), digit(num-10)) + (num-5);
+	text += pop(blank(5), digit(num-5) ) + num;
+	return text;
+}
+
+// blankAndNum(2)
+// blankAndNum(250)
+
+arr={
+  "G": "Gly",
+  "A": "Ala",
+  "V": "Val",
+  "L": "Leu",
+  "I": "Ile",
+  "P": "Pro",
+  "C": "Cys",
+  "M": "Met",
+  "F": "Phe",
+  "W": "Trp",
+  "Y": "Tyr",
+  "S": "Ser",
+  "T": "Thr",
+  "R": "Arg",
+  "K": "Lys",
+  "H": "His",
+  "D": "Asp",
+  "E": "Glu",
+  "N": "Asn",
+  "Q": "Gln"
+};
+
+/*
+var arr={};
+arr["G"]="Gly";
+arr["A"]="Ala";
+arr["V"]="Val";
+arr["L"]="Leu";
+arr["I"]="Ile";
+arr["P"]="Pro";
+arr["C"]="Cys";
+arr["M"]="Met";
+arr["F"]="Phe";
+arr["W"]="Trp";
+arr["Y"]="Tyr";
+arr["S"]="Ser";
+arr["T"]="Thr";
+arr["R"]="Arg";
+arr["K"]="Lys";
+arr["H"]="His";
+arr["D"]="Asp";
+arr["E"]="Glu";
+arr["N"]="Asn";
+arr["Q"]="Gln";
+//print(arr);
+*/
+
+function transform(){
+	// 1. 获取数据
+	var text=$("input").value;
+	//大写
+	text=text.toUpperCase();
+	//去掉数字和空格
+	text=text.replace(/\s/g, "");
+	text=text.replace(/\d/g, "");
+	wjl=text;
+
+	// 2. 单字母 to 3字母缩写
+	var text2="";
+	var j=0, i=0;
+	var numline=""
+	var last=j;
+	for(i=0; i<text.length; i++){
+		//(1) 如果有空格或换行，则不转换
+		if(text[i]==" ") continue;
+		if(text[i]=="\n") continue;
+		j++;
+		//(2) 转换
+		var amino3=arr[ text[i] ];
+		//(3) 看后面是空格，还是换行
+		var space = j %15 ==0 ? "\n":" ";
+		if(amino3==undefined){
+			alert("Error: see F12 console for more details");
+			console.log(i, text[i], "Error"); 
+		}
+		
+		text2 += amino3 + space;
+		//(4) 到第 15 个字符添加一行数字编号	
+		if(j %15 ==0) {
+			text2 += blankAndNum(j) +"\n";
+			last=j;
+		}
+	}
+
+	// 最后一行的数字行
+	if(last!=j){
+		text2 += "\n"+blank(4) + (last+5);
+		if( last+5 < j ){
+			text2 += pop(blank(5), digit(last+5)) + (last+10);
+		}
+	}
+
+	// 氨基酸总数
+	text2 += "\n<211> " + j; 
+
+	// 3. 显示
+	$("output").value=text2;
+}
+
+window.onload=function(){
+	$("submit").onclick=function(){
+		transform();
+	}
+	$("reset").onclick=function(){
+		$("input").value="";
+	}
+}
+</script>
+
+
+
+
+<div id="footer">
+	如有任何建议和意见，欢迎反馈到 jimmymall@163.com.<br>
+	声明:作者尽力保证程序正确，但对结果的正确性不作任何保证；请在仔细验证后使用！<br>
+	原2012年的 VBA 版本已经遗失，VBA 也有版本变化，我已经不会用 VBA。请不要再问我 VBA 的问题了。能达到目的即可。<br>
+	Distributed under the MIT license.
+	©2014-2022 By Jimmy | 
+
+	<script type="text/javascript">
+	function print(s){document.write(s);}
+	print("Now: "+document.lastModified);
+		
+	</script> | Create: 12/16/2022 16:36:00<br> 
+</div>
+
+
+
+	</body>
+</html>
