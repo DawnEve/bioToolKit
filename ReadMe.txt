@@ -61,7 +61,9 @@ js常用代码片段
 	JavaScript/sankey/index.html 桑基图
 	JavaScript/mathJax_demo.html LaTeX Math Preview 预览数学公式
 	JavaScript/markdownReader/index_md.html  预览 markdown 文件
-	JavaScript/code_reader.html 预览 R code on Server件
+	JavaScript/code_reader.html 预览 R code on Server 文件
+	JavaScript/aminoAcid_Formater.html 输入基因序列，生成专利格式的氨基酸序列
+	JavaScript/ddl_timer.html 网页版ddl倒计时
 #
 
 
