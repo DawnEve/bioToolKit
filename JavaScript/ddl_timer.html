@@ -91,8 +91,8 @@ a {    text-decoration: none;}
 预先定义的函数和常数 
 *************************/
 var my_insert=document.getElementById("my_timer");
-var ddl= new Date("Jan 31, 2023 22:30:00");  //new Date("Jan 4,2014 8:30:00")
-var s = "博士论文初稿";
+var ddl= new Date("Feb 25, 2024 00:00:00");  //new Date("Jan 4,2014 8:30:00")
+var ddl_name = "青年基金提交"; //2023.8.24 开榜
 
 
 //主函数
@@ -111,7 +111,7 @@ function getTimer(){
     var mm = checkTime(mm);
     var ss = checkTime(ss);
 
-    var my_string = "<p class=>今天是"+now + " <br />" +"距"+s+"还有<span class=timer>";
+    var my_string = "<p class=>今天是"+now + " <br />" +"距"+ ddl_name +"还有<span class=timer>";
     my_string += dd+"</span>天<span class=timer>"+hh+"</span>小时<span class=timer>"+mm+"</span>分<span class=timer>"+ss+"</span>秒";
 
     document.getElementById("my_timer").innerHTML = my_string;

@@ -16,6 +16,7 @@
 <ul>
 	<b>目录 Contents：</b>
 	<li><a href='#t1'>1. 箱线图/柱状图 + 散点图</a><li>
+    <li><a href='#t1_2'><span class=indent2>1_2. barplot with Error bar and 显著性星号(ggplot2)</span></a><li>
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
@@ -154,6 +155,144 @@ ggplot(d3, aes(x=type, y=value)) +
 </pre>
 
 
+
+
+
+
+
+
+
+
+<a name='t1_2'></a>
+<h2>1_2. barplot with Error bar and 显著性星号(ggplot2)</h2>
+<iframe src="images/002B_barplot_error_bar_sig_Kasumi-1_FIP1L1_KD_ITGAM.pdf#toolbar=0&view=fit,100" width="160" height="300" ></iframe>
+<p>小遗憾: 不能把bar和x轴之间的距离去掉；使用 scale_y_continuous( #expand = c(0,0)) 会导致顶部的 显著性星号不显示。</p>
+<p>todo: 批量bar图，一次显示多个基因的差异。</p>
+
+<pre>
+counts_dir="/home/wangjl/data/rsa/kasumi-1/"
+
+# 载入 summarySE 函数，见上文 1 中的代码。
+
+# 1.load data----
+kasumi.raw=read.table("/home/wangjl/data/rsa/kasumi-1/counts/featureCounts_SRR1124_matrix2.txt",
+           skip = 1, row.names = 1, header = T)
+
+gene.counts = kasumi.raw[, 6:ncol(kasumi.raw)] #col5 length
+colnames(gene.counts) = sub("map.", "", colnames(gene.counts))
+colnames(gene.counts) = sub("_Aligned.sortedByCoord.out.bam", "", colnames(gene.counts))
+colnames(gene.counts)|>jsonlite::toJSON()
+# ["SRR11247521","SRR11247522","SRR11247523","SRR11247524", wt
+#  "SRR11247525","SRR11247526","SRR11247527","SRR11247528", kd1
+#  "SRR11247529","SRR11247530","SRR11247531","SRR11247532"] kd2
+
+gene.counts[1:5, 1:2]
+
+# rm all 0 rows
+dim(gene.counts) #61209    12
+gene.counts = gene.counts[ rowSums(gene.counts)>0, ]
+dim(gene.counts) #35330    12
+
+gene.counts[1:5, 1:10]
+
+gene.length = kasumi.raw[rownames(gene.counts),'Length']
+
+
+#2. normalize to TPM ----
+gene.tpm=apply(gene.counts, 2, function(x){
+  x1=x/gene.length
+  x1/sum(x1)*1e6
+})
+
+dim(gene.tpm) #35330 个基因，12个样本
+
+
+#3. draw bar plot with error bar and significance ----
+gene.symbol ="ITGAM"
+# get data
+gene.long = data.frame(
+  value = gene.tpm[gene.symbol,],
+  type = c( rep("wt",4), rep('kd1', 4), rep('kd2', 4) ),
+  gene=gene.symbol
+)
+
+gene.long$type=factor(gene.long$type, levels = c("wt", 'kd1', 'kd2') )
+gene.long |> head()
+
+> gene.long
+                value type  gene
+SRR11247521 1.4256497   wt ITGAM
+SRR11247522 2.0270137   wt ITGAM
+SRR11247523 0.7544062   wt ITGAM
+SRR11247524 0.9217557   wt ITGAM
+SRR11247525 4.0224827  kd1 ITGAM
+SRR11247526 3.6449108  kd1 ITGAM
+SRR11247527 3.6758330  kd1 ITGAM
+SRR11247528 3.5564203  kd1 ITGAM
+SRR11247529 6.8501709  kd2 ITGAM
+SRR11247530 6.9693542  kd2 ITGAM
+SRR11247531 7.2995709  kd2 ITGAM
+SRR11247532 7.8914830  kd2 ITGAM
+
+
+
+## mean among group ----
+sapply( split(gene.long$value, gene.long$type), mean )
+#      wt      kd1      kd2 
+#1.282206 3.724912 7.252645 
+
+
+## P value among group ----
+#gene.long$type
+> t.test(gene.long$value[1:4], gene.long$value[5:8] )$p.value #kd1 vs wt
+[1] 0.001694615
+> t.test(gene.long$value[1:4], gene.long$value[9:12] )$p.value #kd2 vs wt
+[1] 5.068546e-06
+
+
+## bar plot ----
+library(ggplot2)
+d2=gene.long # for jitter
+d3 = summarySE(gene.long, measurevar="value", groupvars=c("type")) #画 barplot
+
+#BiocManager::install('ggsignif')
+library("ggsignif")
+my_comparisons = list(c("wt","kd1"), c("wt","kd2"))
+
+set.seed(2023)
+ggplot(d3, aes(x=type, y=value)) + 
+  geom_bar(aes(fill=type), position=position_dodge(), stat="identity", 
+           width=0.8, show.legend = F) +
+  geom_errorbar(aes(ymin=value-ci, ymax=value+ci), #误差棒
+                width=.2, # Width of the error bars
+                position=position_dodge(.9)) +
+  geom_jitter(data=d2, aes(type,value), width=0.15, size=1) + #散点
+  geom_signif(data=d2, comparisons = my_comparisons, #显著性 星号
+              step_increase = 0.12,
+              map_signif_level = T, #T显示星号，F显示p值
+              test = t.test, size=0.5,textsize = 4)+
+  xlab("")+
+  ylab(bquote(paste( italic( .(gene.symbol) ), " Expression(TPM)") ) ) +
+  #scale_y_discrete(expand = c(0,0)) +
+  scale_y_continuous( #expand = c(0,0), 
+                     limits = c(0, max(d2$value)*1.2)) +
+  scale_x_discrete( limits=c("wt", "kd1", "kd2"), 
+                    breaks=c("wt", "kd1", "kd2"), 
+                    labels=c("shControl", "shFIP1L1(1)", "shFIP1L1(2)") ) +
+  theme_classic(base_size = 12) +
+  theme(
+    #plot.title=element_text(size = 12),
+    #axis.title.x=element_text(size = 12),
+    #axis.title.y=element_text(size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, colour = "black", size = 12),
+    axis.text.y=element_text(size=12, color="black")
+  )+
+  scale_fill_manual(breaks = c("wt", "kd1", "kd2"),
+                    values=c("#ed553b", "#99b433", "#00a300"))
+ 
+#
+ggsave( paste0("FIP1L1_KD/Kasumi-1_FIP1L1_KD_",gene.symbol,".pdf"), width =1.68, height=3.2)
+</pre>
 
 
 
