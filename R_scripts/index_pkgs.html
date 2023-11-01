@@ -20,6 +20,7 @@
 	<li><a href='#t3'>3. 使用 cowplot 包合并2个 ggplot2 对象并对齐y坐标</a><li>
 	<li><a href='#t4'>4. 使用 grid 包修改 ggplot2 分面顶标签:去掉三面的方框线</a><li>
 	<li><a href='#t5'>5. 使用 grid 包修改 ggplot2 图例: 矩形改为圆角矩形</a><li>
+	<li><a href='#t6'>6. 使用 pheatmap 包绘制热图: 显示样本分类</a><li>
 		
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -479,6 +480,87 @@ p1=ggplot(mtcars, aes(mpg, cyl, color=factor(gear) ))+
 # https://stackoverflow.com/questions/46683956/create-two-legends-for-one-ggplot2-graph-and-modify-them
 </pre>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t6'></a>
+<h2>6.使用 pheatmap 包绘制热图: 显示样本分类</h2>
+<p>pheatmap 的更多教程，<a target="_blank" href="https://www.jianshu.com/p/1c55ea64ff3f">点击这里</a></p>
+
+<p>fontsize参数设定标签字体大小，filename参数设定图片保存名称: pheatmap(test, cellwidth = 15, cellheight = 12, fontsize = 8, filename = "test.pdf") </p>
+
+<iframe src="images_pkgs/06_pheatmap-Kasumi-1_FIP1L1_KD_pheatmap.pdf#toolbar=0&view=fit,100" width="373" height="622" ></iframe>
+
+<pre>
+# 1. 基因子集
+apa_factors=list(
+  CPSF=c("CPSF1","CPSF2","CPSF3", "CPSF3L", "CPSF4","CPSF4L","CPSF6","CPSF7"),
+  CSTF=c("CSTF1","CSTF2","CSTF2T","CSTF3"),
+  PABP=c("PABPC1","PABPC1L","PABPC3","PABPC4","PABPC4L","PABPC5","PABPN1"),
+  PAPOL=c("PAPOLG", "PAPOLA"),
+  other=c("SYMPK", "RBBP6", "WDR33", "FIP1L1", "NUDT21","CLP1", "PCF11")  #无法归类
+)
+
+tmp.genes=unique(unlist(c( apa_factors, 
+      "CD34", "KIT", "SOCS2", "GATA1", "MYC",  #stem cell
+      "CSF1RA", "ITGAM", "LYZ", "LST1", "SIRPA", "TYROBP", "CD14", #monocyte marker
+      "CCNE2", #"MKI67", "CCNE2", "CCNB1", "CCNB2", #cell cycle?
+      "BCAT1", "CBX5", "NPR3")) ) #Stem cell marker
+
+
+# 2. get tpm
+dat.heatmap=gene.tpm[ intersect(rownames(gene.tpm), tmp.genes),]
+# rm all 0 rows
+dat.heatmap=dat.heatmap[rowSums(dat.heatmap)>0,]
+head(dat.heatmap[,1:5])
+
+
+# 3. plot
+library(pheatmap) #https://www.jianshu.com/p/1c55ea64ff3f
+# anno columns
+annotation_col = data.frame(
+  type = gene.long$type,
+  row.names = rownames(gene.long)
+)
+# set colors
+ann_colors = list(
+  type = c('wt'="#ed553b", 'kd1'="#99b433", 'kd2'="#00a300")
+)
+
+# for heatmap, use log scale
+pheatmap(log(dat.heatmap+1), 
+         border_color = "white", 
+         color = colorRampPalette(c("navy", "white", "firebrick3"))(50), #自定义颜色
+         scale="row",
+         cluster_cols = T,
+         #cluster_rows = F,
+         annotation_col = annotation_col, #set anno for column
+         annotation_colors = ann_colors, #set colors
+         show_colnames = F,
+         
+         filename =paste0("FIP1L1_KD/Kasumi-1_FIP1L1_KD_pheatmap-3.pdf"),width=3.9, height=6.5,
+         main="FIP1L1 knock down in Kasumi-1",
+         clustering_method = "ward.D2") #聚类方法
+#
+</pre>
 
 
 
