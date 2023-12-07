@@ -20,7 +20,8 @@
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
-	<li><a href='#t4_2'><span class=indent2>4_2. 单细胞类间比较的火山图</span></a><li>
+        <li><a href='#t4_2'><span class=indent2>4_2. 单细胞类间比较的火山图</span></a><li>
+        <li><a href='#t4_3'><span class=indent2>4_3. 单细胞多组对比火山图 & 带圆圈数字序号 的 文字注释</span></a><li>
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生+ggplot2)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
@@ -591,6 +592,37 @@ g + geom_text_repel(data=dd_text, aes(x=logFC, y=-log10(P.Value), label=dd_text$
 <p>脚本: <a target="_blank" href="visulization/volcano_singleCell.R">volcano_singleCell.R</a></p>
 <pre>
 ref: https://blog.csdn.net/wangjunliang/article/details/123093894
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t4_3'></a> //todo
+<h2>4_3. 单细胞多组对比火山图 & 带圆圈数字序号 的 文字注释</span></h2>
+<p>原图 <a href="https://pubmed.ncbi.nlm.nih.gov/31835037/">A Spatiotemporal Organ-Wide Gene Expression and Cell Atlas of the Developing Human Heart</a>, Cell 2019 fig2D,H</p>
+<!--
+width="710" height="820" *0.8
+-->
+<iframe src="images/004_3volcano_singleCell_multiGroup.pdf#toolbar=0&view=fit,100" width="568" height="656" ></iframe>
+<p>脚本: <a target="_blank" href="visulization/volcano_singleCell_multiGroup.R">volcano_singleCell_multiGroup.R</a></p>
+
+<br>
+<iframe src="images/004_3volcano_singleCell_circleAnnotation.pdf#toolbar=0&view=fit,100" width="280" height="230" ></iframe>
+
+
+<pre>
+ref: https://blog.csdn.net/wangjunliang/article/details/134850344?spm=1001.2014.3001.5501
 </pre>
 
 
@@ -1400,7 +1432,11 @@ testSpan2(annote_row,annote_color, span=2) #页码上面的示例图就是这一
 <a name='t10'></a>
 <h2>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</h2>
 <p>目标图片: <a target="_blank" href="https://www.cell.com/abstract/S0092-8674(15)00549-8">2015 Cell, Drop seq, </a>Figure 4 Cell-Cycle Analysis of HEK and 3T3 Cells Analyzed by Drop-Seq.<br />
-细胞周期相关基因 list: A complete list of cell-cycle regulated genes can be found in <a target="_blank" href="images/010_Table_S2.zip" title="excel in zip file">Table S2</a></p>
+细胞周期相关基因 list: A complete list of cell-cycle regulated genes can be found in 
+<a target="_blank" href="images/010_Table_S2.zip" title="excel in zip file">Table S2.zip</a> Or
+<a target="_blank" href="images/010_Table_S2.txt" title="R list in txt file">txt</a>
+
+</p>
 <p>原文是一段非常高质量的R代码，充分展示了如何嵌套使用apply家族函数、如何函数嵌套、如何定义输入和输出。<br />
 下文为了方便理解，把原来的嵌套函数拆开了。</p>
 <img src="images/010_cell_cycle_asignment_heatmap.png"> 
@@ -1885,6 +1921,7 @@ dev.off()
 <a name='t13'></a>
 <h2>13. 大块文字(R text())</h2>
 <p>可以使用 text()</p>
+<p>或使用 ggplot2 的 geom_text() 和 geom_label()， 参考实现 <a href='#t4_3'>4_3</a>。</p>
 <img src="images/013_R_text.png">
 
 <pre>

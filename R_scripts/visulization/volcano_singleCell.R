@@ -72,14 +72,20 @@ dif=data.frame(
   padj=deg_all$p_val_adj
 )
 
+
+
+
+
 # 4.draw
-# method1: 可以指定要标记的DEG数量，选出FC最大和最小的基因标记
+# method1: specify DEG max number, then select min & max FC to get gene symbols.
 VolcanoPlot(dif, padj=0.05, title="DSS vs WT", label.max = 50)
-# 自定义颜色
+# specify colors
 VolcanoPlot(dif, padj=0.05, title="DSS vs WT", label.max = 50, cols=c("blue", "red"))
 
 
-# method2: 也可以指定要标记的基因名字
+# method2: specify gene symbols.
+my.symbols = dif[ ((abs(dif$log2FoldChange) > 2) & (dif$padj < 1e-50) ) | 
+                                      abs(dif$log2FoldChange) > 4,]$symbol;
 VolcanoPlot(dif, padj=1e-10, title="DSS vs WT -2", 
-            label.symbols=dif[ ((abs(dif$log2FoldChange) > 2) & (dif$padj < 1e-50) ) | 
-                                      abs(dif$log2FoldChange) > 4,]$symbol )
+            label.symbols = my.symbols)
+#
