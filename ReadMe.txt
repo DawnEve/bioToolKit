@@ -7,6 +7,7 @@ v0.1
 	脚本、代码（写好注释，写清楚版本号和依赖及其版本号）
 	测试数据（控制在100k以内）
 	在线工具集导航页
+	add single_script/ under each lang, to add once and for all script: & run demo
 #
 
 
@@ -14,6 +15,7 @@ v0.1
 ========================
 生信分析最佳实践
 	R_scripts/src/readMe.txt
+	R_scripts/single_script/do_CytoTRACE.script.R
 
 ========================
 shell 常用代码片段
