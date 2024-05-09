@@ -15,7 +15,6 @@ v0.1
 ========================
 生信分析最佳实践
 	R_scripts/src/readMe.txt
-	R_scripts/single_script/do_CytoTRACE.script.R
 
 ========================
 shell 常用代码片段
@@ -55,6 +54,12 @@ R常用代码片段
 		R_scripts/visulization/batch-violinPlot-for_WangXuefei.R
 	火山图
 	雷达图
+
+	脚本化运行：
+	R_scripts/single_script/
+		* do_CytoTRACE.script.R
+		* do_monocle2.script.R
+		* do_CellCycle_Drop-seq2015.script.R
 
 
 

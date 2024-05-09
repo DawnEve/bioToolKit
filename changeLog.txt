@@ -112,6 +112,7 @@ v0.1.3 添加本地url
 	dev0.5.8 add R /index_pkgs.html 6.使用 pheatmap 包绘制热图: 显示样本分类 [2023.11.1]
 	dev0.5.9 add R /index.html 4_3. 单细胞多组对比火山图, 1个逐步实现, 1个函数(推荐) [2023.12.7]
 	dev0.6.0 add R_scripts/single_script/do_CytoTRACE.script.R [2024.5.2]
+	dev0.6.1 add add R_scripts/single_script/ do_monocle2, CellCycle [2024.5.9]
 ##==> commit
 ##=====> git push DawnEve
 

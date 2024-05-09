@@ -12,5 +12,8 @@ M_G1=c("AGFG1","AGPAT3","AKAP13","AMD1","ANP32E","ANTXR1","BAG3","BTBD3","CBX3",
 )
 
 
-> laply(cc.genes2, length)
-[1] 100 113 133 151 106
+> sapply(cc.genes2, length)
+G1_S    S G2_M    M M_G1 
+ 100  113  133  151  106 
+
+#should rm _ in list names;
