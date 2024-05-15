@@ -55,11 +55,17 @@ R常用代码片段
 	火山图
 	雷达图
 
+	生存分析
+		do_Survival_using_TCGA-2024.5.R
+
 	脚本化运行：
-	R_scripts/single_script/
+	R_scripts/single_script/template.script.R #模板，按最佳实践更新
 		* do_CytoTRACE.script.R
 		* do_monocle2.script.R
 		* do_CellCycle_Drop-seq2015.script.R
+		* do_Seurat.script.R
+		* do_Seurat_NMF.script.R
+
 
 
 
