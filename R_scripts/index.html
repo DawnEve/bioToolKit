@@ -17,6 +17,7 @@
 	<b>目录 Contents：</b>
 	<li><a href='#t1'>1. 箱线图/柱状图 + 散点图</a><li>
     <li><a href='#t1_2'><span class=indent2>1_2. barplot with Error bar and 显著性星号(ggplot2)</span></a><li>
+    <li><a href='#t1_3'><span class=indent2>1_3. barplot with Error bar 多组(ggplot2)</span></a><li>
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
@@ -25,7 +26,7 @@
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生+ggplot2)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
-	<li><a href='#t7_2'><span class=indent2>7_2. 散点图: 连续型变量到渐变色的映射(cut函数)(原生)</span></a><li>
+		<li><a href='#t7_2'><span class=indent2>7_2. 散点图: 连续型变量到渐变色的映射(cut函数)(原生)</span></a><li>
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
 	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
@@ -40,6 +41,7 @@
 	<li><a href='#t19'>19. 柱状图 with 底部双向箭头(原生)</a><li>
 	<li><a href='#t20'>20. 治疗前后的连线点图(ggplot2)</a><li>
 	<li><a href='#t21'>21. GO分析雷达图 (ggplot2)</a><li>
+	<li><a href='#t22'>22. 散点图 + 边缘密度分布 marginal density (ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -296,6 +298,80 @@ ggsave( paste0("FIP1L1_KD/Kasumi-1_FIP1L1_KD_",gene.symbol,".pdf"), width =1.68,
 </pre>
 
 
+
+
+
+
+
+
+
+
+
+<a name='t1_3'></a>
+<h2>1_3. barplot with Error bar 多组(ggplot2)</h2>
+<iframe src="images/002C_barplot-with-error-bar.pdf#toolbar=0&view=fit,100" width="400" height="260" ></iframe>
+<p>批量显示多个基因的mean+-sd。</p>
+
+<pre>
+# plot iris's 4 features's bar plot with sd, by Species
+dat.avg=do.call(rbind, lapply(split(iris[,1:4], iris$Species), function(x){
+  colMeans(x)
+}))
+dat.avg
+#           Sepal.Length Sepal.Width Petal.Length Petal.Width
+#setosa            5.006       3.428        1.462       0.246
+#versicolor        5.936       2.770        4.260       1.326
+#virginica         6.588       2.974        5.552       2.026
+
+dat.sd=do.call(rbind, lapply(split(iris[,1:4], iris$Species), function(x){
+  apply(x, 2, sd)
+}))
+dat.sd
+#           Sepal.Length Sepal.Width Petal.Length Petal.Width
+#setosa        0.3524897   0.3790644    0.1736640   0.1053856
+#versicolor    0.5161711   0.3137983    0.4699110   0.1977527
+#virginica     0.6358796   0.3224966    0.5518947   0.2746501
+
+# melt
+dat=reshape2::melt(dat.avg)
+colnames(dat)=c("type", "feature", "avg")
+dat$sd=reshape2::melt(dat.sd)$value
+head(dat, 3)
+#        type      feature   avg        sd
+#1     setosa Sepal.Length 5.006 0.3524897
+#2 versicolor Sepal.Length 5.936 0.5161711
+#3  virginica Sepal.Length 6.588 0.6358796
+
+pdf(paste0(outputRoot, "xx_barplot-with-error-bar.pdf"), width=4, height = 2.6)
+ggplot(dat) +
+  geom_bar( aes(x=type, y=avg, fill=type), stat="identity", alpha=0.7, show.legend = F) +
+  geom_errorbar( aes(x=type, ymin=avg-sd, ymax=avg+sd), 
+                 width=0.3, colour="black", alpha=1, size=0.5)+
+  facet_grid(~feature)+
+  scale_fill_manual(values = c("#fde725",  "#3ac96d",  "#440154"))+
+  theme_classic(base_size = 12)+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    strip.background = element_blank(), #top strip border
+    strip.text = element_text(size = 10, face = "italic")
+  )+
+  labs(x="", y="Average Value")
+dev.off()
+
+
+if(0){
+  #https://r-graph-gallery.com/4-barplot-with-error-bar.html
+  #sd
+  sd <- sd(vec)
+  sd <- sqrt(var(vec))
+  #se
+  se = sd(vec) / sqrt(length(vec))
+  # ci
+  alpha=0.05
+  t=qt((1-alpha)/2 + .5, length(vec)-1)   # tend to 1.96 if sample size is big enough
+  CI=t*se
+}
+</pre>
 
 
 
@@ -2674,6 +2750,150 @@ g1
 dev.off()
 # 输出pdf矢量图，然后可以使用 Illustrator 编辑文字：添加换行、调整文字位置、字号等。</pre>
 
+
+
+
+
+
+
+
+
+
+
+
+<a name='t22'></a>
+<h2>22. 散点图 + 边缘密度分布 marginal density (ggplot2)</h2>
+<p>效果图见 <a target="_blank" href="https://blog.csdn.net/wangjunliang/article/details/139392652">边缘密度分布图 | ggExtra包/aplot拼图/ggpubr包 等的实现方法</a>@CSDN</p>
+<pre>
+# 1. ggExtra ----
+# 1. get data
+set.seed(2024)
+dat=diamonds[sample(1:nrow(diamonds), 1000),]
+library(ggplot2)
+# 2. base plot
+# with legend
+p1=ggplot(dat, aes(carat, price, color=clarity))+
+  geom_point()+
+  theme_classic()+
+  theme(
+    panel.border = element_rect(size = 1, colour = "black", fill="#00112200")
+  ); p1
+# no legend
+p2=ggplot(dat, aes(carat, price, color=clarity))+
+  geom_point(show.legend = F)+
+  theme_classic()+
+  theme(
+    panel.border = element_rect(size = 1, colour = "black", fill="#00112200")
+  ); p2
+
+# 3.margin density
+library(ggExtra)
+ggExtra::ggMarginal(p1+ggtitle("p1-A"), type = "density")
+ggMarginal(p1+ggtitle("p1-B"), colour = "red")
+
+# no legend
+ggMarginal(p2+ggtitle("p2-A"), groupColour = TRUE)
+ggMarginal(p2+ggtitle("p2-B"),type = "density",groupColour = TRUE,groupFill = TRUE)
+ggMarginal(p2+ggtitle("p2-C"),  
+           xparams=list( fill = c("deeppink")),
+           yparams=list( fill = c("navy")),
+           color=NA)
+
+
+
+
+## (2) ggExtra::plotCount ----
+ggExtra::plotCount(table(scObj$seurat_clusters), fill="orange")+
+  theme_classic()+ ggtitle("seurat_clusters")
+
+#dat2=(table(scObj$orig.ident, scObj$seurat_clusters) |> prop.table(margin = 2))*100
+#dat2
+#ggExtra::plotCount(dat2, fill=c("orange", "darkred" ) )+
+#  theme_classic()+ ggtitle("seurat_clusters")
+
+#barplot( (table(scObj$orig.ident, scObj$seurat_clusters) |> prop.table(margin = 2))*100, 
+#         col=colorset.sample )
+#
+
+
+
+
+
+
+# 2. ggplot2绘图+aplot拼图 ----
+library(RColorBrewer)
+len=length( unique(dat$clarity) ); len
+
+# upper density
+top_panel <- ggplot()+
+  geom_density(data = dat,
+               mapping=aes(carat, fill=clarity, color=clarity),
+               alpha=0.5)+
+  scale_fill_manual(values = brewer.pal(len,'Set2'))+ #设置填充颜色
+  scale_color_manual(values = brewer.pal(len,'Set2'))+ # 设置线的颜色
+  theme_void()+ # 设置主题
+  theme(legend.position="none") # 去除图例
+top_panel
+
+# 右侧密度分布图
+right_panel <- ggplot()+
+  geom_density(data=dat,
+               aes(price, fill=clarity,color=clarity),
+               alpha=0.5)+
+  scale_fill_manual(values = brewer.pal(len,'Set2'))+ #设置填充颜色
+  scale_color_manual(values = brewer.pal(len,'Set2'))+ # 设置线的颜色
+  theme_void()+ # 设置主题
+  coord_flip()+ # 翻转坐标轴
+  theme(legend.position="none")# 去除图例
+right_panel
+
+# aplot 包拼图
+library(aplot)
+p1 %>% insert_right(right_panel, width=.4) %>% insert_top(top_panel, height=0.2)  
+p2 %>% insert_right(right_panel, width=.4) %>% insert_top(top_panel, height=0.2)  
+#ggsave('plot2.pdf',width = 6,height = 5)
+
+
+
+
+
+
+# 3. ggpubr ----
+# fig1
+library(ggpubr)
+gp1<-ggscatterhist(
+  iris, x = "Sepal.Length", y = "Sepal.Width",
+  color = "Species", size = 3, alpha = 0.6)
+gp1
+# 不支持theme()
+# gp1+theme(panel.background = element_rect(fill="#00112200", color="black"))
+
+# fig2
+set.seed(2024)
+dat=diamonds[sample(1:nrow(diamonds), 1000),]
+
+ggscatterhist(
+  dat, x = "carat", y = "price",
+  color = "clarity", size = 2, alpha = 0.6)
+
+# fig3: 指定填充色
+ggscatterhist(
+  dat, x = "carat", y = "price",
+  color = "clarity", size = 3, alpha = 0.6,
+  #palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+  margin.params = list(fill = "clarity", color = "black", size = 0.2)
+)
+
+# Fig4：指定主图黑边框
+ggscatterhist(
+  dat, x = "carat", y = "price",
+  color = "clarity", size = 3, alpha = 0.6,
+  #palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+  margin.params = list(fill = "clarity", color = "black", size = 0.2),
+  ggtheme = theme_classic() + #指定周围边框
+    theme(panel.background = element_rect(fill="#00112200", color="black"))
+)
+</pre>
 
 
 

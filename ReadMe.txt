@@ -77,6 +77,7 @@ js常用代码片段
 	JavaScript/code_reader.html 预览 R code on Server 文件
 	JavaScript/aminoAcid_Formater.html 输入基因序列，生成专利格式的氨基酸序列
 	JavaScript/ddl_timer.html 网页版ddl倒计时
+	JavaScript/TocNavigator_js.html 网页顶部目录
 #
 
 

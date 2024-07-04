@@ -1,8 +1,9 @@
 # Aim: do monocle2 as a script, output to a dir
 # how to use: $ Rscript this.script.R xx.Seurat.obj [outputRoot]
-# Env: R 4.1.0
+# Env: R 4.1.0, monocle 2.30.1 $ Rscript -e "packageVersion('monocle')"
 # version: 0.2-20240504
 # version: 0.3-20240504 set parameters
+# version: 0.4-20240515 debug
 
 if(0){
   # how to run as a script? 
@@ -220,7 +221,7 @@ if(!need_filter_cells){
   
   # plot density plot of total mRNA of each cell:绘制细胞总mRNA数的核密度分布曲线：
   pdf(paste0(outputRoot,keyword,"_00_filterCell.cutoff.DensPlot.pdf"),width=4,height=2)
-  p1=qplot(Total_mRNAs, data = pData(HSMM), color = time, geom ="density") +
+  p1=qplot(Total_mRNAs, data = pData(HSMM), color = "seurat_clusters", geom ="density") +
     geom_vline(xintercept = c(lower_bound,upper_bound), color="red", linetype=2 )+
     theme_classic(base_size = 12)+ Seurat::FontSize(12,12, 12, 12)+
     #scale_color_manual(values=c("#FFA500", "#FF1493", "#4876FF") )+
@@ -392,9 +393,20 @@ dev.off()
 # view branch point
 #plot_cell_trajectory(monocle_cds, color_by = "State")
 message(now(), "6. BEAM")
-BEAM_res = BEAM(monocle_cds[expressed_genes, ], 
-                branch_point=1, # branch point, important
-                cores=4)
+
+version=packageVersion("monocle")
+if(grep("2.30", version) |> length()){
+  #2.30
+  BEAM_res = BEAM(monocle_cds[expressed_genes, ], 
+                  branch_point=1, # branch point, important
+                  progenitor_method = "duplicate", #monocle 2.30.1
+                  cores=4)
+}else{
+  BEAM_res = BEAM(monocle_cds[expressed_genes, ], 
+                  branch_point=1, # branch point, important
+                  cores=4)
+}
+
 
 # order by q value
 BEAM_res=BEAM_res[order(BEAM_res$qval),]

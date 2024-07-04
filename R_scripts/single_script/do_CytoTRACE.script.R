@@ -3,14 +3,27 @@
 # Env: R 4.3.3 on CentOS7.9
 # R pkg: CytoTRACE 0.3.3
 # version: 0.2 [2024.5.2]
+# version: 0.3 [2024.5.16] output file should NOT exists
+
+# Use diffrent dir! as some filename can't be named manually!!
+
+# How to run
+if(0){
+	#give help if no parameter given
+	#$ Rscript /data/wangjl/scPolyA-seq2/chenxi/pipeline/script_single/do_CytoTRACE.script.R 
+	
+	# demo
+	#$ Rscript /data/wangjl/scPolyA-seq2/chenxi/pipeline/script_single/do_CytoTRACE.script.R \
+#/data/wangjl/scPolyA-seq2/chenxi/PBMC/UMAP/star_solo/scObj_final-PBMC_8plates.Star_Solo_PC25res0.8.CellCycle.withDEG.Seurat.Rds seurat_clusters /data/wangjl/scPolyA-seq2/chenxi/PBMC/trajectory/ CD4T_PBMC
+}
+
 
 myArgs<-commandArgs(TRUE)
 if(length(myArgs)==0){
 	stop("You must give at least 1 parameter:\n$ Rscript /path/to/this.script.R seurat_filename [cell_type [outputRoot [keyword]]]")
 }
 
-# settings
-#################
+# Settings Begin ###############
 # default settins
 seurat_filename=myArgs[1] #at least one parameter
 cell_type="seurat_clusters"
@@ -28,6 +41,15 @@ if(length(myArgs)>=3){
 		stop( sprintf("Error: dir not exist, outputRoot=%s", outputRoot) )
 	}
 }
+if(file.exists( paste0(outputRoot, "CytoTRACE_plot.pdf"))){
+  stop("Output file already exists: ", outputRoot, "CytoTRACE_plot.pdf")
+}
+if(file.exists( paste0(outputRoot, "CytoTRACE_plot_table.txt"))){
+  stop("Output file already exists: ", outputRoot, "CytoTRACE_plot_table.txt")
+}
+if(file.exists( paste0(outputRoot, "CytoGenes.pdf"))){
+  stop("Output file already exists: ", outputRoot, "CytoGenes.pdf")
+}
 
 if(length(myArgs)>=4){ 
 	keyword=paste0(keyword, "_", myArgs[4])
@@ -37,7 +59,7 @@ if(length(myArgs)>=4){
 }
 setwd(outputRoot)
 message( sprintf("[%s] output to: %s", date(), outputRoot))
-#################
+# Settings End ###############
 
 
 # init pkg
@@ -92,14 +114,4 @@ plotCytoTRACE(results, phenotype = phe, emb=umap_cord, outputDir=outputRoot ) #u
 plotCytoGenes(results, numOfGenes = 10, outputDir=outputRoot)
 
 message( sprintf("[%s]%s: %s\n", date(), "CytoTRACE end for file:",  seurat_filename) )
-
-
-# How to run
-if(0){
-	#give help if no parameter given
-	$ Rscript /data/wangjl/scPolyA-seq2/chenxi/pipeline/script_single/do_CytoTRACE.script.R 
-	
-	# demo
-	$ Rscript /data/wangjl/scPolyA-seq2/chenxi/pipeline/script_single/do_CytoTRACE.script.R \
-/data/wangjl/scPolyA-seq2/chenxi/PBMC/UMAP/star_solo/scObj_final-PBMC_8plates.Star_Solo_PC25res0.8.CellCycle.withDEG.Seurat.Rds seurat_clusters /data/wangjl/scPolyA-seq2/chenxi/PBMC/trajectory/ CD4T_PBMC
-}
+print("the End")

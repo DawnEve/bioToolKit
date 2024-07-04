@@ -8,7 +8,10 @@ app = Flask(__name__)
 # version: 0.0.1
 # version: 0.0.2 美化界面
 # version: 0.0.3 添加外部ip地址
+# version: 0.0.4 fix on win11 py3.8
 ######################
+
+version="0.0.4"
 
 jsCode="""
 <script>
@@ -93,12 +96,14 @@ pre{word-wrap: break-word!important; white-space: pre-wrap;}
 </head>
 <body>
     <h1>txtBBS.py <span class=small>
-v0.0.3
+''' + version +\
+'''
     </span></h1>
     <p class='wrap tips'>Tips: Simple message board based on a txt file, powered by Python3 flask.</p>
     <div class=wrap>
 <pre>
 '''
+
 
 html2='''
 </pre>
@@ -109,7 +114,7 @@ html2='''
         <input type="submit" value="Submit">
     </form>
     </div>
-    <div class=footer><p> &copy; 2020 <a href="http://www.biomooc.com">Biomooc.com</a> | 
+    <div class=footer><p> &copy; 2024 <a href="http://www.biomooc.com">Biomooc.com</a> | 
         <a class=highlight href="https://github.com/DawnEve/bioToolKit">Github</a> | 
         File path: {FilePath}</p></div>
 </body>
@@ -120,7 +125,7 @@ html2='''
 @app.route('/', methods=['GET', 'POST'])
 def hello_world():
     path='dustbin';
-    fileName=path+'/message.txt'
+    fileName=f'{path}\\message.txt'
     # if dir exists?
     if not os.path.exists(path):
         os.makedirs(path)
@@ -162,7 +167,9 @@ def hello_world():
     fr.close()
     #
     # inject {FilePath} to html2 
-    html2_=re.sub("\{FilePath\}", os.getcwd(), html2)
+    #html2_=re.sub("\{FilePath\}", os.getcwd(), html2)
+    real_filename=os.path.join(os.getcwd(), fileName)
+    html2_ = html2.replace("{FilePath}", real_filename)
     return html1+message+html2_+jsCode
 #
 
@@ -180,4 +187,4 @@ def hello_world2():
 
 if __name__ == '__main__':
     #app.run(debug = True)
-    app.run(host="0.0.0.0",port=5000, debug=True) #public
+    app.run(host="0.0.0.0", port=5000, debug=True) #public
