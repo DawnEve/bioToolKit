@@ -23,6 +23,12 @@
 	.light{color: #bbb;}
 	.smaller{font-size:smaller;}
 
+/*外链：前面加箭头*/
+.external_link::before{
+	background-color:deeppink;
+	content:"->";
+	color:white;
+}
 	</style>
 	<base target="_blank" />
 	<link rel="shortcut icon" href="/images/favicon.ico">
@@ -50,12 +56,15 @@
 		<li><a href="JavaScript/mathJax_demo.html">LaTeX Math Preview</a> to preview LaTeX Math expression, based on MathJax.js</li>
 		<li><a href="JavaScript/aminoAcid_Formater.html">Amino Acid Formater</a> Format amino acid sequence to patent style</li>
 
+		<li><a class="external_link" href="http://jslecture.biomooc.com/Vue3/000/e02.html">todos</a> VUE3::todos</li>
+
 
 
 		<h3>Local Server <span class=light>Powered by JavaScript.</span></h3>
 		<li><a href="JavaScript/code_reader.html">Code Reader</a> to preview R or Python code on server with some highlight by prism.js.</li>
 		<li><a href="JavaScript/markdownReader/index_md.html">Markdown Reader</a> to view Markdown files using js only.</li>
 		<li><a href="JavaScript/TocNavigator_js.html">TocNavigator.js</a> get Top of Contents of a long web page.</li>
+		<li><a class="external_link" href="http://jslecture.dawneve.cc/example/s008-carousel/index3.html">carousel</a> Rotations of pictures.</li>
 
 
 		<h3>Linux Tools</h3>

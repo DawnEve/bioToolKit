@@ -119,6 +119,7 @@ v0.1.3 添加本地url
 		py/ gtf to gene annotation for inferCNV
 		shell/ cellranger-sitecheck 系统检查命令和结果
 	dev0.6.4@picb del IF/; update code_reader v0.3; [2024.10.29]
+	dev0.6.5@picb add external links to index.html; add fonts to mathJax; [2024.11.1]
 ##==> commit
 ##=====> git push DawnEve
 
