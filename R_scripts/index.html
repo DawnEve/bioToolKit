@@ -18,6 +18,7 @@
 	<li><a href='#t1'>1. 箱线图/柱状图 + 散点图</a><li>
     <li><a href='#t1_2'><span class=indent2>1_2. barplot with Error bar and 显著性星号(ggplot2)</span></a><li>
     <li><a href='#t1_3'><span class=indent2>1_3. barplot with Error bar 多组(ggplot2)</span></a><li>
+    <li><a href='#t1_4'><span class=indent2>1_4. violin + boxplot(ggplot2) / wide2long 宽变长</span></a><li>
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
@@ -377,6 +378,77 @@ if(0){
 
 
 
+<a name='t1_4'></a>
+<h2>1_4. violin + boxplot(ggplot2) / wide2long 宽变长</h2>
+<iframe src="images/002D_violin_boxplot.pdf#toolbar=0&view=fit,100" width="194" height="283" ></iframe>
+<p>violin plot + boxplot</p>
+
+<pre>
+#0.模拟数据
+dat.cell=iris
+colnames(dat.cell) = c( paste0("gene", 1:4), "cluster")
+rownames(dat.cell) = paste0("cell", 1:nrow(dat.cell))
+dim(dat.cell) #[1] 150   5
+dat.cell[1:2, c(1:2,ncol(dat.cell))]
+#      gene1 gene2 cluster
+#cell1   5.1   3.5  setosa
+#cell2   4.9   3.0  setosa
+
+
+#1.wide to long
+#library(tidyr)
+dat.long = tidyr::gather(data = dat.cell, key = gene, value = value, -c(cluster)) #保留cluster列
+head(dat.long)
+#  cluster  gene value
+#1  setosa gene1   5.1
+#2  setosa gene1   4.9
+dim(dat.long) #[1] 600   3
+
+
+#2. filter: 自己设定规则，比如过滤NA值 rm -1 value
+dat.long = dat.long[which(dat.long$value!=-1), ]
+
+
+#3.boxplot
+
+# cluster as factor
+dat.long$cluster = factor(dat.long$cluster, levels = unique(dat.long$cluster))
+
+# colors
+colorset.cluster = c(ggsci::pal_npg()(10), "#F2AF1C", "#668C13" ); colorset.cluster
+
+# plot
+library(ggplot2)
+p1=ggplot(dat.long, aes(x=cluster, y=value))+
+  geom_violin( aes(fill=cluster), alpha=0.5, show.legend = F, scale = "width")+
+  geom_boxplot(outliers = F, width=0.2)+
+  scale_fill_manual(values=colorset.cluster)+
+  labs(x="Cell cluster", y="Relative Expression")+
+  theme_classic(base_size = 14)+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+  );p1
+
+#4.save
+pdf(paste0("_violin_boxplot.pdf"), width=1.94, height=2.83)
+print(p1)
+dev.off()
+
+
+res=75
+png(paste0("_violin_boxplot.png"), width=1.94*75, height=2.83*75)
+print(p1)
+dev.off()
+</pre>
+
+
+
+
+
+
+
+
+
 
 <a name='t2'></a>
 <h2>2. 散点图 + 线性拟合曲线with r and p</h2>
@@ -698,7 +770,7 @@ width="710" height="820" *0.8
 
 
 <pre>
-ref: https://blog.csdn.net/wangjunliang/article/details/134850344?spm=1001.2014.3001.5501
+ref: https://blog.csdn.net/wangjunliang/article/details/134850344
 </pre>
 
 
