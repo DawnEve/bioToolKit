@@ -20,7 +20,7 @@
 	<li><a href='#t3'>3. 使用 cowplot 包合并2个 ggplot2 对象并对齐y坐标</a><li>
 	<li><a href='#t4'>4. 使用 grid 包修改 ggplot2 分面顶标签:去掉三面的方框线</a><li>
 	<li><a href='#t5'>5. 使用 grid 包修改 ggplot2 图例: 矩形改为圆角矩形</a><li>
-	<li><a href='#t6'>6. 使用 pheatmap 包绘制热图: 显示样本分类</a><li>
+	<li><a href='#t6'>6. 使用 pheatmap 包绘制热图: 显示样本分类，设置颜色和间隔</a><li>
 		
 	<li><a href='#tn'>n. xx图 todo</a><li>
 </ul>
@@ -502,8 +502,10 @@ p1=ggplot(mtcars, aes(mpg, cyl, color=factor(gear) ))+
 
 
 <a name='t6'></a>
-<h2>6.使用 pheatmap 包绘制热图: 显示样本分类</h2>
-<p>pheatmap 的更多教程，<a target="_blank" href="https://www.jianshu.com/p/1c55ea64ff3f">点击这里</a></p>
+<h2>6.使用 pheatmap 包绘制热图: 显示样本分类，设置颜色和间隔</h2>
+<p>pheatmap 的更多教程：
+	<a target="_blank" href="https://www.jianshu.com/p/1c55ea64ff3f">参数示例</a> |
+</p>
 
 <p>fontsize参数设定标签字体大小，filename参数设定图片保存名称: pheatmap(test, cellwidth = 15, cellheight = 12, fontsize = 8, filename = "test.pdf") </p>
 
@@ -559,7 +561,56 @@ pheatmap(log(dat.heatmap+1),
          filename =paste0("FIP1L1_KD/Kasumi-1_FIP1L1_KD_pheatmap-3.pdf"),width=3.9, height=6.5,
          main="FIP1L1 knock down in Kasumi-1",
          clustering_method = "ward.D2") #聚类方法
-#
+</pre>
+
+<p>示例2: 
+	<a target="_blank" href="https://blog.csdn.net/wangjunliang/article/details/145423734">pheatmap 聚类并设置间隔</a>
+</p>
+<p>关键参数: gaps_row = c(1,3,7, 10) 适用于非聚类时；cutree_row=5, cutree_cols=5, 适用于聚类时</p>
+
+<pre>
+library(pheatmap)
+set.seed(2025)
+mat = matrix(rnorm(100), nrow=20)
+rownames(mat)=paste0("cell", 1:nrow(mat))
+# 相关系数
+mat.cor=cor( t(mat), method="spearman")
+colnames(mat.cor)=rownames(mat)
+
+# 列注释: 区分前10个ctrl组blue，后10个细胞treat组red
+annotation_col = data.frame(
+  id=colnames(mat.cor),
+  group=c( rep("ctrl", 10), rep("treat", 10) ), 
+  row.names=1
+)
+# 设置颜色
+ann_colors = list(
+  group = c(ctrl = "navy", treat = "deeppink")
+)
+
+# 热图
+library(grid)
+#ComplexHeatmap::pheatmap(mat.cor,
+p1=pheatmap::pheatmap(mat.cor,
+         #border_color = "white",
+         border_color = NA,
+         # 加方框：失败
+         #add_geom = "rectangles",
+         #rect_gp = gpar(fill = "transparent", col = "red", lwd = 3),
+         #rect_row = c(1, 5), rect_col = c(2, 7),
+         show_rownames = TRUE,
+         #gaps_row = c(1,3,7, 10), #适用于非聚类时
+         cutree_row=5, cutree_cols=5, #适用于聚类时
+         clustering_method = "ward.D2",
+         annotation_col = annotation_col, #annotation_row = annotation_row,
+         annotation_colors = ann_colors,
+         #color = c(colorRampPalette(colors = c("white","yellow"))(20),colorRampPalette(colors = c("yellow","firebrick3"))(20)),
+         show_colnames = TRUE, main="cutree demo")
+#保存pdf
+pdf(paste0("D://other//demo.heatmap.pdf"), width=6, height=5)
+grid::grid.newpage()
+grid::grid.draw(p1$gtable)
+dev.off()
 </pre>
 
 
