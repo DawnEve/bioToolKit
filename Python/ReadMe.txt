@@ -35,7 +35,9 @@ Seurat 4 使用的社区发现算法。
 详情记录到其内容中。
 
 
-
+8. gtf to gene annotation for inferCNV
+gtf_to_position_file.py	https://github.com/broadinstitute/infercnv/blob/master/scripts/gtf_to_position_file.py
+output: symbol chr start end
 
 
 

@@ -49,3 +49,8 @@ pre span:before {
 
 
 .QQ{color:red;}
+
+iframe{
+    border: none;
+	background: white;
+}
