@@ -32,6 +32,7 @@ pre {
   -moz-box-shadow: inset 0 0 10px #000;
   box-shadow: inset 0 0 10px #000;
   counter-reset: line;
+  tab-size:4;
 }
 
 pre span:before {
@@ -52,5 +53,6 @@ pre span:before {
 
 iframe{
     border: none;
-	background: white;
+	background: transparent !important;
+	overflow: hidden;
 }
