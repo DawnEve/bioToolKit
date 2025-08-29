@@ -129,6 +129,7 @@ v0.1.3 添加本地url
 	dev0.6.7@picb add violin + boxplot(ggplot2) / wide2long 宽变长 [2025.1.4]
 	dev0.6.8@picb add GO barplot with gene list(ggplot2)[2025.5.14]
 	dev0.6.9@picb Goto Shenzhen [2025.8.1]
+	dev0.7.0@picb R/single_script/init_project.R 初始化R项目 [2025.8.29]
 ##==> commit
 ##=====> git push DawnEve
 

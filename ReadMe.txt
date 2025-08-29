@@ -65,6 +65,7 @@ R常用代码片段
 		* do_CellCycle_Drop-seq2015.script.R
 		* do_Seurat.script.R
 		* do_Seurat_NMF.script.R
+		* init_project.R  初始化R项目的目录结构
 
 
 
