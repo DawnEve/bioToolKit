@@ -17,8 +17,8 @@ Below is a simple guide for how to write .md or .markdown file.
 ## Chapter 1 list1
 
 - 分类1
-- [分类2](?file=aa2.md)
-- 分类3
+- [分类2:md](?file=aa2.md)
+- [分类3:txt](?file=ReadMe.txt) 原样显示txt内容
 - 分类4
 
 
