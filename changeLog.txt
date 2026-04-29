@@ -139,6 +139,7 @@ v0.1.3 添加本地url
 ##>>> 只用主线master分支，节省时间
 ########################
 v0.7.2@hz 以后直接用主分支
+v0.7.3@hz 有冲突，之前提交过 git pull origin2 master 后再次提交
 
 ##==> commit
 ##=====> git push DawnEve
