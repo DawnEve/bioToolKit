@@ -16,14 +16,18 @@
 <ul>
 	<b>目录 Contents：</b>
 	<li><a href='#t1'>1. 箱线图/柱状图 + 散点图</a><li>
+    <li><a href='#t1_2'><span class=indent2>1_2. barplot with Error bar and 显著性星号(ggplot2)</span></a><li>
+    <li><a href='#t1_3'><span class=indent2>1_3. barplot with Error bar 多组(ggplot2)</span></a><li>
+    <li><a href='#t1_4'><span class=indent2>1_4. violin + boxplot(ggplot2) / wide2long 宽变长</span></a><li>
 	<li><a href='#t2'>2. 散点图 + 线性拟合曲线with r and p</a><li>
 	<li><a href='#t3'>3. heatmap图(没用ggplot2)</a><li>
 	<li><a href='#t4'>4. volcano火山图</a><li>
-	<li><a href='#t4_2'><span class=indent2>4_2. 单细胞类间比较的火山图</span></a><li>
+        <li><a href='#t4_2'><span class=indent2>4_2. 单细胞类间比较的火山图</span></a><li>
+        <li><a href='#t4_3'><span class=indent2>4_3. 单细胞多组对比火山图 & 带圆圈数字序号 的 文字注释</span></a><li>
 	<li><a href='#t5'>5. 基因表达聚类趋势图(pheatmap + ggplot2分面)</a><li>
 	<li><a href='#t6'>6. barplot 百分数堆叠条形图(原生+ggplot2)</a><li>
 	<li><a href='#t7'>7. 散点图 with 多颜色梯度(自定义渐变色)(原生)</a><li>
-	<li><a href='#t7_2'><span class=indent2>7_2. 散点图: 连续型变量到渐变色的映射(cut函数)(原生)</span></a><li>
+		<li><a href='#t7_2'><span class=indent2>7_2. 散点图: 连续型变量到渐变色的映射(cut函数)(原生)</span></a><li>
 	<li><a href='#t8'>8. barplot 组合 百分数barplot图(原生)</a><li>
 	<li><a href='#t9'>9. 伪时间平滑化热图 plot_pseudotime_heatmap (仿monocle)</a><li>
 	<li><a href='#t10'>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</a><li>
@@ -31,13 +35,17 @@
 	<li><a href='#t12'>12. 散点图: 自定义颜色、为点添加注释文字、图例放底部、放大图例的点(ggplot2)</a><li>
 	<li><a href='#t13'>13. 大块文字(R text())</a><li>
 	<li><a href='#t14'>14. 重绘GO条形图(ggplot2)</a><li>
+        <li><a href='#t14_2'><span class=indent2>14_2. GO barplot with gene list(ggplot2)</span></a><li>
+        <li><a href='#t14_3'><span class=indent2>14_3. GO barplot with No gene list(ggplot2)</span></a><li>
 	<li><a href='#t15'>15. 使用mean+sd画 errorbar(原生)</a><li>
 	<li><a href='#t16'>16. 左右barplot - GSVA结果展示(ggplot2)</a><li>
 	<li><a href='#t17'>17. cumulative 累计密度曲线图(K-S test) (原生)</a><li>
 	<li><a href='#t18'>18. density plot with 2 colors, annotation(原生+ggplot2)</a><li>
+        <li><a href='#t18_2'><span class=indent2>18_2. 按条件画密度图 density plot(ggplot2)</span></a><li>
 	<li><a href='#t19'>19. 柱状图 with 底部双向箭头(原生)</a><li>
 	<li><a href='#t20'>20. 治疗前后的连线点图(ggplot2)</a><li>
 	<li><a href='#t21'>21. GO分析雷达图 (ggplot2)</a><li>
+	<li><a href='#t22'>22. 散点图 + 边缘密度分布 marginal density (ggplot2)</a><li>
 	
 	
 	<li><a href='#tn'>n. xx图 todo</a><li>
@@ -50,7 +58,7 @@
 
 <h2>Figure and Code, mainly in R and ggplot2</h2>
 
-<p><b>Tips: 看不清请刷新，换个颜色再看。</b></p>
+<p><b>Tips: 看不清代码请刷新，换个颜色再看。</b></p>
 <p>1. 比较干净的背景: +theme_bw(); 最干净的背景: +theme_classic()<br />
 2. 参数的解释: <a target="_blank" href="http://www.biomooc.com/R/R-draw-adv-ggplot2.html">生物慕课网</a>
 <br>3. 本页面最底部有生信QQ群号，欢迎加入讨论，严禁广告。
@@ -151,6 +159,291 @@ ggplot(d3, aes(x=type, y=value)) +
   geom_jitter(data=d2,aes(type,value), width=0.15) +
   ylab( expression(paste( italic("Sox2")," Expression(normalization)") ) )
   #ylab("Sox2 Expression\n(normalization)") 
+</pre>
+
+
+
+
+
+
+
+
+
+
+<a name='t1_2'></a>
+<h2>1_2. barplot with Error bar and 显著性星号(ggplot2)</h2>
+<iframe src="images/002B_barplot_error_bar_sig_Kasumi-1_FIP1L1_KD_ITGAM.pdf#toolbar=0&view=fit,100" width="160" height="300" ></iframe>
+<p>小遗憾: 不能把bar和x轴之间的距离去掉；使用 scale_y_continuous( #expand = c(0,0)) 会导致顶部的 显著性星号不显示。</p>
+<p>todo: 批量bar图，一次显示多个基因的差异。</p>
+
+<pre>
+counts_dir="/home/wangjl/data/rsa/kasumi-1/"
+
+# 载入 summarySE 函数，见上文 1 中的代码。
+
+# 1.load data----
+kasumi.raw=read.table("/home/wangjl/data/rsa/kasumi-1/counts/featureCounts_SRR1124_matrix2.txt",
+           skip = 1, row.names = 1, header = T)
+
+gene.counts = kasumi.raw[, 6:ncol(kasumi.raw)] #col5 length
+colnames(gene.counts) = sub("map.", "", colnames(gene.counts))
+colnames(gene.counts) = sub("_Aligned.sortedByCoord.out.bam", "", colnames(gene.counts))
+colnames(gene.counts)|>jsonlite::toJSON()
+# ["SRR11247521","SRR11247522","SRR11247523","SRR11247524", wt
+#  "SRR11247525","SRR11247526","SRR11247527","SRR11247528", kd1
+#  "SRR11247529","SRR11247530","SRR11247531","SRR11247532"] kd2
+
+gene.counts[1:5, 1:2]
+
+# rm all 0 rows
+dim(gene.counts) #61209    12
+gene.counts = gene.counts[ rowSums(gene.counts)>0, ]
+dim(gene.counts) #35330    12
+
+gene.counts[1:5, 1:10]
+
+gene.length = kasumi.raw[rownames(gene.counts),'Length']
+
+
+#2. normalize to TPM ----
+gene.tpm=apply(gene.counts, 2, function(x){
+  x1=x/gene.length
+  x1/sum(x1)*1e6
+})
+
+dim(gene.tpm) #35330 个基因，12个样本
+
+
+#3. draw bar plot with error bar and significance ----
+gene.symbol ="ITGAM"
+# get data
+gene.long = data.frame(
+  value = gene.tpm[gene.symbol,],
+  type = c( rep("wt",4), rep('kd1', 4), rep('kd2', 4) ),
+  gene=gene.symbol
+)
+
+gene.long$type=factor(gene.long$type, levels = c("wt", 'kd1', 'kd2') )
+gene.long |> head()
+
+> gene.long
+                value type  gene
+SRR11247521 1.4256497   wt ITGAM
+SRR11247522 2.0270137   wt ITGAM
+SRR11247523 0.7544062   wt ITGAM
+SRR11247524 0.9217557   wt ITGAM
+SRR11247525 4.0224827  kd1 ITGAM
+SRR11247526 3.6449108  kd1 ITGAM
+SRR11247527 3.6758330  kd1 ITGAM
+SRR11247528 3.5564203  kd1 ITGAM
+SRR11247529 6.8501709  kd2 ITGAM
+SRR11247530 6.9693542  kd2 ITGAM
+SRR11247531 7.2995709  kd2 ITGAM
+SRR11247532 7.8914830  kd2 ITGAM
+
+
+
+## mean among group ----
+sapply( split(gene.long$value, gene.long$type), mean )
+#      wt      kd1      kd2 
+#1.282206 3.724912 7.252645 
+
+
+## P value among group ----
+#gene.long$type
+> t.test(gene.long$value[1:4], gene.long$value[5:8] )$p.value #kd1 vs wt
+[1] 0.001694615
+> t.test(gene.long$value[1:4], gene.long$value[9:12] )$p.value #kd2 vs wt
+[1] 5.068546e-06
+
+
+## bar plot ----
+library(ggplot2)
+d2=gene.long # for jitter
+d3 = summarySE(gene.long, measurevar="value", groupvars=c("type")) #画 barplot
+
+#BiocManager::install('ggsignif')
+library("ggsignif")
+my_comparisons = list(c("wt","kd1"), c("wt","kd2"))
+
+set.seed(2023)
+ggplot(d3, aes(x=type, y=value)) + 
+  geom_bar(aes(fill=type), position=position_dodge(), stat="identity", 
+           width=0.8, show.legend = F) +
+  geom_errorbar(aes(ymin=value-ci, ymax=value+ci), #误差棒
+                width=.2, # Width of the error bars
+                position=position_dodge(.9)) +
+  geom_jitter(data=d2, aes(type,value), width=0.15, size=1) + #散点
+  geom_signif(data=d2, comparisons = my_comparisons, #显著性 星号
+              step_increase = 0.12,
+              map_signif_level = T, #T显示星号，F显示p值
+              test = t.test, size=0.5,textsize = 4)+
+  xlab("")+
+  ylab(bquote(paste( italic( .(gene.symbol) ), " Expression(TPM)") ) ) +
+  #scale_y_discrete(expand = c(0,0)) +
+  scale_y_continuous( #expand = c(0,0), 
+                     limits = c(0, max(d2$value)*1.2)) +
+  scale_x_discrete( limits=c("wt", "kd1", "kd2"), 
+                    breaks=c("wt", "kd1", "kd2"), 
+                    labels=c("shControl", "shFIP1L1(1)", "shFIP1L1(2)") ) +
+  theme_classic(base_size = 12) +
+  theme(
+    #plot.title=element_text(size = 12),
+    #axis.title.x=element_text(size = 12),
+    #axis.title.y=element_text(size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, colour = "black", size = 12),
+    axis.text.y=element_text(size=12, color="black")
+  )+
+  scale_fill_manual(breaks = c("wt", "kd1", "kd2"),
+                    values=c("#ed553b", "#99b433", "#00a300"))
+ 
+#
+ggsave( paste0("FIP1L1_KD/Kasumi-1_FIP1L1_KD_",gene.symbol,".pdf"), width =1.68, height=3.2)
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+<a name='t1_3'></a>
+<h2>1_3. barplot with Error bar 多组(ggplot2)</h2>
+<iframe src="images/002C_barplot-with-error-bar.pdf#toolbar=0&view=fit,100" width="400" height="260" ></iframe>
+<p>批量显示多个基因的mean+-sd。</p>
+
+<pre>
+# plot iris's 4 features's bar plot with sd, by Species
+dat.avg=do.call(rbind, lapply(split(iris[,1:4], iris$Species), function(x){
+  colMeans(x)
+}))
+dat.avg
+#           Sepal.Length Sepal.Width Petal.Length Petal.Width
+#setosa            5.006       3.428        1.462       0.246
+#versicolor        5.936       2.770        4.260       1.326
+#virginica         6.588       2.974        5.552       2.026
+
+dat.sd=do.call(rbind, lapply(split(iris[,1:4], iris$Species), function(x){
+  apply(x, 2, sd)
+}))
+dat.sd
+#           Sepal.Length Sepal.Width Petal.Length Petal.Width
+#setosa        0.3524897   0.3790644    0.1736640   0.1053856
+#versicolor    0.5161711   0.3137983    0.4699110   0.1977527
+#virginica     0.6358796   0.3224966    0.5518947   0.2746501
+
+# melt
+dat=reshape2::melt(dat.avg)
+colnames(dat)=c("type", "feature", "avg")
+dat$sd=reshape2::melt(dat.sd)$value
+head(dat, 3)
+#        type      feature   avg        sd
+#1     setosa Sepal.Length 5.006 0.3524897
+#2 versicolor Sepal.Length 5.936 0.5161711
+#3  virginica Sepal.Length 6.588 0.6358796
+
+pdf(paste0(outputRoot, "xx_barplot-with-error-bar.pdf"), width=4, height = 2.6)
+ggplot(dat) +
+  geom_bar( aes(x=type, y=avg, fill=type), stat="identity", alpha=0.7, show.legend = F) +
+  geom_errorbar( aes(x=type, ymin=avg-sd, ymax=avg+sd), 
+                 width=0.3, colour="black", alpha=1, size=0.5)+
+  facet_grid(~feature)+
+  scale_fill_manual(values = c("#fde725",  "#3ac96d",  "#440154"))+
+  theme_classic(base_size = 12)+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    strip.background = element_blank(), #top strip border
+    strip.text = element_text(size = 10, face = "italic")
+  )+
+  labs(x="", y="Average Value")
+dev.off()
+
+
+if(0){
+  #https://r-graph-gallery.com/4-barplot-with-error-bar.html
+  #sd
+  sd <- sd(vec)
+  sd <- sqrt(var(vec))
+  #se
+  se = sd(vec) / sqrt(length(vec))
+  # ci
+  alpha=0.05
+  t=qt((1-alpha)/2 + .5, length(vec)-1)   # tend to 1.96 if sample size is big enough
+  CI=t*se
+}
+</pre>
+
+
+
+
+
+<a name='t1_4'></a>
+<h2>1_4. violin + boxplot(ggplot2) / wide2long 宽变长</h2>
+<iframe src="images/002D_violin_boxplot.pdf#toolbar=0&view=fit,100" width="194" height="283" ></iframe>
+<p>(1)violin plot + boxplot;
+	(2)<a target="_blank" href="https://blog.csdn.net/wangjunliang/article/details/144632849">带p值版本(blog)</a>
+</p>
+
+<pre>
+#0.模拟数据
+dat.cell=iris
+colnames(dat.cell) = c( paste0("gene", 1:4), "cluster")
+rownames(dat.cell) = paste0("cell", 1:nrow(dat.cell))
+dim(dat.cell) #[1] 150   5
+dat.cell[1:2, c(1:2,ncol(dat.cell))]
+#      gene1 gene2 cluster
+#cell1   5.1   3.5  setosa
+#cell2   4.9   3.0  setosa
+
+
+#1.wide to long
+#library(tidyr)
+dat.long = tidyr::gather(data = dat.cell, key = gene, value = value, -c(cluster)) #保留cluster列
+head(dat.long)
+#  cluster  gene value
+#1  setosa gene1   5.1
+#2  setosa gene1   4.9
+dim(dat.long) #[1] 600   3
+
+
+#2. filter: 自己设定规则，比如过滤NA值 rm -1 value
+dat.long = dat.long[which(dat.long$value!=-1), ]
+
+
+#3.boxplot
+
+# cluster as factor
+dat.long$cluster = factor(dat.long$cluster, levels = unique(dat.long$cluster))
+
+# colors
+colorset.cluster = c(ggsci::pal_npg()(10), "#F2AF1C", "#668C13" ); colorset.cluster
+
+# plot
+library(ggplot2)
+p1=ggplot(dat.long, aes(x=cluster, y=value))+
+  geom_violin( aes(fill=cluster), alpha=0.5, show.legend = F, scale = "width")+
+  geom_boxplot(outliers = F, width=0.2)+
+  scale_fill_manual(values=colorset.cluster)+
+  labs(x="Cell cluster", y="Relative Expression")+
+  theme_classic(base_size = 14)+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+  );p1
+
+#4.save
+pdf(paste0("_violin_boxplot.pdf"), width=1.94, height=2.83)
+print(p1)
+dev.off()
+
+
+res=75
+png(paste0("_violin_boxplot.png"), width=1.94*75, height=2.83*75)
+print(p1)
+dev.off()
 </pre>
 
 
@@ -452,6 +745,37 @@ g + geom_text_repel(data=dd_text, aes(x=logFC, y=-log10(P.Value), label=dd_text$
 <p>脚本: <a target="_blank" href="visulization/volcano_singleCell.R">volcano_singleCell.R</a></p>
 <pre>
 ref: https://blog.csdn.net/wangjunliang/article/details/123093894
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t4_3'></a> //todo
+<h2>4_3. 单细胞多组对比火山图 & 带圆圈数字序号 的 文字注释</span></h2>
+<p>原图 <a href="https://pubmed.ncbi.nlm.nih.gov/31835037/">A Spatiotemporal Organ-Wide Gene Expression and Cell Atlas of the Developing Human Heart</a>, Cell 2019 fig2D,H</p>
+<!--
+width="710" height="820" *0.8
+-->
+<iframe src="images/004_3volcano_singleCell_multiGroup.pdf#toolbar=0&view=fit,100" width="568" height="656" ></iframe>
+<p>脚本: <a target="_blank" href="visulization/volcano_singleCell_multiGroup.R">volcano_singleCell_multiGroup.R</a></p>
+
+<br>
+<iframe src="images/004_3volcano_singleCell_circleAnnotation.pdf#toolbar=0&view=fit,100" width="280" height="230" ></iframe>
+
+
+<pre>
+ref: https://blog.csdn.net/wangjunliang/article/details/134850344
 </pre>
 
 
@@ -1261,7 +1585,11 @@ testSpan2(annote_row,annote_color, span=2) #页码上面的示例图就是这一
 <a name='t10'></a>
 <h2>10. 细胞周期界定及热图 cell_cycle_asignment_heatmap</h2>
 <p>目标图片: <a target="_blank" href="https://www.cell.com/abstract/S0092-8674(15)00549-8">2015 Cell, Drop seq, </a>Figure 4 Cell-Cycle Analysis of HEK and 3T3 Cells Analyzed by Drop-Seq.<br />
-细胞周期相关基因 list: A complete list of cell-cycle regulated genes can be found in <a target="_blank" href="images/010_Table_S2.zip" title="excel in zip file">Table S2</a></p>
+细胞周期相关基因 list: A complete list of cell-cycle regulated genes can be found in 
+<a target="_blank" href="images/010_Table_S2.zip" title="excel in zip file">Table S2.zip</a> Or
+<a target="_blank" href="images/010_Table_S2.txt" title="R list in txt file">txt</a>
+
+</p>
 <p>原文是一段非常高质量的R代码，充分展示了如何嵌套使用apply家族函数、如何函数嵌套、如何定义输入和输出。<br />
 下文为了方便理解，把原来的嵌套函数拆开了。</p>
 <img src="images/010_cell_cycle_asignment_heatmap.png"> 
@@ -1746,6 +2074,7 @@ dev.off()
 <a name='t13'></a>
 <h2>13. 大块文字(R text())</h2>
 <p>可以使用 text()</p>
+<p>或使用 ggplot2 的 geom_text() 和 geom_label()， 参考实现 <a href='#t4_3'>4_3</a>。</p>
 <img src="images/013_R_text.png">
 
 <pre>
@@ -1826,6 +2155,7 @@ POORLY CHARACTERIZED
 <a name='t14'></a>
 <h2>14. 重绘GO条形图(ggplot2)</h2>
 <p>怎么让GO分析结果更高大上呢？</p>
+
 <img src="images/014_ggplot_GObarplot.png">
 <pre> #数据源是 metascape 做的GO分析结果: http://www.metascape.org/
 
@@ -1891,7 +2221,283 @@ dev.off()</pre>
 
 
 
+<a name='t14_2'></a>
+<h2>14_2. GO barplot with gene list(ggplot2)</h2>
+<p>
+	水平barplot，带前n个基因列表。效果图见 <a target="_blank" href="https://blog.csdn.net/wangjunliang/article/details/147833522">csdn</a>
+	。
+</p>
 
+<pre>
+loadGOfromXLS=function(fname){
+  library(xlsx)
+  dat = read.xlsx(fname, sheetName = "Enrichment", encoding = 'UTF-8')
+  #dim(dat) #164 9
+  # (1)filter by p value
+  dt2=dat[which(dat$Log.q.value. < log10(0.05)),]
+  head(dt2[,c(1,2,3,6)])
+  #dim(dt2) #17 9
+  #colnames(dt2)
+  #1."GroupID"       "Category"      "Term"     "Description"   "LogP"          "Log.q.value." 
+  #7 "InTerm_InList" "Genes"         "Symbols"
+  
+  # (2)filter out duplicate terms
+  dt3=dt2[!duplicated(dt2[,'Description']),]
+  # (3) keep Summary only
+  dt4=dt3[grep('Summary',dt3$GroupID),]
+  return(dt4)
+}
+
+#' re-plot GO plot as barplot with gene list
+#'
+#' @param dt0 data.frame from metascape excel: loadGOfromXLS()
+#' @param spaceToX space to X axis
+#' @param spaceToY space to Y axis
+#' @param n_gene show gene number
+#' @param colors color list for filling bars and text
+#' @param without_category filter out those in Category
+#' @param select_rows which rows to draw barplot
+#' @param main the title for this figure
+#'
+#' @return ggplot2 object
+#' @export
+#'
+#' @examples
+GO_barplot_withGenes=function(dt0, #excel读入的数据
+                              spaceToX=0.2/5, #文字和x轴的缝隙
+                              spaceToY=0.1/0.2, #文字和y轴的缝隙
+                              n_gene=6, #最多显示的基因个数
+                              colors=NULL, #填充颜色
+                              without_category=c("WikiPathways"), #去掉某些类
+                              select_rows=NULL, #选择哪几行GO画图
+                              debug=F,
+                              main="Enrichment of PC1"
+  ){
+  # 1.select columns
+  dat4=dt0[, c("Log.q.value.", "Description", "Category", "Term", "Symbols")]
+  dat.use=dat4 #[, c("LogQvalue", "Description", "GroupID", "Symbols")]
+  dat.use$LogQvalue=dat4$Log.q.value.
+  dat.use$GroupID=dat4$Category
+
+  # 2.仅显示不超过n=5个基因
+  #n_gene=6 #最多保留的基因个数
+  dat.use$Symbols2=sapply(dat.use$Symbols, function(x){
+    arr=strsplit(x, ",")[[1]]
+    len=ifelse(length(arr)>n_gene, n_gene, length(arr));
+    arr=arr[1:len]
+    paste0(arr, collapse = ",")
+  }) |> as.character()
+  
+  # 3.filter by Category
+  dat.use=dat.use[which(!dat.use$GroupID %in% without_category),]
+  print(table(dat.use$Category))
+  
+  # 4.set y order: as factor
+  dat.use$Description=factor(dat.use$Description)
+
+  # 5.set colors
+  #cols=c("#D51F26","#00A08A","#F2AD00","#F98400","#5BBCD6")
+  n_cat=length(unique(dat.use$Category))
+  if(!is.null(colors)){
+    if(length(colors) < n_cat)
+      warning("Provide color number < needed categories! use default color set!")
+    else{
+      cols=colors
+    }
+  }else if( n_cat<=5 ){
+    cols=c("KEGG Pathway"="#D51F26",
+           "GO Biological Processes"="#00A08A",
+           "Reactome Gene Sets"="#F2AD00",
+           "Canonical Pathways"="#F98400",
+           "WikiPathways"="#5BBCD6")
+  }else{
+    cols=scales::hue_pal()(n_cat)
+  }
+  
+  # 6.combine Term and Desc
+  dat.use$Description=sprintf("(%s)%s", dat.use$Term, dat.use$Description)
+  if(debug==T){
+    dat.use$Description=paste(1:nrow(dat.use), dat.use$Description)
+  }
+
+  # 7.选择所需要的行 select rows to draw
+  dat.use2=dat.use;
+  # select rows
+  if(!is.null(select_rows)){
+    dat.use=dat.use[select_rows,]
+  }
+  
+  ############ Plot
+  library(ggplot2)
+  ggplot(dat.use, aes(x=-LogQvalue, y = Description, fill = GroupID)) +
+    #1. barplot of GO Q value
+    geom_bar(stat ="identity", width =0.5) +
+    geom_text(aes(x=spaceToY, #文字和y轴的缝隙
+                  y=Description, label=Description),
+              size=4,
+              #fontface="bold",
+              hjust=0) +
+    scale_fill_manual(values = cols)+ #bar plot fill color
+    scale_x_continuous(expand = c(0,0))+ #bar和y轴无间隔
+    #2. add gene list
+    geom_text(data = dat.use,
+              aes(x =spaceToY, #文字和y轴的缝隙
+                  y = Description, 
+                  label = Symbols2, #基因列表
+                  color = GroupID),
+              size =3.5,
+              fontface ='italic',
+              hjust =0,
+              vjust =2.3) +
+    scale_color_manual(values=cols) + #gene list text colors
+    #3. theme and style
+    theme_classic(base_size = 14)+
+    theme(axis.text.y = element_blank(), #no y title, ticks, text
+          axis.title.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line = element_line(colour ='black', linewidth =1),
+          axis.text.x = element_text(colour ='black', size =12),
+          axis.ticks.x = element_line(colour ='black', linewidth = 1),
+          axis.title.x = element_text(colour ='black', size =12),
+          plot.title = element_text(size = 12),
+          legend.position ="none")+ #no legend
+    scale_y_discrete( #expand = c(0.2, 0), #为bar下的字符留空间，缺点是上面也有空间了
+      expand=expansion(mult = c(spaceToX, 0)), #ggplot 3.5.1
+      limits=rev( dat.use$Description)  #设置bar的顺序
+    ) + 
+    labs(x="-Log10(Qvalue)", title=main)
+}
+
+# 实例
+fname="E:\\research\\scPolyA-seq2\\GO-sig-with-PC\\sig-with-PC3\\all.trp87ruab\\metascape_result.xlsx"
+dt4=loadGOfromXLS(fname) #函数见上文 14
+GO_barplot(dt4)
+
+p1=GO_barplot_withGenes(dt4,
+                        select_rows=c(1,2,3,4,5,6,8,9,15,16),
+                        debug=F,
+                        spaceToX=0.2/2.5,
+                        spaceToY=0.1/0.5,
+                        main="Genes associated with PC3(p.adj<0.01, n=485)"); p1
+
+pdf( paste0(outputRoot, "withPC3.pdf"), width=4.5, height=4.8)
+print(p1)
+dev.off()
+</pre>
+
+
+
+<a name='t14_3'></a>
+<h2>14_3. GO barplot with No gene list(ggplot2)</h2>
+<p>
+	水平浅色barplot，不带基因列表。效果图见: 14_2 csdn链接。
+</p>
+
+<pre>
+
+GO_barplot_withNoGenes=function(dt0, #excel读入的数据
+                                spaceToX=0.2/5, #文字和x轴的缝隙
+                                spaceToY=0.1/0.2, #文字和y轴的缝隙
+                                n_gene=6, #最多显示的基因个数
+                                colors=NULL, #填充颜色
+                                without_category=c("WikiPathways"), #去掉某些类
+                                select_rows=NULL, #选择哪几行GO画图
+                                debug=F, #调试模式：打印GO 编号和序号
+                                bg.alpha=0.3, #背景色的不透明度
+                                main="Enrichment of PC1"
+){
+  # 1.select columns
+  dat4=dt0[, c("Log.q.value.", "Description", "Category", "Term")]
+  dat.use=dat4 #[, c("LogQvalue", "Description", "GroupID")]
+  dat.use$LogQvalue=dat4$Log.q.value.
+  dat.use$GroupID=dat4$Category
+  # 2.保留前5个基因：略过
+  
+  # 3.filter by Category
+  dat.use=dat.use[which(!dat.use$GroupID %in% without_category),]
+  print(table(dat.use$Category))
+  
+  # 4.set y order: as factor
+  dat.use$Description=factor(dat.use$Description)
+  
+  # 5.set colors
+  #cols=c("#D51F26","#00A08A","#F2AD00","#F98400","#5BBCD6")
+  n_cat=length(unique(dat.use$Category))
+  if(!is.null(colors)){
+    if(length(colors) < n_cat)
+      warning("Provide color number < needed categories! use default color set!")
+    else{
+      cols=colors
+    }
+  }else if( n_cat<=5 ){
+    cols=c("KEGG Pathway"="#D51F26",
+           "GO Biological Processes"="#00A08A",
+           "Reactome Gene Sets"="#F2AD00",
+           "Canonical Pathways"="#F98400",
+           "WikiPathways"="#5BBCD6")
+  }else{
+    cols=scales::hue_pal()(n_cat)
+  }
+  
+  # 6.combine Term and Desc: in debug mode
+  if(debug==T){
+    dat.use$Description=sprintf("(%s)%s", dat.use$Term, dat.use$Description)
+    dat.use$Description=paste(1:nrow(dat.use), dat.use$Description)
+  }
+  
+  # 7.选择所需要的行 select rows to draw
+  dat.use2=dat.use;
+  # select rows
+  if(!is.null(select_rows)){
+    dat.use=dat.use[select_rows,]
+  }
+  
+  ############ Plot
+  library(ggplot2)
+  ggplot(dat.use, aes(x=-LogQvalue, y = Description, fill = GroupID)) +
+    #1. barplot of GO Q value
+    geom_bar(stat ="identity", width =0.7, alpha=bg.alpha) +
+    geom_text(aes(x=spaceToY, #文字和y轴的缝隙
+                  y=Description, label=Description),
+              size=4,
+              #fontface="bold",
+              hjust=0) +
+    scale_fill_manual(values = cols)+ #bar plot fill color
+    scale_x_continuous(expand = c(0,0))+ #bar和y轴无间隔
+    
+    #3. theme and style
+    theme_classic(base_size = 14)+
+    theme(axis.text.y = element_blank(), #no y title, ticks, text
+          axis.title.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line = element_line(colour ='black', linewidth =1),
+          axis.text.x = element_text(colour ='black', size =12),
+          axis.ticks.x = element_line(colour ='black', linewidth = 1),
+          axis.title.x = element_text(colour ='black', size =12),
+          plot.title = element_text(size = 12),
+          legend.position ="none")+ #no legend
+    scale_y_discrete( #expand = c(0.2, 0), #为bar下的字符留空间，缺点是上面也有空间了
+      expand=expansion(mult = c(spaceToX, 0)), #ggplot 3.5.1
+      limits=rev( dat.use$Description)  #设置bar的顺序
+    ) + 
+    labs(x="-Log10(Qvalue)", title=main)
+}
+
+fname="E:\\research\\scPolyA-seq2\\GO-sig-with-PC\\sig-with-PC1\\all.t_kfvpcyl\\metascape_result.xlsx"
+dt4=loadGOfromXLS(fname)
+GO_barplot(dt4)
+
+p1=GO_barplot_withNoGenes(dt4,
+                          select_rows=c(1,2,4,5,6,7,9,10,16,17),
+                          debug=F,
+                          spaceToX=0.2/2.5,
+                          spaceToY=0.2/0.5,
+                          main="Genes correlated with PC1(p.adj<0.01, n=1294)"); p1
+
+pdf( paste0(outputRoot, "withPC1-noGene.pdf"), width=4, height=3.5)
+print(p1)
+dev.off()
+</pre>
 
 
 
@@ -2145,7 +2751,6 @@ dev.off()
 
 
 
-
 <a name='t18'></a>
 <h2>18. density plot with 2 colors, annotation(原生+ggplot2)</h2>
 <img src="images/018_density_plot_annotation.png">
@@ -2233,6 +2838,79 @@ ggplot()+
   theme_bw()</pre>
 <p></p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a name='t18_2'></a>
+<h2>18_2. 按条件画密度图 density plot(ggplot2)</h2>
+<p>两步：1.宽变长，2.画密度分布图。</p>
+<iframe src="images/018_density_By_condition.pdf#toolbar=0&view=fit,100" width="500" height="210"></iframe>
+<pre>
+	> head(apaM.time, 3)
+					0h   18h   48h
+	chr1:16442:-   102   772   642
+	chr1:633932:-   20   123    37
+	chr1:944215:- 1277 18445 13133
+	
+	> dim(apaM.time)
+	[1] 40820     3
+
+# 1.宽变长
+pAcounts_per_gene=tidyr::pivot_longer(apaM.time, cols=c("0h", "18h", "48h"), 
+    names_to ="time",      #变量列名
+	values_to ="pAcounts") #值的列名
+
+	> head(pAcounts_per_gene)
+	# A tibble: 6 × 2
+	  time  pAcounts
+	  < chr>    < dbl>
+	1 0h         102
+	2 18h        772
+	3 48h        642
+
+	> dim(pAcounts_per_gene)
+	[1] 122460      2
+
+
+# 2.画图
+	> colorset.time
+		   0h       18h       48h 
+	"#FFA500" "#FF1493" "#4876FF"
+
+p2=ggplot(pAcounts_per_gene, aes(x=log10(1+pAcounts), fill=time))+
+    geom_density(alpha=0.6)+
+    #facet_wrap(~time, 
+    #    nrow = 3, 
+    #    scales = "free",
+    #)+
+    scale_fill_manual(values=colorset.time)+
+    theme_classic(base_size = 12)+
+    theme(
+        #strip.text.x = element_text(angle=0, 
+        #    #vjust=1,hjust = 1,
+        #    size=12), #分面标签 文字倾斜; 字号
+        plot.title = element_text(size = rel(1)),
+        #strip.background = element_blank()
+    )+
+    labs(x="lg(pA Counts + 1) per gene", y="Density", fill="time");
+
+pdf( paste0(outputRoot, keyword, "_02_non0-pAreads.time.density.pdf"), width=6, height=2.5)
+print(p2)
+dev.off()
+</pre>
 
 
 
@@ -2498,6 +3176,150 @@ g1
 dev.off()
 # 输出pdf矢量图，然后可以使用 Illustrator 编辑文字：添加换行、调整文字位置、字号等。</pre>
 
+
+
+
+
+
+
+
+
+
+
+
+<a name='t22'></a>
+<h2>22. 散点图 + 边缘密度分布 marginal density (ggplot2)</h2>
+<p>效果图见 <a target="_blank" href="https://blog.csdn.net/wangjunliang/article/details/139392652">边缘密度分布图 | ggExtra包/aplot拼图/ggpubr包 等的实现方法</a>@CSDN</p>
+<pre>
+# 1. ggExtra ----
+# 1. get data
+set.seed(2024)
+dat=diamonds[sample(1:nrow(diamonds), 1000),]
+library(ggplot2)
+# 2. base plot
+# with legend
+p1=ggplot(dat, aes(carat, price, color=clarity))+
+  geom_point()+
+  theme_classic()+
+  theme(
+    panel.border = element_rect(size = 1, colour = "black", fill="#00112200")
+  ); p1
+# no legend
+p2=ggplot(dat, aes(carat, price, color=clarity))+
+  geom_point(show.legend = F)+
+  theme_classic()+
+  theme(
+    panel.border = element_rect(size = 1, colour = "black", fill="#00112200")
+  ); p2
+
+# 3.margin density
+library(ggExtra)
+ggExtra::ggMarginal(p1+ggtitle("p1-A"), type = "density")
+ggMarginal(p1+ggtitle("p1-B"), colour = "red")
+
+# no legend
+ggMarginal(p2+ggtitle("p2-A"), groupColour = TRUE)
+ggMarginal(p2+ggtitle("p2-B"),type = "density",groupColour = TRUE,groupFill = TRUE)
+ggMarginal(p2+ggtitle("p2-C"),  
+           xparams=list( fill = c("deeppink")),
+           yparams=list( fill = c("navy")),
+           color=NA)
+
+
+
+
+## (2) ggExtra::plotCount ----
+ggExtra::plotCount(table(scObj$seurat_clusters), fill="orange")+
+  theme_classic()+ ggtitle("seurat_clusters")
+
+#dat2=(table(scObj$orig.ident, scObj$seurat_clusters) |> prop.table(margin = 2))*100
+#dat2
+#ggExtra::plotCount(dat2, fill=c("orange", "darkred" ) )+
+#  theme_classic()+ ggtitle("seurat_clusters")
+
+#barplot( (table(scObj$orig.ident, scObj$seurat_clusters) |> prop.table(margin = 2))*100, 
+#         col=colorset.sample )
+#
+
+
+
+
+
+
+# 2. ggplot2绘图+aplot拼图 ----
+library(RColorBrewer)
+len=length( unique(dat$clarity) ); len
+
+# upper density
+top_panel <- ggplot()+
+  geom_density(data = dat,
+               mapping=aes(carat, fill=clarity, color=clarity),
+               alpha=0.5)+
+  scale_fill_manual(values = brewer.pal(len,'Set2'))+ #设置填充颜色
+  scale_color_manual(values = brewer.pal(len,'Set2'))+ # 设置线的颜色
+  theme_void()+ # 设置主题
+  theme(legend.position="none") # 去除图例
+top_panel
+
+# 右侧密度分布图
+right_panel <- ggplot()+
+  geom_density(data=dat,
+               aes(price, fill=clarity,color=clarity),
+               alpha=0.5)+
+  scale_fill_manual(values = brewer.pal(len,'Set2'))+ #设置填充颜色
+  scale_color_manual(values = brewer.pal(len,'Set2'))+ # 设置线的颜色
+  theme_void()+ # 设置主题
+  coord_flip()+ # 翻转坐标轴
+  theme(legend.position="none")# 去除图例
+right_panel
+
+# aplot 包拼图
+library(aplot)
+p1 %>% insert_right(right_panel, width=.4) %>% insert_top(top_panel, height=0.2)  
+p2 %>% insert_right(right_panel, width=.4) %>% insert_top(top_panel, height=0.2)  
+#ggsave('plot2.pdf',width = 6,height = 5)
+
+
+
+
+
+
+# 3. ggpubr ----
+# fig1
+library(ggpubr)
+gp1<-ggscatterhist(
+  iris, x = "Sepal.Length", y = "Sepal.Width",
+  color = "Species", size = 3, alpha = 0.6)
+gp1
+# 不支持theme()
+# gp1+theme(panel.background = element_rect(fill="#00112200", color="black"))
+
+# fig2
+set.seed(2024)
+dat=diamonds[sample(1:nrow(diamonds), 1000),]
+
+ggscatterhist(
+  dat, x = "carat", y = "price",
+  color = "clarity", size = 2, alpha = 0.6)
+
+# fig3: 指定填充色
+ggscatterhist(
+  dat, x = "carat", y = "price",
+  color = "clarity", size = 3, alpha = 0.6,
+  #palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+  margin.params = list(fill = "clarity", color = "black", size = 0.2)
+)
+
+# Fig4：指定主图黑边框
+ggscatterhist(
+  dat, x = "carat", y = "price",
+  color = "clarity", size = 3, alpha = 0.6,
+  #palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+  margin.params = list(fill = "clarity", color = "black", size = 0.2),
+  ggtheme = theme_classic() + #指定周围边框
+    theme(panel.background = element_rect(fill="#00112200", color="black"))
+)
+</pre>
 
 
 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>colorsViewer | 颜色预览工具</title>
+    <style>
+		*{margin:0; padding:0}
+		.contents{margin:0 auto; width:800px;}
+        .color-box {
+            /*margin: 10px;*/
+            display: inline-block;
+        }
+        .preview-container {
+            margin-top: 20px;
+        }
+		textarea{width:800px; height:100px;}
+    </style>
+</head>
+
+<body>
+	<div class=contents>
+		<h1>Colors Viewer</h1>
+		<label for="colorList">输入颜色列表（HEX格式，用逗号分隔）:</label>
+		<br>
+		<textarea id="colorList" placeholder="you can input colors in hex format, like: #FF0000,#00FF00,#0000FF">
+"#A7312F", "#202583", "#4F88B8", "#F5A525", "#1B6B36", "#96238F",#DD44C8,'#000000
+</textarea>
+		<br>
+		<label for="width">宽度/width:</label>
+		<input type="number" id="width" value="200">
+		<label for="height">高度/height:</label>
+		<input type="number" id="height" value="50">
+		<br>
+		<button onclick="show()">预览/Submit</button>
+
+		<div class="preview-container" id="previewContainer"></div>
+
+		<div class="preview-container" id="previewContainer2"></div>
+
+	</div>
+
+<script>
+function getSettings(){
+	// 获取输入的颜色列表、宽度和高度
+	const colorListInput = document.getElementById('colorList').value;
+	const width = document.getElementById('width').value;
+	const height = document.getElementById('height').value;
+
+	// 去掉输入中的单引号、双引号和空格
+	const cleanedColorListInput = colorListInput.replace(/[\'\"\s]/g, '');
+	// 解析颜色列表
+	const colors = cleanedColorListInput.split(',').map(color => color.trim()).filter(color => color);
+	return([colors, width, height])
+}
+
+
+function previewColors(colors, width, height) {
+	// 清空之前的预览
+	const previewContainer = document.getElementById('previewContainer');
+	previewContainer.innerHTML = '';
+
+	// 创建颜色预览盒子
+	colors.forEach(color => {
+		const colorBox = document.createElement('div');
+		colorBox.className = 'color-box';
+		colorBox.style.backgroundColor = color;
+		colorBox.style.width = `${width}px`;
+		colorBox.style.height = `${height}px`;
+		previewContainer.appendChild(colorBox);
+	});
+}
+
+
+function displayHexColors(hexColors, barWidth = 100, barHeight = 100, textPosition = 'right') {
+	// Create a container to hold the color bars
+	//const container = document.createElement('div');
+	// 清空之前的预览
+	const container = document.getElementById('previewContainer2');
+	container.innerHTML = '';
+
+	//const container = document.createElement('div');
+	container.style.display = 'flex';
+	container.style.flexDirection = 'column';
+	container.style.gap = '0';
+
+	// Create and append color bars to the container
+	hexColors.forEach(hex => {
+		const colorBar = document.createElement('div');
+		const colorText = document.createElement('div');
+
+		// Style the color bar
+		colorBar.style.backgroundColor = hex;
+		colorBar.style.width = `${barWidth}px`;
+		colorBar.style.height = `${barHeight}px`;
+		colorBar.style.margin = '0';
+		colorBar.style.position = 'relative';
+		colorBar.style.display = 'flex';
+		colorBar.style.alignItems = 'center';
+		colorBar.style.justifyContent = textPosition === 'left' ? 'flex-start' : 'flex-end';
+
+		// Style the text container
+		colorText.textContent = hex;
+		colorText.style.color = 'white';
+		colorText.style.fontSize = '12px';
+		colorText.style.fontFamily = 'Arial, sans-serif';
+		colorText.style.background = 'rgba(0,0,0,0.5)';
+		colorText.style.padding = '2px 3px';
+		colorText.style.borderRadius = '3px';
+		colorText.style.margin = textPosition === 'left' ? '0 0 0 5px' : '0 5px 0 0';
+
+		// Append text to the color bar
+		colorBar.appendChild(colorText);
+
+		// Append the color bar to the container
+		container.appendChild(colorBar);
+	});
+
+	// Append the container to the body or a specific element
+	document.body.appendChild(container);
+}
+// Example usage:
+//const hexColors = ["#E64B35","#4DBBD5","#00A087","#3C5488","#F39B7F","#8491B4","#91D1C2","#DC0000","#7E6148","#B09C85","#F2AF1C","#668C13"];
+//displayHexColors(hexColors, 300, 30, 'right'); // Display in column with width 300px and height 50px, text on the right
+//displayHexColors(hexColors, 300, 50, 'left');  // Display in column with width 300px and height 50px, text on the left
+
+
+function show(){
+	const arr=getSettings()
+	previewColors(arr[0], arr[1], arr[2])
+	//displayHexColors(hexColors, 300, 30, 'right');
+	displayHexColors(arr[0], arr[1], arr[2], 'right');
+}
+</script>
+
+</body>
+</html>

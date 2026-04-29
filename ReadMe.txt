@@ -7,6 +7,7 @@ v0.1
 	脚本、代码（写好注释，写清楚版本号和依赖及其版本号）
 	测试数据（控制在100k以内）
 	在线工具集导航页
+	add single_script/ under each lang, to add once and for all script: & run demo
 #
 
 
@@ -54,6 +55,19 @@ R常用代码片段
 	火山图
 	雷达图
 
+	生存分析
+		do_Survival_using_TCGA-2024.5.R
+
+	脚本化运行：
+	R_scripts/single_script/template.script.R #模板，按最佳实践更新
+		* do_CytoTRACE.script.R
+		* do_monocle2.script.R
+		* do_CellCycle_Drop-seq2015.script.R
+		* do_Seurat.script.R
+		* do_Seurat_NMF.script.R
+		* init_project.R  初始化R项目的目录结构
+
+
 
 
 ========================
@@ -61,7 +75,10 @@ js常用代码片段
 	JavaScript/sankey/index.html 桑基图
 	JavaScript/mathJax_demo.html LaTeX Math Preview 预览数学公式
 	JavaScript/markdownReader/index_md.html  预览 markdown 文件
-	JavaScript/code_reader.html 预览 R code on Server件
+	JavaScript/code_reader.html 预览 R code on Server 文件
+	JavaScript/aminoAcid_Formater.html 输入基因序列，生成专利格式的氨基酸序列
+	JavaScript/ddl_timer.html 网页版ddl倒计时
+	JavaScript/TocNavigator_js.html 网页顶部目录
 #
 
 

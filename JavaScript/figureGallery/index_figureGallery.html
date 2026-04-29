@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+<style>
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: #f8f8f8;
+}
+#gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(540px, 1fr)); /* Adjust min width to control layout */
+	gap: 15px; /* Space between grid items */
+	padding: 10px;
+}
+.image-container {
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	overflow: hidden;
+	background-color: #fff;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	transition: box-shadow 0.2s;
+	width: calc(93.33% - 10px); /* 每行显示 3 张图片，减去边距 */
+}
+.image-container:hover {
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.image-container img {
+	width: 100%; /* Make image responsive within the container */
+	height: auto; /* Maintain aspect ratio */
+}
+/* Optional: Centering caption text */
+.image-container p {
+	text-align: center;
+	margin: 5px 0;
+	padding: 5px;
+	font-size: 16px;
+	color: #333;
+}
+
+
+.small{
+	font-size:small;
+}
+p{padding:5px;}
+</style>
+
+
+
+</head>
+<body>
+
+<h1>Gallery <span class=small>v0.1</span></h1>
+
+<p>How to use?<br>
+1. Images place in images/; and <br>
+2. Image names place in "images.json" with contents like {"images": ["a.jpg", "b.jpg"]}; <br>
+3. Refresh page to view and click figure to view in new page.</p>
+
+
+<div id="gallery"></div>
+
+
+<script>
+/* CSS Flexbox
+$ cat images.json
+{
+	"images": ["a.png", "b.jpg"]
+}
+
+version
+* v0.1 可用
+
+*/
+	// 获取图片列表
+    async function fetchImages() {
+        try {
+            const response = await fetch('images.json');
+            const data = await response.json();
+            displayImages(data.images);
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        }
+    }
+
+    // 显示图片
+    function displayImages(images) {
+        const gallery = document.getElementById('gallery');
+        images.forEach(image => {
+            const container = document.createElement('div');
+            container.className = 'image-container';
+			
+			const link = document.createElement('a');
+			link.href = `${image}`;
+			link.target = '_blank'; // 在新窗口中打开
+
+            const img = document.createElement('img');
+            img.src = `${image}`;
+            img.alt = image;
+
+            const caption = document.createElement('p');
+            caption.textContent = `${image}`;;
+
+            link.appendChild(img);
+			container.appendChild(link);
+            container.appendChild(caption);
+            gallery.appendChild(container);
+        });
+    }
+
+    // 初始化
+    fetchImages();
+
+
+</script>
+
+
+
+<hr>
+&copy 2024 BioMooc.com | <a target="_blank" href="https://github.com/DawnEve/bioToolKit/tree/master/JavaScript/figureGallery/">figure Gallery @Github</a>
+<br>
+End
+</body>
+</html>

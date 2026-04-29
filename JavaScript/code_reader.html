@@ -2,7 +2,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Code Reader | 
-v0.2 |
+v0.3 |
 Single file app
 </title>
 <!--
@@ -26,12 +26,15 @@ change logs:
 ##############################
 v0.1 basic
 v0.2 try to use Prism to hightlight code, but failed
+v0.3 add line number for code;
+v0.4 update getUrlParam()
 -->
 
 
 <style>
 html, body, p, div{margin:0; padding:0;}
 html{background:#000;}
+a {color: deeppink;}
 .center{
 	color:#aaa;
 	text-align: center;
@@ -73,6 +76,19 @@ html{background:#000;}
 	word-wrap: break-word;
     white-space: pre-wrap;
 }
+
+
+
+/* code line number
+https://webtips.dev/add-line-numbers-to-html-textarea
+*/
+pre{counter-reset: linenumber;}
+pre > code > span::before{
+	content: counter(linenumber, decimal-leading-zero) " ";
+	counter-increment: linenumber;
+	color:#506882;
+}
+pre > code > span{display: block;}
 </style>
 </head>
 
@@ -100,10 +116,15 @@ html{background:#000;}
 <script>
 // Tools
 //get parameters from URL
+// v2 add decodeURIComponent()，为适应中文破折号
 function getUrlParam(name) {
+	var queryString = window.location.search.substr(1);
 	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
-	var r = window.location.search.substr(1).match(reg);  //匹配目标参数
-	if (r != null) return unescape(r[2]); return null; //返回参数值
+	var r = queryString.match(reg);  //匹配目标参数
+	if (r != null){
+		return unescape( decodeURIComponent( r[2]) );
+	}
+	return null; //返回参数值
 }
 
 
@@ -138,9 +159,18 @@ function ajax(fileName, obj){
 	xmlhttp.onreadystatechange=function(){
 		if (xmlhttp.readyState==4 && xmlhttp.status==200){
 			var text =xmlhttp.responseText;
-			//2.1替换html标签为实体
+			//3. 替换html标签为实体
 			text = convertHTML(text);
-			obj.innerHTML= "$ cat "+fileName +"<br>" + text;
+
+			//4. add file header
+			obj.innerHTML= "$ cat "+fileName +"<br><br>";
+
+			//5. add span for each line in code file
+			var lines=text.split("\n");
+			for(var i=0; i<lines.length; i++){
+				obj.innerHTML += "<span>" + lines[i] + "</span>";
+			}
+
 		}else{
 			obj.innerHTML= "FileNotFoundError: "+fileName +" ";
 		}

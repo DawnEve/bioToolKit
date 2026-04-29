@@ -5,6 +5,7 @@
 <script src="/StackNote/static/js/lib/marked-2.0.3.js"></script>
 <link rel="stylesheet" type="text/css" href="/StackNote/static/css/MarkDown.css" media="all">
 v0.1 only js markdown reader;
+v0.2 可原样显示txt文件
 -->
 <script src="https://note.biomooc.com/static/js/lib/marked-2.0.3.js"></script>
 <link rel="stylesheet" type="text/css" href="https://note.biomooc.com/static/css/MarkDown.css" media="all">
@@ -55,6 +56,16 @@ function getUrlParam(name) {
 	if (r != null) return unescape(r[2]); return null; //返回参数值
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 //ajax get file contents;
 function ajax(fileName, obj){
 	var xmlhttp=new XMLHttpRequest(); //1.获取对象
@@ -62,7 +73,15 @@ function ajax(fileName, obj){
 	xmlhttp.onreadystatechange=function(){
 		if (xmlhttp.readyState==4 && xmlhttp.status==200){
 			//wjl=marked.parse(xmlhttp.responseText);
-			obj.innerHTML= marked(xmlhttp.responseText);
+			if(fileName.endsWith(".md")){
+				obj.innerHTML= marked(xmlhttp.responseText);
+			}else if(fileName.endsWith(".txt")){
+				var html_data=xmlhttp.responseText
+				// 替换<标签
+				obj.innerHTML="<pre>"+ escapeHtml(html_data)+"</pre>";
+			}else{
+				obj.innerHTML=html_data
+			}
 		}
 	}
 	//3.设定访问的url
