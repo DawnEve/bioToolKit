@@ -24,7 +24,7 @@ pre{
 </style>
 </head>
 <body>
-    <h1>TocNavigator.js</h1>
+    <h1>标题1 TocNavigator.js</h1>
 	
 	<h2>How to use?</h2>
 <pre>
@@ -36,19 +36,25 @@ step2: paste in the Object of "TocNavigator", press Enter.
 step3: run: > TocNavigator.init()<br>
 Then you get the Contents of this page on your right corner.</pre>
 	
-    <h1>标题1</h1>
-    <p>内容...</p>
-    <h2>标题1.1</h2>
-    <p>内容...</p>
-    <h3>标题1.1.1</h3>
-    <p>内容...</p>
-    <h2>标题1.2</h2>
-    <p>内容...</p>
     <h1>标题2</h1>
     <p>内容...</p>
     <h2>标题2.1</h2>
     <p>内容...</p>
     <h3>标题2.1.1</h3>
+    <p>内容...</p>
+    <h2>标题2.2</h2>
+    <p>内容...</p>
+    <h1>标题3</h1>
+    <p>内容...</p>
+    <h2>标题3.1</h2>
+    <p>内容...</p>
+
+    <h3>标题3.1.1</h3>
+    <h4>标题3.1.1.1</h4>
+    <h4>标题3.1.1.2</h4>
+    <h5>标题3.1.1.2.1</h5>
+    <h6>标题3.1.1.2.1.1</h6>
+    <h2>标题3.2</h2>
     <p>内容...</p>
 	<p></p>
 	<p></p>
@@ -56,8 +62,9 @@ Then you get the Contents of this page on your right corner.</pre>
 
     <script>
 const TocNavigator = {
-	version: "0.3",
-	styles:'#toc{position:fixed;top:20px;right:50px;width:250px;background-color:#f9f9f9;border:1px solid#ccc;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);padding:10px;z-index:1000;display:none;right: 50px;max-height: 80vh;overflow-y: auto;}#toc h2{margin-top:0}#toc ul{list-style:none;padding-left:0px}#toc li{margin:5px 0;cursor:pointer}#toc li.active{font-weight:bold;color:#007bff}#toc-toggle{position:fixed;top:20px;right:0;width:30px;height:30px;background-color:#007bff;color:#fff;border:none;border-radius:15px;cursor:pointer;z-index:1001}.toc-level-1{font-weight:bold;padding-left:0}.toc-level-2 :nth-child(2){padding-left:10px}.toc-level-3 :nth-child(2){padding-left:20px}.toc-level-1:after{content:"H1";color:#efefef}.toc-level-2:after{content:"H2";color:#efefef}.toc-level-3:after{content:"H3";color:#efefef}.toc-level-1:hover:after,.toc-level-2:hover:after,.toc-level-3:hover:after{color:#eaa}',
+	version: "0.4",
+	styles:'#toc{position:fixed;top:20px;left:auto;width:250px;background-color:#f9f9f9;border:1px solid#ccc;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);padding:10px;z-index:1000;display:none;max-height:80vh;overflow-y:auto;}#toc h2{margin-top:0}#toc ul{list-style:none;padding-left:0px}#toc li{margin:5px 0;cursor:pointer}#toc li.active{font-weight:bold;color:#007bff}#toc-toggle{position:fixed;top:20px;right:10px;width:30px;height:30px;background-color:#007bff;color:#fff;border:none;border-radius:15px;cursor:pointer;z-index:1001}.toc-level-1{font-weight:bold;padding-left:0}.toc-level-2{padding-left:10px}.toc-level-3{padding-left:20px}	.toc-level-4{padding-left:30px}.toc-level-5{padding-left:40px}.toc-level-6{padding-left:50px}	.toc-level-1:after{content:"H1";color:#efefef}.toc-level-2:after{content:"H2";color:#efefef}.toc-level-3:after{content:"H3";color:#efefef}.toc-level-1:hover:after,.toc-level-2:hover:after,.toc-level-3:hover:after{color:#eaa}',
+
 	/*返回创建的dom元素；参数1必须*/
 	createElement(tag, json, innerHTML){
 		var json=json||{};
@@ -117,20 +124,52 @@ const TocNavigator = {
 	},
 
 	generateToc() {
-		var counter=0;
+		// 层级计数器：记录当前 H1、H2、H3 的序号
+		const counters = { h1: 0, h2: 0, h3: 0 };
+		let lastH1Index = -1;  // 记录上一个有效 H1 的索引位置
 		
 		this.headings.forEach((heading, index) => {
-			if(this.trim(heading.textContent)!=""){
-				// 更新计数器
-				counter++;
+			if (this.trim(heading.textContent) != "") {
+				const tag = heading.tagName.toLowerCase();
+				let numberStr = '';
+				
+				// 根据标题级别计算编号
+				if (tag === 'h1') {
+					counters.h1++;
+					counters.h2 = 0;  // H1 变化时重置 H2/H3
+					counters.h3 = 0;
+					numberStr = `${counters.h1}`;
+					lastH1Index = this.tocList.children.length; // 记录当前 H1 在列表中的位置
+					
+				} else if (tag === 'h2') {
+					if (counters.h1 === 0) {
+						// 如果 H2 出现在第一个 H1 之前，使用 0.x 格式
+						numberStr = `0.${++counters.h2}`;
+					} else {
+						numberStr = `${counters.h1}.${++counters.h2}`;
+					}
+					counters.h3 = 0;  // H2 变化时重置 H3
+					numberStr=""; //二级标题前也不显示数字
+					
+				} else if (tag === 'h3') {
+					counters.h3++;
+					numberStr = '';
+				} else {
+					// h4-h6 不显示编号
+					numberStr = '';
+				}
 				
 				const li = document.createElement('li');
-				li.append(this.createElement("span",{"style":"color:#ddd; margin:0 5px;"}, counter))
-				li.append(this.createElement("span",{}, heading.textContent))
-				//li.textContent = `${counter} ${heading.textContent}`;
+				
+				// 有编号才显示数字部分
+				if (numberStr) {
+					li.append(this.createElement("span", {"style": "color:#ddd; margin:0 5px;"}, numberStr));
+				}
+				
+				li.append(this.createElement("span", {}, heading.textContent));
 				li.dataset.targetId = `heading-${index}`;
 				heading.id = `heading-${index}`;
-
+				
 				// 根据标题级别添加不同的类名
 				if (heading.tagName === 'H1') {
 					li.classList.add('toc-level-1');
@@ -138,35 +177,64 @@ const TocNavigator = {
 					li.classList.add('toc-level-2');
 				} else if (heading.tagName === 'H3') {
 					li.classList.add('toc-level-3');
+				} else if (heading.tagName === 'H4') {
+					li.classList.add('toc-level-4');
+				} else if (heading.tagName === 'H5') {
+					li.classList.add('toc-level-5');
+				} else if (heading.tagName === 'H6') {
+					li.classList.add('toc-level-6');
 				}
-
+				
 				li.addEventListener('click', () => {
 					document.getElementById(li.dataset.targetId).scrollIntoView({ behavior: 'smooth' });
 					document.querySelectorAll('#toc li').forEach(el => el.classList.remove('active'));
 					li.classList.add('active');
 				});
-
+				
 				this.tocList.appendChild(li);
 			}
-			
 		});
 	},
 
 	addEventListeners() {
 		this.tocToggle.addEventListener('click', this.toggleToc.bind(this));
 		this.tocToggle.addEventListener('mousedown', this.startDrag.bind(this));
+		this.bindScroll(); //滚轮时高亮显示
 	},
-
+	
+	
 	toggleToc() {
 		if (this.toc.style.display === 'block') {
 			this.toc.style.display = 'none';
-			const toggleRect = this.tocToggle.getBoundingClientRect();
-			this.toc.style.top = `${toggleRect.top}px`;
-			this.toc.style.right = `${window.innerWidth - toggleRect.left + 10}px`; // 显示在按钮左侧
-		} else {
-			this.toc.style.display = 'block';
+			return;
 		}
+
+		// 关键：先临时显示获取宽度，再重新计算位置
+		this.toc.style.display = 'block';
+		this.toc.style.visibility = 'hidden'; // 隐藏可见性避免闪烁
+		
+		const btnRect = this.tocToggle.getBoundingClientRect();
+		const tocWidth = this.toc.offsetWidth;
+		const winWidth = window.innerWidth;
+		
+		// 默认目录显示在按钮左侧（更符合直觉，避免右侧溢出）
+		let leftPos = btnRect.left - tocWidth - 10;
+		
+		// 如果左侧空间不足，则显示在右侧
+		if (leftPos < 10) {
+			leftPos = btnRect.right + 10;
+		}
+		
+		// 防止右侧溢出
+		if (leftPos + tocWidth > winWidth - 10) {
+			leftPos = winWidth - tocWidth - 10;
+		}
+		
+		this.toc.style.left = `${Math.max(10, leftPos)}px`;
+		this.toc.style.top = `${btnRect.top}px`;
+		this.toc.style.visibility = 'visible';
 	},
+
 
 	startDrag(e) {
 		//console.log("start to drag", e);
@@ -176,16 +244,29 @@ const TocNavigator = {
 		document.addEventListener('mousemove', this.onMouseMove.bind(this));
 		document.addEventListener('mouseup', this.onMouseUp.bind(this));
 	},
-
+	
+	
 	onMouseMove(e) {
-		if (this.isDragging) {
-			this.tocToggle.style.left = `${e.clientX - this.offsetX}px`;
-			this.tocToggle.style.top = `${e.clientY - this.offsetY}px`;
-			/*调整toc位置与按钮同步*/
-			this.toc.style.left = `${e.clientX - this.offsetX - this.toc.offsetWidth - 10}px`;
-			this.toc.style.top = `${e.clientY - this.offsetY}px`;
+		if (!this.isDragging) return;
+
+		const x = e.clientX - this.offsetX;
+		const y = e.clientY - this.offsetY;
+
+		// 一旦拖动，就清空 right，只用 left
+		this.tocToggle.style.right = 'auto';
+		this.tocToggle.style.left = `${x}px`;
+		this.tocToggle.style.top = `${y}px`;
+
+		// 拖动时智能显示在另一侧
+		const winWidth = window.innerWidth;
+		if (winWidth - x < 100) {
+			this.toc.style.left = `${x - this.toc.offsetWidth - 10}px`;
+		} else {
+			this.toc.style.left = `${x + this.tocToggle.offsetWidth + 10}px`;
 		}
+		this.toc.style.top = `${y}px`;
 	},
+
 
 	onMouseUp() {
 		this.isDragging = false;
@@ -193,6 +274,38 @@ const TocNavigator = {
 		document.removeEventListener('mouseup', this.onMouseUp.bind(this));
 	},
 	help: "TocNavigator.init()",
+
+
+
+	// 滚动时更新高亮
+	updateActiveOnScroll() {
+		const scrollPos = window.scrollY + 100; // 偏移100px更友好
+		let activeIndex = -1;
+
+		this.headings.forEach((heading, index) => {
+			const top = heading.offsetTop;
+			if (top <= scrollPos) {
+				activeIndex = index;
+			}
+		});
+
+		// 清除所有 active
+		document.querySelectorAll('#toc li').forEach(el => el.classList.remove('active'));
+		
+		// 给当前项加 active
+		if (activeIndex >= 0) {
+			const item = document.querySelector(`#toc li[data-target-id="heading-${activeIndex}"]`);
+			item?.classList.add('active');
+		}
+	},
+
+	// 绑定滚动事件（在 addEventListeners 里调用）
+	bindScroll() {
+		window.addEventListener('scroll', this.updateActiveOnScroll.bind(this));
+		// 初始化就执行一次，避免刚打开没高亮
+		this.updateActiveOnScroll();
+	},
+
 };
 
 //document.addEventListener('DOMContentLoaded', () => TocNavigator.init());
