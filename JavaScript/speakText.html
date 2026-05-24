@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>English text reader | 文本朗读工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            resize: vertical;
+        }
+        .control-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        select, button {
+            padding: 10px 14px;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #2d7ff9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button.stop {
+            background: #ff4d4f;
+        }
+        select {
+            flex: 1;
+            min-width: 250px;
+        }
+		
+		.comment{
+			color: grey;
+			padding-top: 10px;
+			font-size:12px;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>English text reader</h2>
+        <textarea id="textInput" placeholder="Input English text here ...">
+Harry has at last found love at Hogwarts. His close friend, Colin Creevey, says that Harry is rarely seen out of the company of one Hermione Granger, a stunningly pretty Muggle-born girl who, like Harry, is one of the top students in the school.
+		</textarea>
+        
+        <div class="control-row">
+            <select id="voiceSelect">
+                <option value="">加载语音中...</option>
+            </select>
+            <button onclick="playText()">▶ Read</button>
+            <button class="stop" onclick="stopSpeech()">⏹ Stop</button>
+        </div>
+    </div>
+
+<p class="comment">* 依赖现代浏览器自带的语音合成功能</p>
+<p class="comment">* 推荐语音: en-GB, en-US</p>
+
+<script>
+// 全局存储：所有英文语音列表
+let englishVoices = [];
+
+// 页面加载后自动加载所有 en- 开头的语音
+window.addEventListener('DOMContentLoaded', loadEnglishVoices);
+window.speechSynthesis.onvoiceschanged = loadEnglishVoices;
+
+/**
+ * 加载浏览器支持的所有英文语音（en- 开头）
+ */
+function loadEnglishVoices() {
+    if (!window.speechSynthesis) return;
+    
+    const allVoices = window.speechSynthesis.getVoices();
+    // 只保留 en- 开头的英文语音
+    //englishVoices = allVoices.filter(voice => voice.lang.startsWith('en-'));
+	englishVoices = allVoices.filter(voice => voice.lang.startsWith('en-') || voice.lang.startsWith('zh-'));
+    
+    const voiceSelect = document.getElementById('voiceSelect');
+    voiceSelect.innerHTML = '';
+    
+    if (englishVoices.length === 0) {
+        voiceSelect.innerHTML = '<option value="">未检测到英文语音</option>';
+        return;
+    }
+    
+    // 填充下拉框
+    englishVoices.forEach((voice, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelect.appendChild(option);
+    });
+	
+	// 默认选中英国female
+	const defaultIdx = englishVoices.findIndex(v => 
+	  v.lang === 'en-GB' && v.name.toLowerCase().includes('female')
+	);
+	if (defaultIdx !== -1) voiceSelect.value = defaultIdx;
+}
+
+/**
+ * 朗读文本
+ * @param {string} text 要朗读的文本
+ */
+function speakText(text) {
+    if (!window.speechSynthesis) {
+        alert("你的浏览器不支持语音合成");
+        return;
+    }
+    if (!text.trim()) {
+        alert("请输入文本");
+        return;
+    }
+    if (englishVoices.length === 0) {
+        alert("未加载到可用的英文语音");
+        return;
+    }
+
+    // 停止当前播放
+    window.speechSynthesis.cancel();
+
+    // 获取选中的语音
+    const voiceSelect = document.getElementById('voiceSelect');
+    const selectedIndex = parseInt(voiceSelect.value) || 0;
+    const selectedVoice = englishVoices[selectedIndex];
+
+    // 创建朗读对象
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = selectedVoice;
+    utterance.lang = selectedVoice.lang;
+    utterance.rate = 0.9;   // 语速
+    utterance.pitch = 1.0;  // 音调
+
+    // 播放
+    window.speechSynthesis.speak(utterance);
+}
+
+/**
+ * 播放按钮调用
+ */
+function playText() {
+    const text = document.getElementById('textInput').value;
+    speakText(text);
+}
+
+/**
+ * 停止朗读
+ */
+function stopSpeech() {
+    window.speechSynthesis.cancel();
+}
+</script>
+</body>
+</html>
